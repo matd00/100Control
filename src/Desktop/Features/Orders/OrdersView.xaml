@@ -507,11 +507,76 @@
                                     </Grid>
                                 </Border>
 
-                                <!-- Dimensões Calculadas -->
+                                <!-- CEPs Origem e Destino -->
+                                <Border Background="#E0F2FE" CornerRadius="8" Padding="16" Margin="0,0,0,16">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="📍 CEP ORIGEM" FontSize="10" Foreground="#0369A1" FontWeight="Bold"/>
+                                            <TextBlock Text="{Binding OriginPostalCode}" FontSize="16" FontWeight="Bold" Foreground="#0C4A6E"/>
+                                            <TextBlock Text="(Configurado)" FontSize="10" Foreground="#64748B"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="→" FontSize="24" Foreground="#0369A1" VerticalAlignment="Center" Margin="20,0"/>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="📍 CEP DESTINO" FontSize="10" Foreground="#0369A1" FontWeight="Bold"/>
+                                            <TextBlock Text="{Binding DestinationPostalCode}" FontSize="16" FontWeight="Bold" Foreground="#0C4A6E"/>
+                                            <TextBlock Text="(Cliente)" FontSize="10" Foreground="#64748B"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Dimensões do Pacote -->
                                 <Border Background="#FEF3C7" CornerRadius="8" Padding="16" Margin="0,0,0,20">
                                     <StackPanel>
-                                        <TextBlock Text="📐 Dimensões do Pacote (calculadas automaticamente)" FontSize="12" FontWeight="SemiBold" Foreground="#92400E" Margin="0,0,0,12"/>
-                                        <Grid>
+                                        <!-- Header com toggle -->
+                                        <Grid Margin="0,0,0,12">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="📐 Dimensões do Pacote" FontSize="12" FontWeight="SemiBold" Foreground="#92400E"/>
+                                                <Border Padding="6,2" CornerRadius="4" Margin="8,0,0,0">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Background" Value="#FDE68A"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsManualDimensionsMode}" Value="True">
+                                                                    <Setter Property="Background" Value="#FCA5A5"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <TextBlock FontSize="10" FontWeight="Bold">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Text" Value="AUTOMÁTICO"/>
+                                                                <Setter Property="Foreground" Value="#92400E"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsManualDimensionsMode}" Value="True">
+                                                                        <Setter Property="Text" Value="MANUAL"/>
+                                                                        <Setter Property="Foreground" Value="#991B1B"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Border>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                <Button Content="✏️ Editar" Command="{Binding ToggleDimensionsModeCommand}" 
+                                                        Padding="8,4" FontSize="10" Background="#FDE68A" Foreground="#92400E" 
+                                                        BorderThickness="0" Cursor="Hand" Margin="0,0,8,0"
+                                                        Visibility="{Binding IsAutoDimensionsMode, Converter={StaticResource BoolToVisibility}}"/>
+                                                <Button Content="🔄 Recalcular" Command="{Binding RecalculateDimensionsCommand}" 
+                                                        Padding="8,4" FontSize="10" Background="#22C55E" Foreground="White" 
+                                                        BorderThickness="0" Cursor="Hand"
+                                                        Visibility="{Binding IsManualDimensionsMode, Converter={StaticResource BoolToVisibility}}"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Dimensões (modo visualização) -->
+                                        <Grid Visibility="{Binding IsAutoDimensionsMode, Converter={StaticResource BoolToVisibility}}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="*"/>
@@ -535,6 +600,37 @@
                                                 <TextBlock Text="{Binding CalculatedLength, StringFormat='{}{0} cm'}" FontWeight="Bold" Foreground="#78350F"/>
                                             </StackPanel>
                                         </Grid>
+
+                                        <!-- Dimensões (modo edição) -->
+                                        <Grid Visibility="{Binding IsManualDimensionsMode, Converter={StaticResource BoolToVisibility}}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Margin="0,0,4,0">
+                                                <TextBlock Text="Peso (kg)" FontSize="10" Foreground="#92400E"/>
+                                                <TextBox Text="{Binding CalculatedWeight, UpdateSourceTrigger=PropertyChanged}" 
+                                                         Style="{StaticResource ModernTextBox}" Padding="8,6" FontWeight="Bold"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Margin="4,0">
+                                                <TextBlock Text="Largura (cm)" FontSize="10" Foreground="#92400E"/>
+                                                <TextBox Text="{Binding CalculatedWidth, UpdateSourceTrigger=PropertyChanged}" 
+                                                         Style="{StaticResource ModernTextBox}" Padding="8,6" FontWeight="Bold"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2" Margin="4,0">
+                                                <TextBlock Text="Altura (cm)" FontSize="10" Foreground="#92400E"/>
+                                                <TextBox Text="{Binding CalculatedHeight, UpdateSourceTrigger=PropertyChanged}" 
+                                                         Style="{StaticResource ModernTextBox}" Padding="8,6" FontWeight="Bold"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="3" Margin="4,0,0,0">
+                                                <TextBlock Text="Compr. (cm)" FontSize="10" Foreground="#92400E"/>
+                                                <TextBox Text="{Binding CalculatedLength, UpdateSourceTrigger=PropertyChanged}" 
+                                                         Style="{StaticResource ModernTextBox}" Padding="8,6" FontWeight="Bold"/>
+                                            </StackPanel>
+                                        </Grid>
+
                                         <TextBlock Text="{Binding ShippingRuleApplied}" FontSize="11" Foreground="#92400E" Margin="0,12,0,0" FontStyle="Italic"/>
                                     </StackPanel>
                                 </Border>

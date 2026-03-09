@@ -3,6 +3,7 @@ using System.Windows.Input;
 using Desktop.Infrastructure.MVVM;
 using Domain.Entities;
 using Domain.Interfaces.Repositories;
+using Integrations.SuperFrete.Configuration;
 using Integrations.SuperFrete.Interfaces;
 using Integrations.SuperFrete.Models;
 
@@ -14,6 +15,7 @@ namespace Desktop.Features.Orders
         private readonly ICustomerRepository _customerRepository;
         private readonly IProductRepository _productRepository;
         private readonly ISuperFreteService _superFreteService;
+        private readonly SuperFreteSettings _superFreteSettings;
 
         private int _currentStep = 1;
         private OrderItemViewModel _selectedOrder;
@@ -26,6 +28,8 @@ namespace Desktop.Features.Orders
         private int _calculatedHeight;
         private int _calculatedLength;
         private string _shippingRuleApplied = string.Empty;
+        private bool _isManualDimensionsMode;
+        private string _originPostalCode = string.Empty;
 
         public int CurrentStep
         {
@@ -134,6 +138,29 @@ namespace Desktop.Features.Orders
             set => SetProperty(ref _shippingRuleApplied, value);
         }
 
+        public bool IsManualDimensionsMode
+        {
+            get => _isManualDimensionsMode;
+            set
+            {
+                if (SetProperty(ref _isManualDimensionsMode, value))
+                {
+                    OnPropertyChanged(nameof(IsAutoDimensionsMode));
+                    if (!value) CalculateShippingDimensions();
+                }
+            }
+        }
+
+        public bool IsAutoDimensionsMode => !IsManualDimensionsMode;
+
+        public string OriginPostalCode
+        {
+            get => _originPostalCode;
+            set => SetProperty(ref _originPostalCode, value);
+        }
+
+        public string DestinationPostalCode => SelectedCustomer?.ZipCode ?? "Não selecionado";
+
         public string OrderTotalFormatted => string.Format("R$ {0:N2}", OrderItems.Sum(i => i.Subtotal));
         public string GrandTotalFormatted => string.Format("R$ {0:N2}", OrderItems.Sum(i => i.Subtotal) + (SelectedShipping != null ? SelectedShipping.Price : 0));
 
@@ -164,18 +191,25 @@ namespace Desktop.Features.Orders
         public ICommand CalculateShippingCommand { get; }
         public ICommand SelectShippingCommand { get; }
         public ICommand SelectCheapestCommand { get; }
+        public ICommand RecalculateDimensionsCommand { get; }
+        public ICommand ToggleDimensionsModeCommand { get; }
         public ICommand FinalizeOrderCommand { get; }
 
         public OrdersViewModel(
             IOrderRepository orderRepository,
             ICustomerRepository customerRepository,
             IProductRepository productRepository,
-            ISuperFreteService superFreteService)
+            ISuperFreteService superFreteService,
+            SuperFreteSettings superFreteSettings)
         {
             _orderRepository = orderRepository;
             _customerRepository = customerRepository;
             _productRepository = productRepository;
             _superFreteService = superFreteService;
+            _superFreteSettings = superFreteSettings;
+
+            // Carregar CEP de origem das configurações
+            OriginPostalCode = superFreteSettings.DefaultOriginPostalCode;
 
             NewOrderCommand = new RelayCommand(NewOrder);
             SelectOrderCommand = new RelayCommand<OrderItemViewModel>(SelectOrder);
@@ -188,9 +222,30 @@ namespace Desktop.Features.Orders
             CalculateShippingCommand = new AsyncRelayCommand(CalculateShippingAsync);
             SelectShippingCommand = new RelayCommand<ShippingQuoteViewModel>(SelectShipping);
             SelectCheapestCommand = new RelayCommand(SelectCheapest);
+            RecalculateDimensionsCommand = new RelayCommand(RecalculateDimensions);
+            ToggleDimensionsModeCommand = new RelayCommand(ToggleDimensionsMode);
             FinalizeOrderCommand = new AsyncRelayCommand(FinalizeOrderAsync);
 
             _ = LoadDataAsync();
+        }
+
+        private void RecalculateDimensions()
+        {
+            IsManualDimensionsMode = false;
+            CalculateShippingDimensions();
+        }
+
+        private void ToggleDimensionsMode()
+        {
+            IsManualDimensionsMode = !IsManualDimensionsMode;
+            if (!IsManualDimensionsMode)
+            {
+                CalculateShippingDimensions();
+            }
+            else
+            {
+                ShippingRuleApplied = "Modo manual: edite as dimensoes acima";
+            }
         }
 
         private async Task LoadDataAsync()
@@ -327,6 +382,7 @@ namespace Desktop.Features.Orders
         private void SelectCustomer(CustomerForOrderViewModel customer)
         {
             SelectedCustomer = customer;
+            OnPropertyChanged(nameof(DestinationPostalCode));
         }
 
         private void AddProductToOrder(ProductForOrderViewModel product)
