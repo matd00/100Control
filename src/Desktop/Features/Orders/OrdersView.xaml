@@ -377,7 +377,7 @@
                                             <TextBlock Text="{Binding SelectedCustomer.Name}" FontSize="16" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,8,0,0"/>
                                             <TextBlock Text="{Binding SelectedCustomer.Email}" FontSize="12" Foreground="#64748B"/>
                                             <TextBlock FontSize="12" Foreground="#64748B" Margin="0,4,0,0">
-                                                <Run Text="CEP: "/><Run Text="{Binding SelectedCustomer.ZipCode}"/>
+                                                <Run Text="CEP: "/><Run Text="{Binding SelectedCustomer.ZipCode, Mode=OneWay}"/>
                                             </TextBlock>
                                         </StackPanel>
                                     </Grid>
@@ -463,7 +463,7 @@
                                                                 <StackPanel Grid.Column="0">
                                                                     <TextBlock Text="{Binding ProductName}" FontWeight="SemiBold" Foreground="#1E293B" FontSize="12"/>
                                                                     <TextBlock FontSize="11" Foreground="#64748B">
-                                                                        <Run Text="{Binding Quantity}"/>x <Run Text="{Binding UnitPriceFormatted}"/>
+                                                                        <Run Text="{Binding Quantity, Mode=OneWay}"/>x <Run Text="{Binding UnitPriceFormatted, Mode=OneWay}"/>
                                                                     </TextBlock>
                                                                 </StackPanel>
                                                                 <StackPanel Grid.Column="1" HorizontalAlignment="Right">
@@ -604,7 +604,7 @@
                                             <TextBlock Text="✅ Frete Selecionado" FontSize="12" Foreground="#16A34A" FontWeight="Bold"/>
                                             <TextBlock Text="{Binding SelectedShipping.ServiceName}" FontSize="16" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,4,0,0"/>
                                             <TextBlock FontSize="14" Foreground="#1E293B" Margin="0,8,0,0">
-                                                <Run Text="Total do Pedido: "/><Run Text="{Binding GrandTotalFormatted}" FontWeight="Bold" Foreground="#22C55E"/>
+                                                <Run Text="Total do Pedido: "/><Run Text="{Binding GrandTotalFormatted, Mode=OneWay}" FontWeight="Bold" Foreground="#22C55E"/>
                                             </TextBlock>
                                         </StackPanel>
                                     </Grid>
