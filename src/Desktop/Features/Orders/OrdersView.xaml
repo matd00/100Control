@@ -515,16 +515,44 @@
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
+
+                                        <!-- CEP Origem -->
                                         <StackPanel Grid.Column="0">
                                             <TextBlock Text="📍 CEP ORIGEM" FontSize="10" Foreground="#0369A1" FontWeight="Bold"/>
                                             <TextBlock Text="{Binding OriginPostalCode}" FontSize="16" FontWeight="Bold" Foreground="#0C4A6E"/>
                                             <TextBlock Text="(Configurado)" FontSize="10" Foreground="#64748B"/>
                                         </StackPanel>
+
                                         <TextBlock Grid.Column="1" Text="→" FontSize="24" Foreground="#0369A1" VerticalAlignment="Center" Margin="20,0"/>
-                                        <StackPanel Grid.Column="2">
-                                            <TextBlock Text="📍 CEP DESTINO" FontSize="10" Foreground="#0369A1" FontWeight="Bold"/>
+
+                                        <!-- CEP Destino - Modo Visualização -->
+                                        <StackPanel Grid.Column="2" Visibility="{Binding IsNotEditingDestinationCep, Converter={StaticResource BoolToVisibility}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="📍 CEP DESTINO" FontSize="10" Foreground="#0369A1" FontWeight="Bold"/>
+                                                <Button Content="✏️" Command="{Binding EditDestinationCepCommand}" 
+                                                        Padding="4,0" Margin="8,0,0,0" FontSize="10" 
+                                                        Background="Transparent" BorderThickness="0" Cursor="Hand" 
+                                                        ToolTip="Editar CEP do cliente"/>
+                                            </StackPanel>
                                             <TextBlock Text="{Binding DestinationPostalCode}" FontSize="16" FontWeight="Bold" Foreground="#0C4A6E"/>
                                             <TextBlock Text="(Cliente)" FontSize="10" Foreground="#64748B"/>
+                                        </StackPanel>
+
+                                        <!-- CEP Destino - Modo Edição -->
+                                        <StackPanel Grid.Column="2" Visibility="{Binding IsEditingDestinationCep, Converter={StaticResource BoolToVisibility}}">
+                                            <TextBlock Text="📍 CEP DESTINO" FontSize="10" Foreground="#DC2626" FontWeight="Bold"/>
+                                            <TextBox Text="{Binding DestinationPostalCode, UpdateSourceTrigger=PropertyChanged}" 
+                                                     Style="{StaticResource ModernTextBox}" 
+                                                     FontSize="14" FontWeight="Bold" Padding="8,4" Margin="0,4,0,4"/>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Content="💾 Salvar" Command="{Binding SaveDestinationCepCommand}" 
+                                                        Padding="8,4" FontSize="10" Background="#22C55E" Foreground="White" 
+                                                        BorderThickness="0" Cursor="Hand" Margin="0,0,8,0"/>
+                                                <Button Content="❌ Cancelar" Command="{Binding CancelEditDestinationCepCommand}" 
+                                                        Padding="8,4" FontSize="10" Background="#EF4444" Foreground="White" 
+                                                        BorderThickness="0" Cursor="Hand"/>
+                                            </StackPanel>
+                                            <TextBlock Text="(Salva no cadastro do cliente)" FontSize="9" Foreground="#DC2626" FontStyle="Italic" Margin="0,4,0,0"/>
                                         </StackPanel>
                                     </Grid>
                                 </Border>

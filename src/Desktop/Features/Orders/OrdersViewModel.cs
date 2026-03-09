@@ -159,7 +159,27 @@ namespace Desktop.Features.Orders
             set => SetProperty(ref _originPostalCode, value);
         }
 
-        public string DestinationPostalCode => SelectedCustomer?.ZipCode ?? "Não selecionado";
+        public string DestinationPostalCode
+        {
+            get => SelectedCustomer?.ZipCode ?? "Não selecionado";
+            set
+            {
+                if (SelectedCustomer != null && value != SelectedCustomer.ZipCode)
+                {
+                    SelectedCustomer.ZipCode = value;
+                    OnPropertyChanged(nameof(DestinationPostalCode));
+                }
+            }
+        }
+
+        private bool _isEditingDestinationCep;
+        public bool IsEditingDestinationCep
+        {
+            get => _isEditingDestinationCep;
+            set => SetProperty(ref _isEditingDestinationCep, value);
+        }
+
+        public bool IsNotEditingDestinationCep => !IsEditingDestinationCep;
 
         public string OrderTotalFormatted => string.Format("R$ {0:N2}", OrderItems.Sum(i => i.Subtotal));
         public string GrandTotalFormatted => string.Format("R$ {0:N2}", OrderItems.Sum(i => i.Subtotal) + (SelectedShipping != null ? SelectedShipping.Price : 0));
@@ -193,6 +213,9 @@ namespace Desktop.Features.Orders
         public ICommand SelectCheapestCommand { get; }
         public ICommand RecalculateDimensionsCommand { get; }
         public ICommand ToggleDimensionsModeCommand { get; }
+        public ICommand EditDestinationCepCommand { get; }
+        public ICommand SaveDestinationCepCommand { get; }
+        public ICommand CancelEditDestinationCepCommand { get; }
         public ICommand FinalizeOrderCommand { get; }
 
         public OrdersViewModel(
@@ -224,9 +247,68 @@ namespace Desktop.Features.Orders
             SelectCheapestCommand = new RelayCommand(SelectCheapest);
             RecalculateDimensionsCommand = new RelayCommand(RecalculateDimensions);
             ToggleDimensionsModeCommand = new RelayCommand(ToggleDimensionsMode);
+            EditDestinationCepCommand = new RelayCommand(EditDestinationCep);
+            SaveDestinationCepCommand = new AsyncRelayCommand(SaveDestinationCepAsync);
+            CancelEditDestinationCepCommand = new RelayCommand(CancelEditDestinationCep);
             FinalizeOrderCommand = new AsyncRelayCommand(FinalizeOrderAsync);
 
             _ = LoadDataAsync();
+        }
+
+        private string _originalDestinationCep = string.Empty;
+
+        private void EditDestinationCep()
+        {
+            if (SelectedCustomer != null)
+            {
+                _originalDestinationCep = SelectedCustomer.ZipCode;
+                IsEditingDestinationCep = true;
+                OnPropertyChanged(nameof(IsNotEditingDestinationCep));
+            }
+        }
+
+        private async Task SaveDestinationCepAsync()
+        {
+            if (SelectedCustomer != null && !string.IsNullOrWhiteSpace(SelectedCustomer.ZipCode))
+            {
+                try
+                {
+                    // Atualizar no banco de dados
+                    var customer = await _customerRepository.GetByIdAsync(SelectedCustomer.Id);
+                    if (customer != null)
+                    {
+                        customer.UpdateAddress(
+                            customer.Address,
+                            customer.City,
+                            customer.State,
+                            SelectedCustomer.ZipCode
+                        );
+                        await _customerRepository.UpdateAsync(customer);
+                        StatusMessage = "CEP do cliente atualizado com sucesso!";
+                        OnPropertyChanged(nameof(HasStatusMessage));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = $"Erro ao salvar CEP: {ex.Message}";
+                    OnPropertyChanged(nameof(HasStatusMessage));
+                }
+            }
+
+            IsEditingDestinationCep = false;
+            OnPropertyChanged(nameof(IsNotEditingDestinationCep));
+            OnPropertyChanged(nameof(DestinationPostalCode));
+        }
+
+        private void CancelEditDestinationCep()
+        {
+            if (SelectedCustomer != null)
+            {
+                SelectedCustomer.ZipCode = _originalDestinationCep;
+                OnPropertyChanged(nameof(DestinationPostalCode));
+            }
+            IsEditingDestinationCep = false;
+            OnPropertyChanged(nameof(IsNotEditingDestinationCep));
         }
 
         private void RecalculateDimensions()
