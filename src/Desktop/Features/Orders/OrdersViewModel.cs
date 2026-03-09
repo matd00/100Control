@@ -217,6 +217,42 @@ namespace Desktop.Features.Orders
         public ICommand SaveDestinationCepCommand { get; }
         public ICommand CancelEditDestinationCepCommand { get; }
         public ICommand FinalizeOrderCommand { get; }
+        public ICommand ShowConfirmationCommand { get; }
+        public ICommand ConfirmFinalizeCommand { get; }
+        public ICommand CancelFinalizeCommand { get; }
+        public ICommand CancelOrderCommand { get; }
+        public ICommand EditOrderCommand { get; }
+
+        // Propriedades para confirmação
+        private bool _showConfirmationDialog;
+        public bool ShowConfirmationDialog
+        {
+            get => _showConfirmationDialog;
+            set => SetProperty(ref _showConfirmationDialog, value);
+        }
+
+        private bool _isGeneratingLabel;
+        public bool IsGeneratingLabel
+        {
+            get => _isGeneratingLabel;
+            set => SetProperty(ref _isGeneratingLabel, value);
+        }
+
+        private string _generatedTrackingCode = string.Empty;
+        public string GeneratedTrackingCode
+        {
+            get => _generatedTrackingCode;
+            set => SetProperty(ref _generatedTrackingCode, value);
+        }
+
+        private string _generatedLabelUrl = string.Empty;
+        public string GeneratedLabelUrl
+        {
+            get => _generatedLabelUrl;
+            set => SetProperty(ref _generatedLabelUrl, value);
+        }
+
+        public bool HasGeneratedLabel => !string.IsNullOrEmpty(GeneratedTrackingCode);
 
         public OrdersViewModel(
             IOrderRepository orderRepository,
@@ -250,9 +286,129 @@ namespace Desktop.Features.Orders
             EditDestinationCepCommand = new RelayCommand(EditDestinationCep);
             SaveDestinationCepCommand = new AsyncRelayCommand(SaveDestinationCepAsync);
             CancelEditDestinationCepCommand = new RelayCommand(CancelEditDestinationCep);
-            FinalizeOrderCommand = new AsyncRelayCommand(FinalizeOrderAsync);
+            FinalizeOrderCommand = new RelayCommand(ShowConfirmation);
+            ShowConfirmationCommand = new RelayCommand(ShowConfirmation);
+            ConfirmFinalizeCommand = new AsyncRelayCommand(ConfirmFinalizeAsync);
+            CancelFinalizeCommand = new RelayCommand(CancelFinalize);
+            CancelOrderCommand = new AsyncRelayCommand(CancelOrderAsync);
+            EditOrderCommand = new RelayCommand(EditOrder);
 
             _ = LoadDataAsync();
+        }
+
+        private void ShowConfirmation()
+        {
+            if (SelectedShipping == null)
+            {
+                StatusMessage = "Selecione uma opção de frete antes de finalizar.";
+                OnPropertyChanged(nameof(HasStatusMessage));
+                return;
+            }
+            ShowConfirmationDialog = true;
+        }
+
+        private void CancelFinalize()
+        {
+            ShowConfirmationDialog = false;
+        }
+
+        private async Task ConfirmFinalizeAsync()
+        {
+            if (SelectedCustomer == null || OrderItems.Count == 0 || SelectedShipping == null) return;
+
+            try
+            {
+                IsGeneratingLabel = true;
+                ShowConfirmationDialog = false;
+
+                // Gerar etiqueta no SuperFrete
+                var labelRequest = new ShipmentLabelRequest
+                {
+                    TrackingNumber = SelectedOrder?.Id.ToString() ?? Guid.NewGuid().ToString(),
+                    Weight = CalculatedWeight,
+                    ReceiverName = SelectedCustomer.Name,
+                    ReceiverAddress = SelectedCustomer.Address,
+                    ReceiverCity = SelectedCustomer.City,
+                    ReceiverState = SelectedCustomer.State,
+                    ReceiverZipCode = SelectedCustomer.ZipCode
+                };
+
+                var trackingCode = await _superFreteService.GenerateLabelAsync(labelRequest);
+                GeneratedTrackingCode = trackingCode;
+                OnPropertyChanged(nameof(HasGeneratedLabel));
+
+                // Salvar pedido
+                if (SelectedOrder != null && SelectedOrder.IsNew)
+                {
+                    var order = new Order(SelectedCustomer.Id, OrderSource.Direct);
+                    foreach (var item in OrderItems)
+                    {
+                        order.AddItem(item.ProductId, item.Quantity, item.UnitPrice);
+                    }
+                    order.MarkAsProcessing();
+                    await _orderRepository.SaveAsync(order);
+                }
+                else if (SelectedOrder != null)
+                {
+                    var order = await _orderRepository.GetByIdAsync(SelectedOrder.Id);
+                    if (order != null)
+                    {
+                        order.MarkAsProcessing();
+                        await _orderRepository.UpdateAsync(order);
+                    }
+                }
+
+                StatusMessage = $"✅ Pedido finalizado! Código de rastreio: {trackingCode}";
+                OnPropertyChanged(nameof(HasStatusMessage));
+                await LoadOrdersAsync();
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Erro ao gerar etiqueta: {ex.Message}";
+                OnPropertyChanged(nameof(HasStatusMessage));
+            }
+            finally
+            {
+                IsGeneratingLabel = false;
+            }
+        }
+
+        private async Task CancelOrderAsync()
+        {
+            if (SelectedOrder == null || SelectedOrder.IsNew) return;
+
+            try
+            {
+                var order = await _orderRepository.GetByIdAsync(SelectedOrder.Id);
+                if (order != null)
+                {
+                    order.Cancel();
+                    await _orderRepository.UpdateAsync(order);
+                    StatusMessage = "Pedido cancelado com sucesso.";
+                    OnPropertyChanged(nameof(HasStatusMessage));
+                    await LoadOrdersAsync();
+
+                    // Limpar seleção
+                    SelectedOrder = null;
+                    SelectedCustomer = null;
+                    SelectedShipping = null;
+                    OrderItems.Clear();
+                    ShippingQuotes.Clear();
+                    CurrentStep = 1;
+                    OnPropertyChanged(nameof(HasSelectedOrder));
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Erro ao cancelar: {ex.Message}";
+                OnPropertyChanged(nameof(HasStatusMessage));
+            }
+        }
+
+        private void EditOrder()
+        {
+            // Volta para etapa 1 para editar
+            CurrentStep = 1;
         }
 
         private string _originalDestinationCep = string.Empty;
@@ -648,48 +804,6 @@ namespace Desktop.Features.Orders
             if (CheapestOption != null)
             {
                 SelectedShipping = CheapestOption;
-            }
-        }
-
-        private async Task FinalizeOrderAsync()
-        {
-            if (SelectedCustomer == null || OrderItems.Count == 0) return;
-
-            try
-            {
-                if (SelectedOrder != null && SelectedOrder.IsNew)
-                {
-                    var order = new Order(SelectedCustomer.Id, OrderSource.Direct);
-                    foreach (var item in OrderItems)
-                    {
-                        order.AddItem(item.ProductId, item.Quantity, item.UnitPrice);
-                    }
-                    await _orderRepository.SaveAsync(order);
-                }
-                else if (SelectedOrder != null)
-                {
-                    var order = await _orderRepository.GetByIdAsync(SelectedOrder.Id);
-                    if (order != null)
-                    {
-                        order.MarkAsProcessing();
-                        await _orderRepository.UpdateAsync(order);
-                    }
-                }
-
-                StatusMessage = "Pedido finalizado com sucesso!";
-                await LoadOrdersAsync();
-
-                SelectedOrder = null;
-                SelectedCustomer = null;
-                SelectedShipping = null;
-                OrderItems.Clear();
-                ShippingQuotes.Clear();
-                CurrentStep = 1;
-                OnPropertyChanged(nameof(HasSelectedOrder));
-            }
-            catch (Exception ex)
-            {
-                StatusMessage = string.Format("Erro: {0}", ex.Message);
             }
         }
 

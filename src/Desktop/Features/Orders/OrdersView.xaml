@@ -858,12 +858,142 @@
                                     </Grid>
                                 </Border>
 
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                                    <Button Content="← Voltar" Command="{Binding PreviousStepCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,12,0"/>
-                                    <Button Content="✅ Finalizar Pedido" Command="{Binding FinalizeOrderCommand}" 
-                                            Style="{StaticResource SuccessButton}"/>
-                                </StackPanel>
+                                <!-- Etiqueta Gerada (sucesso) -->
+                                <Border Background="#DCFCE7" BorderBrush="#22C55E" BorderThickness="2" CornerRadius="12" Padding="20" Margin="0,16,0,0"
+                                        Visibility="{Binding HasGeneratedLabel, Converter={StaticResource BoolToVisibility}}">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="🎉" FontSize="48" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Etiqueta Gerada com Sucesso!" FontSize="18" FontWeight="Bold" Foreground="#16A34A" 
+                                                   HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                                        <Border Background="White" CornerRadius="8" Padding="16" Margin="0,16,0,0">
+                                            <StackPanel>
+                                                <TextBlock Text="Código de Rastreio:" FontSize="12" Foreground="#64748B" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="{Binding GeneratedTrackingCode}" FontSize="24" FontWeight="Bold" Foreground="#1E293B" 
+                                                           HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Botões de Ação -->
+                                <Grid Margin="0,20,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Botões Esquerda -->
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                        <Button Content="🗑️ Cancelar Pedido" Command="{Binding CancelOrderCommand}" 
+                                                Style="{StaticResource DangerButton}" Padding="12,10" FontSize="12" Margin="0,0,8,0"/>
+                                        <Button Content="✏️ Editar Pedido" Command="{Binding EditOrderCommand}" 
+                                                Style="{StaticResource SecondaryButton}" Padding="12,10" FontSize="12"/>
+                                    </StackPanel>
+
+                                    <!-- Botões Direita -->
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                        <Button Content="← Voltar" Command="{Binding PreviousStepCommand}" 
+                                                Style="{StaticResource SecondaryButton}" Margin="0,0,12,0"/>
+                                        <Button Command="{Binding FinalizeOrderCommand}" Style="{StaticResource SuccessButton}" 
+                                                Padding="20,12" IsEnabled="{Binding HasSelectedShipping}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="✅" FontSize="16" Margin="0,0,8,0"/>
+                                                <TextBlock Text="Finalizar e Gerar Etiqueta" FontWeight="Bold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
                             </StackPanel>
+                        </Border>
+
+                        <!-- DIALOG DE CONFIRMAÇÃO -->
+                        <Border Background="#00000080" Visibility="{Binding ShowConfirmationDialog, Converter={StaticResource BoolToVisibility}}"
+                                VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                            <Border Background="White" CornerRadius="16" Padding="32" 
+                                    VerticalAlignment="Center" HorizontalAlignment="Center"
+                                    MinWidth="450" MaxWidth="550">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="20" ShadowDepth="5" Opacity="0.3"/>
+                                </Border.Effect>
+                                <StackPanel>
+                                    <!-- Header -->
+                                    <TextBlock Text="⚠️" FontSize="48" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Confirmar Finalização" FontSize="22" FontWeight="Bold" Foreground="#1E293B" 
+                                               HorizontalAlignment="Center" Margin="0,16,0,8"/>
+                                    <TextBlock Text="Tem certeza que deseja finalizar este pedido?" FontSize="14" Foreground="#64748B" 
+                                               HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
+
+                                    <!-- Resumo do Pedido -->
+                                    <Border Background="#F8FAFC" CornerRadius="8" Padding="16" Margin="0,24,0,0">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <Grid Grid.Row="0" Margin="0,0,0,8">
+                                                <TextBlock Text="Cliente:" Foreground="#64748B"/>
+                                                <TextBlock Text="{Binding SelectedCustomer.Name}" FontWeight="SemiBold" Foreground="#1E293B" HorizontalAlignment="Right"/>
+                                            </Grid>
+                                            <Grid Grid.Row="1" Margin="0,0,0,8">
+                                                <TextBlock Text="Produtos:" Foreground="#64748B"/>
+                                                <TextBlock Text="{Binding OrderTotalFormatted}" FontWeight="SemiBold" Foreground="#1E293B" HorizontalAlignment="Right"/>
+                                            </Grid>
+                                            <Grid Grid.Row="2" Margin="0,0,0,8">
+                                                <TextBlock Text="Frete:" Foreground="#64748B"/>
+                                                <TextBlock Text="{Binding SelectedShipping.PriceFormatted}" FontWeight="SemiBold" Foreground="#EF4444" HorizontalAlignment="Right"/>
+                                            </Grid>
+                                            <Border Grid.Row="3" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0" Padding="0,8,0,0">
+                                                <Grid>
+                                                    <TextBlock Text="TOTAL:" FontWeight="Bold" Foreground="#1E293B"/>
+                                                    <TextBlock Text="{Binding GrandTotalFormatted, Mode=OneWay}" FontSize="18" FontWeight="Bold" Foreground="#22C55E" HorizontalAlignment="Right"/>
+                                                </Grid>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Aviso de Frete -->
+                                    <Border Background="#FEF3C7" CornerRadius="8" Padding="12" Margin="0,16,0,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="💳" FontSize="16" Margin="0,0,8,0"/>
+                                            <TextBlock TextWrapping="Wrap" Foreground="#92400E" FontSize="12">
+                                                <Run Text="Será descontado"/><Run Text=" " /><Run Text="{Binding SelectedShipping.PriceFormatted, Mode=OneWay}" FontWeight="Bold"/><Run Text=" " /><Run Text="de frete da sua conta SuperFrete."/>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Loading -->
+                                    <Border Background="#E0F2FE" CornerRadius="8" Padding="16" Margin="0,16,0,0"
+                                            Visibility="{Binding IsGeneratingLabel, Converter={StaticResource BoolToVisibility}}">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="⏳" FontSize="24" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="Gerando etiqueta..." FontSize="14" Foreground="#0369A1" 
+                                                       HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Botões -->
+                                    <Grid Margin="0,24,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="16"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Button Grid.Column="0" Content="❌ Cancelar" Command="{Binding CancelFinalizeCommand}" 
+                                                Style="{StaticResource SecondaryButton}" HorizontalAlignment="Stretch" Padding="0,14"/>
+                                        <Button Grid.Column="2" Command="{Binding ConfirmFinalizeCommand}" 
+                                                Style="{StaticResource SuccessButton}" HorizontalAlignment="Stretch" Padding="0,14"
+                                                IsEnabled="{Binding IsGeneratingLabel, Converter={StaticResource InverseBool}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="✅" Margin="0,0,8,0"/>
+                                                <TextBlock Text="Confirmar e Gerar Etiqueta"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
                         </Border>
                     </Grid>
                 </ScrollViewer>
