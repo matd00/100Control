@@ -235,7 +235,7 @@ namespace Desktop.Features.Orders
         {
             var products = await _productRepository.GetAllAsync();
             AvailableProducts.Clear();
-            foreach (var product in products.Where(p => p.IsActive && p.Stock > 0))
+            foreach (var product in products.Where(p => p.IsActive))
             {
                 AvailableProducts.Add(new ProductForOrderViewModel
                 {

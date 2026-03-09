@@ -370,8 +370,7 @@
                                 </Border>
 
                                 <Button Content="Próximo: Adicionar Produtos →" Command="{Binding NextStepCommand}" 
-                                        Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right"
-                                        IsEnabled="{Binding HasSelectedCustomer}"/>
+                                        Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right"/>
                             </StackPanel>
                         </Border>
 
@@ -478,7 +477,7 @@
                                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
                                     <Button Content="← Voltar" Command="{Binding PreviousStepCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,12,0"/>
                                     <Button Content="Próximo: Calcular Frete →" Command="{Binding NextStepCommand}" 
-                                            Style="{StaticResource PrimaryButton}" IsEnabled="{Binding HasOrderItems}"/>
+                                            Style="{StaticResource PrimaryButton}"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -599,7 +598,7 @@
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
                                     <Button Content="← Voltar" Command="{Binding PreviousStepCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,12,0"/>
                                     <Button Content="✅ Finalizar Pedido" Command="{Binding FinalizeOrderCommand}" 
-                                            Style="{StaticResource SuccessButton}" IsEnabled="{Binding HasSelectedShipping}"/>
+                                            Style="{StaticResource SuccessButton}"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
