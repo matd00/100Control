@@ -137,11 +137,21 @@ namespace Desktop.Features.Orders
         public string OrderTotalFormatted => string.Format("R$ {0:N2}", OrderItems.Sum(i => i.Subtotal));
         public string GrandTotalFormatted => string.Format("R$ {0:N2}", OrderItems.Sum(i => i.Subtotal) + (SelectedShipping != null ? SelectedShipping.Price : 0));
 
+        // Propriedades para UI/UX melhorada do frete
+        public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
+        public bool HasShippingQuotes => ShippingQuotes.Count > 0;
+        public bool HasCheapestOption => CheapestOption != null;
+        public bool HasMultipleOptions => OtherShippingOptions.Count > 0;
+
+        public ShippingQuoteViewModel CheapestOption => ShippingQuotes.OrderBy(q => q.Price).FirstOrDefault();
+        public ObservableCollection<ShippingQuoteViewModel> OtherShippingOptions { get; } = new ObservableCollection<ShippingQuoteViewModel>();
+
         public ObservableCollection<OrderItemViewModel> Orders { get; } = new ObservableCollection<OrderItemViewModel>();
         public ObservableCollection<CustomerForOrderViewModel> Customers { get; } = new ObservableCollection<CustomerForOrderViewModel>();
         public ObservableCollection<ProductForOrderViewModel> AvailableProducts { get; } = new ObservableCollection<ProductForOrderViewModel>();
         public ObservableCollection<OrderLineItemViewModel> OrderItems { get; } = new ObservableCollection<OrderLineItemViewModel>();
         public ObservableCollection<ShippingQuoteViewModel> ShippingQuotes { get; } = new ObservableCollection<ShippingQuoteViewModel>();
+
 
         public ICommand NewOrderCommand { get; }
         public ICommand SelectOrderCommand { get; }
@@ -153,6 +163,7 @@ namespace Desktop.Features.Orders
         public ICommand GoToStepCommand { get; }
         public ICommand CalculateShippingCommand { get; }
         public ICommand SelectShippingCommand { get; }
+        public ICommand SelectCheapestCommand { get; }
         public ICommand FinalizeOrderCommand { get; }
 
         public OrdersViewModel(
@@ -176,6 +187,7 @@ namespace Desktop.Features.Orders
             GoToStepCommand = new RelayCommand<string>(GoToStep);
             CalculateShippingCommand = new AsyncRelayCommand(CalculateShippingAsync);
             SelectShippingCommand = new RelayCommand<ShippingQuoteViewModel>(SelectShipping);
+            SelectCheapestCommand = new RelayCommand(SelectCheapest);
             FinalizeOrderCommand = new AsyncRelayCommand(FinalizeOrderAsync);
 
             _ = LoadDataAsync();
@@ -455,12 +467,32 @@ namespace Desktop.Features.Orders
                     });
                 }
 
+                // Atualizar lista de outras opções (excluindo a mais barata)
+                OtherShippingOptions.Clear();
+                var allQuotes = ShippingQuotes.OrderBy(q => q.Price).ToList();
+                for (int i = 1; i < allQuotes.Count; i++)
+                {
+                    OtherShippingOptions.Add(allQuotes[i]);
+                }
+
+                // Notificar mudanças nas propriedades de UI
+                OnPropertyChanged(nameof(HasShippingQuotes));
+                OnPropertyChanged(nameof(HasCheapestOption));
+                OnPropertyChanged(nameof(HasMultipleOptions));
+                OnPropertyChanged(nameof(CheapestOption));
+                StatusMessage = string.Empty;
+                OnPropertyChanged(nameof(HasStatusMessage));
+
                 if (ShippingQuotes.Count == 0)
-                    StatusMessage = "Nenhuma opcao de frete disponivel para este CEP";
+                {
+                    StatusMessage = "Nenhuma opcao de frete disponivel para este CEP. Verifique o endereco do cliente.";
+                    OnPropertyChanged(nameof(HasStatusMessage));
+                }
             }
             catch (Exception ex)
             {
                 StatusMessage = string.Format("Erro ao calcular frete: {0}", ex.Message);
+                OnPropertyChanged(nameof(HasStatusMessage));
             }
             finally
             {
@@ -471,6 +503,14 @@ namespace Desktop.Features.Orders
         private void SelectShipping(ShippingQuoteViewModel shipping)
         {
             SelectedShipping = shipping;
+        }
+
+        private void SelectCheapest()
+        {
+            if (CheapestOption != null)
+            {
+                SelectedShipping = CheapestOption;
+            }
         }
 
         private async Task FinalizeOrderAsync()

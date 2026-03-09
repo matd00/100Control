@@ -540,58 +540,197 @@
                                 </Border>
 
                                 <!-- Botão Calcular -->
-                                <Button Content="🚚 Calcular Opções de Frete" Command="{Binding CalculateShippingCommand}" 
+                                <Button Command="{Binding CalculateShippingCommand}" 
                                         Style="{StaticResource SuccessButton}" HorizontalAlignment="Stretch" Margin="0,0,0,20"
-                                        IsEnabled="{Binding IsCalculatingShipping, Converter={StaticResource InverseBool}}"/>
+                                        IsEnabled="{Binding IsCalculatingShipping, Converter={StaticResource InverseBool}}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🚚" FontSize="16" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Calcular Opções de Frete" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
 
-                                <!-- Loading -->
-                                <TextBlock Text="Calculando frete..." Visibility="{Binding IsCalculatingShipping, Converter={StaticResource BoolToVisibility}}"
-                                           HorizontalAlignment="Center" Foreground="#64748B" Margin="0,0,0,20"/>
+                                <!-- Loading com feedback visual -->
+                                <Border Background="#F0F9FF" CornerRadius="8" Padding="20" Margin="0,0,0,20"
+                                        Visibility="{Binding IsCalculatingShipping, Converter={StaticResource BoolToVisibility}}">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="⏳" FontSize="24" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Buscando melhores opções de frete..." FontSize="14" Foreground="#0369A1" 
+                                                   HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                                        <TextBlock Text="Isso pode levar alguns segundos" FontSize="11" Foreground="#64748B" 
+                                                   HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Mensagem de Status -->
+                                <Border Background="#FEF3C7" CornerRadius="8" Padding="12" Margin="0,0,0,16"
+                                        Visibility="{Binding HasStatusMessage, Converter={StaticResource BoolToVisibility}}">
+                                    <TextBlock Text="{Binding StatusMessage}" Foreground="#92400E" TextWrapping="Wrap"/>
+                                </Border>
 
                                 <!-- Resultados do Frete -->
-                                <ItemsControl ItemsSource="{Binding ShippingQuotes}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Background="#F8FAFC" CornerRadius="8" Padding="16" Margin="0,0,0,8" Cursor="Hand" x:Name="QuoteRow">
-                                                <Border.InputBindings>
-                                                    <MouseBinding MouseAction="LeftClick" 
-                                                                  Command="{Binding DataContext.SelectShippingCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                                  CommandParameter="{Binding}"/>
-                                                </Border.InputBindings>
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <StackPanel Grid.Column="0">
-                                                        <TextBlock Text="{Binding ServiceName}" FontWeight="SemiBold" Foreground="#1E293B" FontSize="14"/>
-                                                        <TextBlock Text="{Binding CompanyName}" FontSize="12" Foreground="#64748B"/>
-                                                        <TextBlock Text="{Binding DeliveryRange}" FontSize="11" Foreground="#94A3B8" Margin="0,4,0,0"/>
-                                                    </StackPanel>
-                                                    <TextBlock Grid.Column="1" Text="{Binding PriceFormatted}" FontSize="20" FontWeight="Bold" 
-                                                               Foreground="#22C55E" VerticalAlignment="Center"/>
-                                                </Grid>
-                                            </Border>
-                                            <DataTemplate.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="QuoteRow" Property="Background" Value="#E0F2FE"/>
-                                                </Trigger>
-                                            </DataTemplate.Triggers>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                                <StackPanel Visibility="{Binding HasShippingQuotes, Converter={StaticResource BoolToVisibility}}">
 
-                                <!-- Frete Selecionado -->
-                                <Border Background="#DCFCE7" CornerRadius="8" Padding="16" Margin="0,16,0,0"
+                                    <!-- Header com contagem -->
+                                    <Grid Margin="0,0,0,12">
+                                        <TextBlock Text="Opções de Entrega Disponíveis" FontSize="14" FontWeight="SemiBold" Foreground="#1E293B"/>
+                                        <TextBlock Text="{Binding ShippingQuotes.Count, StringFormat='{}{0} opções encontradas'}" 
+                                                   FontSize="11" Foreground="#64748B" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <!-- Opção mais barata destacada -->
+                                    <Border Background="#F0FDF4" BorderBrush="#22C55E" BorderThickness="2" CornerRadius="12" 
+                                            Padding="16" Margin="0,0,0,12" Cursor="Hand"
+                                            Visibility="{Binding HasCheapestOption, Converter={StaticResource BoolToVisibility}}">
+                                        <Border.InputBindings>
+                                            <MouseBinding MouseAction="LeftClick" Command="{Binding SelectCheapestCommand}"/>
+                                        </Border.InputBindings>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Badge Recomendado -->
+                                            <Border Grid.Column="0" Background="#22C55E" CornerRadius="6" Padding="8,4" Margin="0,0,12,0" VerticalAlignment="Top">
+                                                <TextBlock Text="💰 MELHOR PREÇO" FontSize="10" FontWeight="Bold" Foreground="White"/>
+                                            </Border>
+
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding CheapestOption.ServiceName}" FontWeight="Bold" Foreground="#1E293B" FontSize="15"/>
+                                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                    <TextBlock Text="{Binding CheapestOption.CompanyName}" FontSize="12" Foreground="#64748B"/>
+                                                    <TextBlock Text=" • " FontSize="12" Foreground="#64748B"/>
+                                                    <TextBlock Text="{Binding CheapestOption.DeliveryRange}" FontSize="12" Foreground="#64748B"/>
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding CheapestOption.PriceFormatted}" FontSize="24" FontWeight="Bold" Foreground="#16A34A"/>
+                                                <Button Content="Selecionar" Style="{StaticResource SuccessButton}" 
+                                                        Padding="16,8" FontSize="12" Margin="0,8,0,0"
+                                                        Command="{Binding SelectCheapestCommand}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Outras opções -->
+                                    <TextBlock Text="Outras opções:" FontSize="12" Foreground="#64748B" Margin="0,8,0,8"
+                                               Visibility="{Binding HasMultipleOptions, Converter={StaticResource BoolToVisibility}}"/>
+
+                                    <ItemsControl ItemsSource="{Binding OtherShippingOptions}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border CornerRadius="8" Padding="14" Margin="0,0,0,6" Cursor="Hand" x:Name="QuoteRow">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Background" Value="#F8FAFC"/>
+                                                            <Setter Property="BorderThickness" Value="1"/>
+                                                            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <Border.InputBindings>
+                                                        <MouseBinding MouseAction="LeftClick" 
+                                                                      Command="{Binding DataContext.SelectShippingCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                      CommandParameter="{Binding}"/>
+                                                    </Border.InputBindings>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel Grid.Column="0">
+                                                            <TextBlock Text="{Binding ServiceName}" FontWeight="SemiBold" Foreground="#1E293B" FontSize="13"/>
+                                                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                                <TextBlock Text="{Binding CompanyName}" FontSize="11" Foreground="#64748B"/>
+                                                                <TextBlock Text=" • " FontSize="11" Foreground="#64748B"/>
+                                                                <TextBlock Text="{Binding DeliveryRange}" FontSize="11" Foreground="#64748B"/>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding PriceFormatted}" FontSize="16" FontWeight="Bold" 
+                                                                       Foreground="#3B82F6" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                            <Button Content="Usar" Style="{StaticResource PrimaryButton}" 
+                                                                    Padding="12,6" FontSize="11"
+                                                                    Command="{Binding DataContext.SelectShippingCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                    CommandParameter="{Binding}"/>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                                <DataTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="QuoteRow" Property="Background" Value="#E0F2FE"/>
+                                                        <Setter TargetName="QuoteRow" Property="BorderBrush" Value="#3B82F6"/>
+                                                    </Trigger>
+                                                </DataTemplate.Triggers>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+
+                                <!-- Frete Selecionado - Resumo Final -->
+                                <Border CornerRadius="12" Padding="20" Margin="0,20,0,0"
                                         Visibility="{Binding HasSelectedShipping, Converter={StaticResource BoolToVisibility}}">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#DCFCE7" Offset="0"/>
+                                            <GradientStop Color="#F0FDF4" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
                                     <Grid>
-                                        <StackPanel>
-                                            <TextBlock Text="✅ Frete Selecionado" FontSize="12" Foreground="#16A34A" FontWeight="Bold"/>
-                                            <TextBlock Text="{Binding SelectedShipping.ServiceName}" FontSize="16" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,4,0,0"/>
-                                            <TextBlock FontSize="14" Foreground="#1E293B" Margin="0,8,0,0">
-                                                <Run Text="Total do Pedido: "/><Run Text="{Binding GrandTotalFormatted, Mode=OneWay}" FontWeight="Bold" Foreground="#22C55E"/>
-                                            </TextBlock>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <!-- Header -->
+                                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+                                            <TextBlock Text="✅" FontSize="20" Margin="0,0,8,0"/>
+                                            <TextBlock Text="Frete Selecionado" FontSize="16" FontWeight="Bold" Foreground="#16A34A" VerticalAlignment="Center"/>
                                         </StackPanel>
+
+                                        <!-- Detalhes do Frete -->
+                                        <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="16" Margin="0,0,0,16">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="{Binding SelectedShipping.ServiceName}" FontWeight="Bold" Foreground="#1E293B" FontSize="14"/>
+                                                    <TextBlock Text="{Binding SelectedShipping.CompanyName}" FontSize="12" Foreground="#64748B"/>
+                                                    <TextBlock Text="{Binding SelectedShipping.DeliveryRange}" FontSize="11" Foreground="#94A3B8" Margin="0,4,0,0"/>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="1" Text="{Binding SelectedShipping.PriceFormatted}" 
+                                                           FontSize="18" FontWeight="Bold" Foreground="#22C55E" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Resumo Final -->
+                                        <Border Grid.Row="2" Background="#166534" CornerRadius="8" Padding="16">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+                                                <Grid Grid.Row="0" Margin="0,0,0,8">
+                                                    <TextBlock Text="Subtotal (Produtos)" Foreground="#BBF7D0" FontSize="12"/>
+                                                    <TextBlock Text="{Binding OrderTotalFormatted}" Foreground="#BBF7D0" FontSize="12" HorizontalAlignment="Right"/>
+                                                </Grid>
+                                                <Grid Grid.Row="1" Margin="0,0,0,8">
+                                                    <TextBlock Text="Frete" Foreground="#BBF7D0" FontSize="12"/>
+                                                    <TextBlock Text="{Binding SelectedShipping.PriceFormatted}" Foreground="#BBF7D0" FontSize="12" HorizontalAlignment="Right"/>
+                                                </Grid>
+                                                <Border Grid.Row="2" BorderBrush="#22C55E" BorderThickness="0,1,0,0" Padding="0,8,0,0">
+                                                    <Grid>
+                                                        <TextBlock Text="TOTAL DO PEDIDO" Foreground="White" FontWeight="Bold" FontSize="14"/>
+                                                        <TextBlock Text="{Binding GrandTotalFormatted, Mode=OneWay}" Foreground="White" FontWeight="Bold" FontSize="20" HorizontalAlignment="Right"/>
+                                                    </Grid>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
                                     </Grid>
                                 </Border>
 
