@@ -326,21 +326,7 @@
                                         <ItemsControl ItemsSource="{Binding Customers}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Padding="12,10" Cursor="Hand" CornerRadius="6" Margin="0,2" x:Name="CustomerRow">
-                                                        <Border.Style>
-                                                            <Style TargetType="Border">
-                                                                <Setter Property="Background" Value="Transparent"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Value="True">
-                                                                        <DataTrigger.Binding>
-                                                                            <MultiBinding Converter="{StaticResource InverseBool}">
-                                                                                <Binding Path="Id"/>
-                                                                            </MultiBinding>
-                                                                        </DataTrigger.Binding>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Border.Style>
+                                                    <Border Padding="12,10" Cursor="Hand" CornerRadius="6" Margin="0,2" x:Name="CustomerRow" Background="Transparent">
                                                         <Border.InputBindings>
                                                             <MouseBinding MouseAction="LeftClick" 
                                                                           Command="{Binding DataContext.SelectCustomerCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
