@@ -12,45 +12,71 @@ public class CreateProductUseCase
         _productRepository = productRepository;
     }
 
-    public async Task Execute(CreateProductCommand command)
+    public async Task<CreateProductResult> Execute(CreateProductCommand command)
     {
         try
         {
-            // Security: Input validation
             if (command == null)
-                throw new ArgumentNullException(nameof(command));
+                return CreateProductResult.Failure("Command cannot be null");
 
             if (string.IsNullOrWhiteSpace(command.Name))
-                throw new ArgumentException("Product name is required", nameof(command.Name));
+                return CreateProductResult.Failure("Product name is required");
 
-            if (command.Cost <= 0 || command.Price <= 0)
-                throw new ArgumentException("Cost and Price must be greater than 0");
+            if (command.Cost < 0 || command.Price <= 0)
+                return CreateProductResult.Failure("Cost and Price must be valid");
 
             var product = new Product(
                 command.Name,
                 command.Description,
-                command.Cost,
+                command.Cost > 0 ? command.Cost : 0.01m,
                 command.Price
             );
 
+            if (command.Weight > 0)
+            {
+                product.UpdateShippingDimensions(
+                    command.Weight,
+                    command.Width > 0 ? command.Width : 11,
+                    command.Height > 0 ? command.Height : 2,
+                    command.Length > 0 ? command.Length : 16
+                );
+            }
+
             await _productRepository.SaveAsync(product);
+
+            return CreateProductResult.SuccessResult(product.Id);
         }
-        catch (ArgumentException)
+        catch (ArgumentException ex)
         {
-            throw;
+            return CreateProductResult.Failure(ex.Message);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            // Security: Don't expose internal exception details
-            throw new InvalidOperationException("An error occurred while creating the product. Please try again later.");
+            return CreateProductResult.Failure("An error occurred while creating the product.");
         }
     }
 }
 
+public class CreateProductResult
+{
+    public bool Success { get; private set; }
+    public string ErrorMessage { get; private set; } = string.Empty;
+    public Guid ProductId { get; private set; }
+
+    public static CreateProductResult SuccessResult(Guid productId) => new() { Success = true, ProductId = productId };
+    public static CreateProductResult Failure(string error) => new() { Success = false, ErrorMessage = error };
+}
+
 public class CreateProductCommand
 {
-    public string Name { get; set; }
-    public string Description { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
     public decimal Cost { get; set; }
     public decimal Price { get; set; }
+
+    // Shipping dimensions
+    public decimal Weight { get; set; } = 0.3m;
+    public int Width { get; set; } = 11;
+    public int Height { get; set; } = 2;
+    public int Length { get; set; } = 16;
 }

@@ -1,6 +1,8 @@
 using System.IO;
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Domain.Interfaces.Repositories;
 using Persistence.Context;
 using Persistence.Repositories;
@@ -13,6 +15,13 @@ using Application.Services;
 using Desktop.Features.Dashboard;
 using Desktop.Features.Products;
 using Desktop.Features.Orders;
+using Desktop.Features.Customers;
+using Desktop.Features.Suppliers;
+using Desktop.Features.Purchases;
+using Desktop.Features.Kits;
+using Desktop.Features.Shipments;
+using Integrations.SuperFrete.Extensions;
+using Integrations.SuperFrete.Interfaces;
 
 namespace Desktop.Infrastructure;
 
@@ -26,6 +35,15 @@ public static class ServiceProviderConfiguration
     public static IServiceProvider ConfigureServices()
     {
         var services = new ServiceCollection();
+
+        // Configuration with User Secrets
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
+            .Build();
+
+        services.AddSingleton<IConfiguration>(configuration);
 
         // Ensure directory exists
         var dbDirectory = Path.GetDirectoryName(DbPath);
@@ -61,10 +79,18 @@ public static class ServiceProviderConfiguration
         services.AddScoped<IMarketplaceSyncService, MarketplaceSyncService>();
         services.AddScoped<IAutomationService, AutomationService>();
 
-        // ViewModels
+        // SuperFrete Integration
+        services.AddSuperFrete(configuration);
+
+        // ViewModels - All pages with CRUD
         services.AddTransient<DashboardViewModel>();
         services.AddTransient<ProductsViewModel>();
         services.AddTransient<OrdersViewModel>();
+        services.AddTransient<CustomersViewModel>();
+        services.AddTransient<SuppliersViewModel>();
+        services.AddTransient<PurchasesViewModel>();
+        services.AddTransient<KitsViewModel>();
+        services.AddTransient<ShipmentsViewModel>();
 
         return services.BuildServiceProvider();
     }
@@ -73,6 +99,6 @@ public static class ServiceProviderConfiguration
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<PaintballManagerDbContext>();
-        context.Database.EnsureCreated();
+        context.Database.Migrate();
     }
 }

@@ -1,5 +1,14 @@
 using System.Windows;
 using System.Windows.Controls;
+using Desktop.Features.Products;
+using Desktop.Features.Orders;
+using Desktop.Features.Customers;
+using Desktop.Features.Suppliers;
+using Desktop.Features.Purchases;
+using Desktop.Features.Kits;
+using Desktop.Features.Shipments;
+using Desktop.Features.Dashboard;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Desktop;
 
@@ -18,9 +27,7 @@ public partial class MainWindow : Window
     private void SetActiveButton(Button button)
     {
         if (_activeMenuButton != null)
-        {
             _activeMenuButton.Style = (Style)FindResource("MenuButton");
-        }
         button.Style = (Style)FindResource("MenuButtonActive");
         _activeMenuButton = button;
     }
@@ -28,15 +35,22 @@ public partial class MainWindow : Window
     private void HideAllContent()
     {
         DashboardContent.Visibility = Visibility.Collapsed;
-        ProductsContent.Visibility = Visibility.Collapsed;
-        OrdersContent.Visibility = Visibility.Collapsed;
-        CustomersContent.Visibility = Visibility.Collapsed;
-        SuppliersContent.Visibility = Visibility.Collapsed;
-        PurchasesContent.Visibility = Visibility.Collapsed;
-        KitsContent.Visibility = Visibility.Collapsed;
-        ShipmentsContent.Visibility = Visibility.Collapsed;
         MercadoLivreContent.Visibility = Visibility.Collapsed;
         ShopeeContent.Visibility = Visibility.Collapsed;
+        DynamicContent.Children.Clear();
+    }
+
+    private void LoadView<TView, TViewModel>(string title, string subtitle) 
+        where TView : UserControl, new()
+        where TViewModel : class
+    {
+        HideAllContent();
+        PageTitle.Text = title;
+        PageSubtitle.Text = subtitle;
+
+        var viewModel = App.ServiceProvider.GetRequiredService<TViewModel>();
+        var view = new TView { DataContext = viewModel };
+        DynamicContent.Children.Add(view);
     }
 
     private void Dashboard_Click(object sender, RoutedEventArgs e)
@@ -48,64 +62,43 @@ public partial class MainWindow : Window
     private void Products_Click(object sender, RoutedEventArgs e)
     {
         SetActiveButton(BtnProducts);
-        HideAllContent();
-        PageTitle.Text = "Produtos";
-        PageSubtitle.Text = "Gerenciar produtos e estoque";
-        ProductsContent.Visibility = Visibility.Visible;
+        LoadView<ProductsView, ProductsViewModel>("Produtos", "Gerenciar produtos, dimensões e calcular frete");
     }
 
     private void Orders_Click(object sender, RoutedEventArgs e)
     {
         SetActiveButton(BtnOrders);
-        HideAllContent();
-        PageTitle.Text = "Pedidos";
-        PageSubtitle.Text = "Visualizar e processar pedidos";
-        OrdersContent.Visibility = Visibility.Visible;
+        LoadView<OrdersView, OrdersViewModel>("Pedidos", "Criar e gerenciar pedidos");
     }
 
     private void Customers_Click(object sender, RoutedEventArgs e)
     {
         SetActiveButton(BtnCustomers);
-        HideAllContent();
-        PageTitle.Text = "Clientes";
-        PageSubtitle.Text = "Cadastro e gestao de clientes";
-        CustomersContent.Visibility = Visibility.Visible;
+        LoadView<CustomersView, CustomersViewModel>("Clientes", "Cadastro e gestão de clientes");
     }
 
     private void Suppliers_Click(object sender, RoutedEventArgs e)
     {
         SetActiveButton(BtnSuppliers);
-        HideAllContent();
-        PageTitle.Text = "Fornecedores";
-        PageSubtitle.Text = "Cadastro de fornecedores";
-        SuppliersContent.Visibility = Visibility.Visible;
+        LoadView<SuppliersView, SuppliersViewModel>("Fornecedores", "Cadastro de fornecedores");
     }
 
     private void Purchases_Click(object sender, RoutedEventArgs e)
     {
         SetActiveButton(BtnPurchases);
-        HideAllContent();
-        PageTitle.Text = "Compras";
-        PageSubtitle.Text = "Registrar compras de fornecedores e usados";
-        PurchasesContent.Visibility = Visibility.Visible;
+        LoadView<PurchasesView, PurchasesViewModel>("Compras", "Registrar compras");
     }
 
     private void Kits_Click(object sender, RoutedEventArgs e)
     {
         SetActiveButton(BtnKits);
-        HideAllContent();
-        PageTitle.Text = "Kits";
-        PageSubtitle.Text = "Gerenciar kits de paintball";
-        KitsContent.Visibility = Visibility.Visible;
+        LoadView<KitsView, KitsViewModel>("Kits", "Gerenciar kits de paintball");
     }
 
     private void Shipments_Click(object sender, RoutedEventArgs e)
     {
         SetActiveButton(BtnShipments);
-        HideAllContent();
-        PageTitle.Text = "Envios";
-        PageSubtitle.Text = "Gerar e rastrear envios";
-        ShipmentsContent.Visibility = Visibility.Visible;
+        LoadView<ShipmentsView, ShipmentsViewModel>("Envios", "Gerar etiquetas e rastrear envios");
     }
 
     private void MercadoLivre_Click(object sender, RoutedEventArgs e)
@@ -113,7 +106,7 @@ public partial class MainWindow : Window
         SetActiveButton(BtnMercadoLivre);
         HideAllContent();
         PageTitle.Text = "Mercado Livre";
-        PageSubtitle.Text = "Integracao com Mercado Livre";
+        PageSubtitle.Text = "Integração com Mercado Livre";
         MercadoLivreContent.Visibility = Visibility.Visible;
     }
 
@@ -122,7 +115,7 @@ public partial class MainWindow : Window
         SetActiveButton(BtnShopee);
         HideAllContent();
         PageTitle.Text = "Shopee";
-        PageSubtitle.Text = "Integracao com Shopee";
+        PageSubtitle.Text = "Integração com Shopee";
         ShopeeContent.Visibility = Visibility.Visible;
     }
 
@@ -130,7 +123,10 @@ public partial class MainWindow : Window
     {
         HideAllContent();
         PageTitle.Text = "Dashboard";
-        PageSubtitle.Text = "Visao geral do sistema";
+        PageSubtitle.Text = "Visão geral do sistema";
+
+        var viewModel = App.ServiceProvider.GetRequiredService<DashboardViewModel>();
+        DashboardContent.DataContext = viewModel;
         DashboardContent.Visibility = Visibility.Visible;
     }
 }

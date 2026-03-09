@@ -34,8 +34,11 @@ public class PaintballManagerDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
             entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.SKU).HasMaxLength(20);
             entity.Property(e => e.Cost).HasPrecision(18, 2);
             entity.Property(e => e.Price).HasPrecision(18, 2);
+            entity.Property(e => e.Weight).HasPrecision(10, 3);
+            entity.HasIndex(e => e.SKU).IsUnique();
         });
 
         // Customer

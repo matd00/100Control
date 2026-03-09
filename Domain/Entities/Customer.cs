@@ -75,6 +75,16 @@ public class Customer
         Phone = phone;
     }
 
+    public void UpdateContactInfo(string name, string email, string phone)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Customer name cannot be empty", nameof(name));
+
+        Name = name.Trim();
+        Email = email?.Trim().ToLowerInvariant() ?? Email;
+        Phone = phone?.Trim() ?? Phone;
+    }
+
     public void UpdateAddress(string address, string city, string state, string zipCode)
     {
         Address = address;

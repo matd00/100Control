@@ -1,0 +1,172 @@
+<UserControl x:Class="Desktop.Features.Shipments.ShipmentsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:Desktop.Infrastructure.Converters"
+             Background="#F0F2F5">
+
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+        <converters:NullToVisibilityConverter x:Key="NullToVisibility"/>
+        
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="24"/>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#22C55E"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#3B82F6"/>
+        </Style>
+
+        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#EF4444"/>
+        </Style>
+
+        <Style x:Key="ModernTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="320"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Lista de Envios -->
+        <Border Grid.Column="0" Style="{StaticResource CardStyle}" Margin="0,0,20,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+                    <TextBlock Text="📦 Envios" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B"/>
+                    <TextBlock Text="{Binding Shipments.Count, StringFormat=' ({0})'}" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="#64748B" Margin="20,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Shipments}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="10" Padding="16" Margin="0,0,0,12" Cursor="Hand" x:Name="Card">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="#FEF3C7"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding StatusText}" Value="Enviado">
+                                                    <Setter Property="Background" Value="#DBEAFE"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding StatusText}" Value="Entregue">
+                                                    <Setter Property="Background" Value="#DCFCE7"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding StatusText}" Value="Cancelado">
+                                                    <Setter Property="Background" Value="#FEE2E2"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Border.InputBindings>
+                                        <MouseBinding MouseAction="LeftClick" Command="{Binding DataContext.SelectShipmentCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"/>
+                                    </Border.InputBindings>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Id, StringFormat='ENV-{0:N8}'}" FontWeight="Bold" Foreground="#1E293B"/>
+                                                <Border Background="#22C55E" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
+                                                    <TextBlock Text="{Binding StatusText}" FontSize="10" Foreground="White" FontWeight="Bold"/>
+                                                </Border>
+                                                <Border Background="#FEF3C7" CornerRadius="4" Padding="6,2" Margin="4,0,0,0">
+                                                    <TextBlock Text="{Binding ProviderText}" FontSize="10" Foreground="#D97706"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding TrackingNumber, StringFormat='Rastreio: {0}'}" FontSize="12" Foreground="#64748B" Margin="0,6,0,0"/>
+                                            <TextBlock Text="{Binding DateFormatted}" FontSize="11" Foreground="#94A3B8"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding CostFormatted}" FontSize="18" FontWeight="Bold" Foreground="#1E293B" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Formulário -->
+        <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+            <StackPanel>
+                <TextBlock Text="➕ Novo Envio" FontSize="16" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,0,0,20"/>
+
+                <TextBlock Text="Pedido *" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
+                <ComboBox ItemsSource="{Binding PendingOrders}" SelectedItem="{Binding SelectedOrder}" DisplayMemberPath="Description" Margin="0,0,0,12" Padding="10"/>
+
+                <TextBlock Text="Transportadora" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
+                <ComboBox ItemsSource="{Binding Providers}" SelectedItem="{Binding SelectedProvider}" Margin="0,0,0,16" Padding="10"/>
+
+                <Button Content="📦 Criar Envio" Command="{Binding CreateShipmentCommand}" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Stretch" Margin="0,0,0,20"/>
+
+                <!-- Ações do Envio Selecionado -->
+                <Border Background="#F0F9FF" CornerRadius="8" Padding="12" Visibility="{Binding SelectedShipment, Converter={StaticResource NullToVisibility}}">
+                    <StackPanel>
+                        <TextBlock Text="Envio Selecionado" FontSize="12" Foreground="#64748B" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding SelectedShipment.CostFormatted}" FontSize="18" FontWeight="Bold" Foreground="#1E293B" Margin="0,4,0,12"/>
+
+                        <TextBlock Text="Código de Rastreio" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
+                        <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding TrackingNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+
+                        <TextBlock Text="Custo do Frete" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
+                        <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding ShippingCost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
+
+                        <Button Content="🏷️ Gerar Etiqueta" Command="{Binding GenerateLabelCommand}" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Stretch" Margin="0,0,0,8"/>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <Button Content="📤 Enviado" Command="{Binding MarkAsShippedCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
+                            <Button Content="✅ Entregue" Command="{Binding MarkAsDeliveredCommand}" Style="{StaticResource SecondaryButton}"/>
+                        </StackPanel>
+                        
+                        <Button Content="🔍 Rastrear" Command="{Binding TrackShipmentCommand}" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Stretch" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

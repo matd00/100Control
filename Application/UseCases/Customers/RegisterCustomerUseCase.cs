@@ -12,25 +12,24 @@ public class RegisterCustomerUseCase
         _customerRepository = customerRepository;
     }
 
-    public async Task Execute(RegisterCustomerCommand command)
+    public async Task<RegisterCustomerResult> Execute(RegisterCustomerCommand command)
     {
         try
         {
-            // Security: Input validation
             if (command == null)
-                throw new ArgumentNullException(nameof(command));
+                return RegisterCustomerResult.Failure("Command cannot be null");
 
             if (string.IsNullOrWhiteSpace(command.Name))
-                throw new ArgumentException("Customer name is required", nameof(command.Name));
+                return RegisterCustomerResult.Failure("Customer name is required");
 
             if (string.IsNullOrWhiteSpace(command.Email))
-                throw new ArgumentException("Email is required", nameof(command.Email));
+                return RegisterCustomerResult.Failure("Email is required");
 
             if (string.IsNullOrWhiteSpace(command.Phone))
-                throw new ArgumentException("Phone is required", nameof(command.Phone));
+                return RegisterCustomerResult.Failure("Phone is required");
 
             if (string.IsNullOrWhiteSpace(command.Document))
-                throw new ArgumentException("Document is required", nameof(command.Document));
+                return RegisterCustomerResult.Failure("Document is required");
 
             var customer = new Customer(
                 command.Name,
@@ -41,41 +40,47 @@ public class RegisterCustomerUseCase
 
             if (!string.IsNullOrEmpty(command.Address))
             {
-                if (string.IsNullOrWhiteSpace(command.City) || 
-                    string.IsNullOrWhiteSpace(command.State) || 
-                    string.IsNullOrWhiteSpace(command.ZipCode))
-                    throw new ArgumentException("Complete address information is required");
-
                 customer.UpdateAddress(
                     command.Address,
-                    command.City,
-                    command.State,
-                    command.ZipCode
+                    command.City ?? string.Empty,
+                    command.State ?? string.Empty,
+                    command.ZipCode ?? string.Empty
                 );
             }
 
             await _customerRepository.SaveAsync(customer);
+
+            return RegisterCustomerResult.SuccessResult(customer.Id);
         }
-        catch (ArgumentException)
+        catch (ArgumentException ex)
         {
-            throw;
+            return RegisterCustomerResult.Failure(ex.Message);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            // Security: Don't expose internal exception details
-            throw new InvalidOperationException("An error occurred while registering the customer. Please try again later.");
+            return RegisterCustomerResult.Failure("An error occurred while registering the customer.");
         }
     }
 }
 
+public class RegisterCustomerResult
+{
+    public bool Success { get; private set; }
+    public string ErrorMessage { get; private set; } = string.Empty;
+    public Guid CustomerId { get; private set; }
+
+    public static RegisterCustomerResult SuccessResult(Guid customerId) => new() { Success = true, CustomerId = customerId };
+    public static RegisterCustomerResult Failure(string error) => new() { Success = false, ErrorMessage = error };
+}
+
 public class RegisterCustomerCommand
 {
-    public string Name { get; set; }
-    public string Email { get; set; }
-    public string Phone { get; set; }
-    public string Document { get; set; }
-    public string Address { get; set; }
-    public string City { get; set; }
-    public string State { get; set; }
-    public string ZipCode { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+    public string Document { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
+    public string City { get; set; } = string.Empty;
+    public string State { get; set; } = string.Empty;
+    public string ZipCode { get; set; } = string.Empty;
 }

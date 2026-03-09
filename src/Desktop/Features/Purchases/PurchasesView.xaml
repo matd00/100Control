@@ -1,0 +1,158 @@
+<UserControl x:Class="Desktop.Features.Purchases.PurchasesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:Desktop.Infrastructure.Converters"
+             Background="#F0F2F5">
+
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+        <converters:NullToVisibilityConverter x:Key="NullToVisibility"/>
+        
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="24"/>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#8B5CF6"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#22C55E"/>
+        </Style>
+
+        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#EF4444"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="320"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Lista de Compras -->
+        <Border Grid.Column="0" Style="{StaticResource CardStyle}" Margin="0,0,20,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+                    <TextBlock Text="🛒 Compras" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B"/>
+                    <TextBlock Text="{Binding Purchases.Count, StringFormat=' ({0})'}" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="#64748B" Margin="20,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Purchases}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="10" Padding="16" Margin="0,0,0,12" Cursor="Hand" x:Name="Card">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="#E0E7FF"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding StatusText}" Value="Pendente">
+                                                    <Setter Property="Background" Value="#FEF3C7"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding StatusText}" Value="Recebido">
+                                                    <Setter Property="Background" Value="#DCFCE7"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding StatusText}" Value="Cancelado">
+                                                    <Setter Property="Background" Value="#FEE2E2"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Border.InputBindings>
+                                        <MouseBinding MouseAction="LeftClick" Command="{Binding DataContext.SelectPurchaseCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"/>
+                                    </Border.InputBindings>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Id, StringFormat='#C{0:N8}'}" FontWeight="Bold" Foreground="#1E293B"/>
+                                                <Border Background="#6366F1" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
+                                                    <TextBlock Text="{Binding TypeText}" FontSize="10" Foreground="White" FontWeight="Bold"/>
+                                                </Border>
+                                                <Border Background="#F0FDF4" CornerRadius="4" Padding="6,2" Margin="4,0,0,0">
+                                                    <TextBlock Text="{Binding StatusText}" FontSize="10" Foreground="#16A34A"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding ItemCount, StringFormat='{}{0} item(s)'}" FontSize="12" Foreground="#64748B" Margin="0,6,0,0"/>
+                                            <TextBlock Text="{Binding DateFormatted}" FontSize="11" Foreground="#94A3B8"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding TotalFormatted}" FontSize="18" FontWeight="Bold" Foreground="#1E293B" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Formulário -->
+        <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+            <StackPanel>
+                <TextBlock Text="➕ Nova Compra" FontSize="16" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,0,0,20"/>
+
+                <TextBlock Text="Fornecedor *" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
+                <ComboBox ItemsSource="{Binding Suppliers}" SelectedItem="{Binding SelectedSupplier}" DisplayMemberPath="Name" Margin="0,0,0,12" Padding="10"/>
+
+                <TextBlock Text="Tipo" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
+                <ComboBox ItemsSource="{Binding PurchaseTypes}" SelectedItem="{Binding PurchaseType}" Margin="0,0,0,16" Padding="10"/>
+
+                <Button Content="🛒 Criar Compra" Command="{Binding CreatePurchaseCommand}" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Stretch" Margin="0,0,0,20"/>
+
+                <!-- Ações da Compra Selecionada -->
+                <Border Background="#F0F9FF" CornerRadius="8" Padding="12" Visibility="{Binding SelectedPurchase, Converter={StaticResource NullToVisibility}}" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="Compra Selecionada" FontSize="12" Foreground="#64748B" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding SelectedPurchase.TotalFormatted}" FontSize="18" FontWeight="Bold" Foreground="#1E293B" Margin="0,4,0,8"/>
+                        
+                        <TextBlock Text="Adicionar Item" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,8,0,6"/>
+                        <ComboBox ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}" DisplayMemberPath="Name" Margin="0,0,0,8" Padding="8"/>
+                        
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Text="{Binding Quantity}" Padding="8" Margin="0,0,4,0"/>
+                            <TextBox Grid.Column="1" Text="{Binding Cost}" Padding="8" Margin="4,0,0,0"/>
+                        </Grid>
+                        
+                        <Button Content="+ Adicionar Item" Command="{Binding AddItemToPurchaseCommand}" Style="{StaticResource SuccessButton}" HorizontalAlignment="Stretch" Margin="0,0,0,12"/>
+                        
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="✅ Recebido" Command="{Binding MarkAsReceivedCommand}" Style="{StaticResource SuccessButton}" Margin="0,0,8,0"/>
+                            <Button Content="❌ Cancelar" Command="{Binding CancelPurchaseCommand}" Style="{StaticResource DangerButton}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

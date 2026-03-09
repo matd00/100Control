@@ -1,17 +1,28 @@
+using Integrations.SuperFrete.Models;
+
 namespace Integrations.SuperFrete.Interfaces;
 
 public interface ISuperFreteService
 {
     Task<decimal> CalculateFreightAsync(FreightQuoteRequest request);
+    Task<List<SuperFreteQuoteResponse>> GetAllQuotesAsync(FreightQuoteRequest request);
     Task<string> GenerateLabelAsync(ShipmentLabelRequest request);
     Task<ShipmentTrackingDto> TrackShipmentAsync(string trackingNumber);
 }
 
 public class FreightQuoteRequest
 {
-    public string PostalCode { get; set; }
+    public string DestinationPostalCode { get; set; } = string.Empty;
     public decimal Weight { get; set; }
-    public int Quantity { get; set; }
+    public int Width { get; set; } = 11;   // cm (min Correios)
+    public int Height { get; set; } = 2;   // cm (min Correios)
+    public int Length { get; set; } = 16;  // cm (min Correios)
+    public int Quantity { get; set; } = 1;
+
+    /// <summary>
+    /// Calcula peso total baseado na quantidade
+    /// </summary>
+    public decimal TotalWeight => Weight * Quantity;
 }
 
 public class ShipmentLabelRequest

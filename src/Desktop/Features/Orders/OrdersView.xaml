@@ -1,0 +1,163 @@
+<UserControl x:Class="Desktop.Features.Orders.OrdersView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:Desktop.Infrastructure.Converters"
+             Background="#F0F2F5">
+
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
+        <converters:NullToVisibilityConverter x:Key="NullToVisibility"/>
+        
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="24"/>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#3B82F6"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#22C55E"/>
+        </Style>
+
+        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#EF4444"/>
+        </Style>
+
+        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#F1F5F9"/>
+            <Setter Property="Foreground" Value="#475569"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="320"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Lista de Pedidos -->
+        <Border Grid.Column="0" Style="{StaticResource CardStyle}" Margin="0,0,20,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+                    <TextBlock Text="📦 Pedidos" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B"/>
+                    <TextBlock Text="{Binding Orders.Count, StringFormat=' ({0})'}" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="#64748B" Margin="20,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Orders}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,12" CornerRadius="10" Padding="16" Cursor="Hand" x:Name="Card">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="#F8FAFC"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding StatusText}" Value="Pendente">
+                                                    <Setter Property="Background" Value="#FEF3C7"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding StatusText}" Value="Processando">
+                                                    <Setter Property="Background" Value="#DBEAFE"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding StatusText}" Value="Concluído">
+                                                    <Setter Property="Background" Value="#DCFCE7"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Border.InputBindings>
+                                        <MouseBinding MouseAction="LeftClick" Command="{Binding DataContext.SelectOrderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"/>
+                                    </Border.InputBindings>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Id, StringFormat='#{0:N8}'}" FontWeight="Bold" Foreground="#1E293B"/>
+                                                <Border Background="#3B82F6" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
+                                                    <TextBlock Text="{Binding StatusText}" FontSize="10" Foreground="White" FontWeight="Bold"/>
+                                                </Border>
+                                                <Border Background="#E0E7FF" CornerRadius="4" Padding="6,2" Margin="4,0,0,0">
+                                                    <TextBlock Text="{Binding SourceText}" FontSize="10" Foreground="#6366F1"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding ItemsCount, StringFormat='{}{0} item(s)'}" FontSize="12" Foreground="#64748B" Margin="0,4,0,0"/>
+                                            <TextBlock Text="{Binding DateFormatted}" FontSize="11" Foreground="#94A3B8"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding TotalFormatted}" FontSize="18" FontWeight="Bold" Foreground="#1E293B" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Painel Lateral - Criar Pedido -->
+        <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+            <StackPanel>
+                <TextBlock Text="➕ Novo Pedido" FontSize="16" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,0,0,20"/>
+
+                <TextBlock Text="Cliente *" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
+                <ComboBox ItemsSource="{Binding Customers}" SelectedItem="{Binding SelectedCustomer}" DisplayMemberPath="Name" Margin="0,0,0,12" Padding="10"/>
+
+                <TextBlock Text="Origem" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
+                <ComboBox ItemsSource="{Binding OrderSources}" SelectedItem="{Binding SelectedSource}" Margin="0,0,0,16" Padding="10"/>
+
+                <Button Content="📦 Criar Pedido" Command="{Binding CreateOrderCommand}" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Stretch" Margin="0,0,0,20"/>
+
+                <!-- Ações do Pedido Selecionado -->
+                <Border Background="#F0F9FF" CornerRadius="8" Padding="12" Visibility="{Binding SelectedOrder, Converter={StaticResource NullToVisibility}}" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="Pedido Selecionado" FontSize="12" Foreground="#64748B" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding SelectedOrder.TotalFormatted}" FontSize="18" FontWeight="Bold" Foreground="#1E293B" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="Adicionar Produto" FontSize="14" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,0,0,12"/>
+                
+                <ComboBox ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}" DisplayMemberPath="Name" Margin="0,0,0,8" Padding="10"/>
+                
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" Text="{Binding Quantity}" Padding="10" Margin="0,0,8,0"/>
+                    <Button Grid.Column="1" Content="+ Add" Command="{Binding AddItemToOrderCommand}" Style="{StaticResource SuccessButton}"/>
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+                    <Button Content="✅ Processar" Command="{Binding MarkAsProcessingCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
+                    <Button Content="❌ Cancelar" Command="{Binding CancelOrderCommand}" Style="{StaticResource DangerButton}"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
