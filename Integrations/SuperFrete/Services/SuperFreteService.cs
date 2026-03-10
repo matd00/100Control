@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Diagnostics;
 using Integrations.SuperFrete.Configuration;
 using Integrations.SuperFrete.Interfaces;
 using Integrations.SuperFrete.Models;
@@ -22,7 +23,8 @@ public class SuperFreteService : ISuperFreteService
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
+            WriteIndented = true // Para melhor visualização no log
         };
 
         ConfigureHttpClient();
@@ -195,17 +197,64 @@ public class SuperFreteService : ISuperFreteService
         };
 
         var json = JsonSerializer.Serialize(apiRequest, _jsonOptions);
+
+        // === LOG DETALHADO PARA DEBUG ===
+        var logMessage = new StringBuilder();
+        logMessage.AppendLine("========== SUPERFRETE API REQUEST DEBUG ==========");
+        logMessage.AppendLine($"Timestamp: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        logMessage.AppendLine($"Endpoint: POST /api/v0/cart");
+        logMessage.AppendLine($"Base URL: {_settings.BaseUrl}");
+        logMessage.AppendLine();
+        logMessage.AppendLine("--- DADOS RECEBIDOS (ShipmentLabelRequest) ---");
+        logMessage.AppendLine($"ReceiverName: '{request.ReceiverName}'");
+        logMessage.AppendLine($"ReceiverPhone: '{request.ReceiverPhone}'");
+        logMessage.AppendLine($"ReceiverEmail: '{request.ReceiverEmail}'");
+        logMessage.AppendLine($"ReceiverAddress: '{request.ReceiverAddress}'");
+        logMessage.AppendLine($"ReceiverNumber: '{request.ReceiverNumber}'");
+        logMessage.AppendLine($"ReceiverComplement: '{request.ReceiverComplement}'");
+        logMessage.AppendLine($"ReceiverDistrict: '{request.ReceiverDistrict}'");
+        logMessage.AppendLine($"ReceiverCity: '{request.ReceiverCity}'");
+        logMessage.AppendLine($"ReceiverState: '{request.ReceiverState}'");
+        logMessage.AppendLine($"ReceiverZipCode: '{request.ReceiverZipCode}'");
+        logMessage.AppendLine($"Weight: {request.Weight}");
+        logMessage.AppendLine($"Width: {request.Width}");
+        logMessage.AppendLine($"Height: {request.Height}");
+        logMessage.AppendLine($"Length: {request.Length}");
+        logMessage.AppendLine($"ServiceId: {request.ServiceId}");
+        logMessage.AppendLine($"Products Count: {request.Products?.Count ?? 0}");
+        logMessage.AppendLine();
+        logMessage.AppendLine("--- JSON ENVIADO PARA API ---");
+        logMessage.AppendLine(json);
+        logMessage.AppendLine("===============================================");
+
+        Debug.WriteLine(logMessage.ToString());
+        System.IO.File.AppendAllText(
+            System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "superfrete_debug.log"), 
+            logMessage.ToString() + Environment.NewLine);
+        // === FIM DO LOG ===
+
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         var response = await _httpClient.PostAsync("/api/v0/cart", content);
 
+        // Log da resposta
+        var responseContent = await response.Content.ReadAsStringAsync();
+        var responseLog = new StringBuilder();
+        responseLog.AppendLine("========== SUPERFRETE API RESPONSE ==========");
+        responseLog.AppendLine($"Status Code: {response.StatusCode}");
+        responseLog.AppendLine($"Response: {responseContent}");
+        responseLog.AppendLine("==============================================");
+        Debug.WriteLine(responseLog.ToString());
+        System.IO.File.AppendAllText(
+            System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "superfrete_debug.log"), 
+            responseLog.ToString() + Environment.NewLine);
+
         if (!response.IsSuccessStatusCode)
         {
-            var errorContent = await response.Content.ReadAsStringAsync();
-            throw new SuperFreteException($"Erro ao gerar etiqueta: {response.StatusCode} - {errorContent}");
+            throw new SuperFreteException($"Erro ao gerar etiqueta: {response.StatusCode} - {responseContent}");
         }
 
-        var shipment = await response.Content.ReadFromJsonAsync<SuperFreteShipmentResponse>(_jsonOptions);
+        var shipment = JsonSerializer.Deserialize<SuperFreteShipmentResponse>(responseContent, _jsonOptions);
 
         if (shipment == null || !string.IsNullOrEmpty(shipment.Error))
         {
