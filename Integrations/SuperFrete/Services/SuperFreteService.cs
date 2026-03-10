@@ -138,19 +138,33 @@ public class SuperFreteService : ISuperFreteService
             });
         }
 
+        // Monta o volume (obrigatório)
+        var volumes = new List<SuperFreteVolume>
+        {
+            new SuperFreteVolume
+            {
+                Weight = request.Weight > 0 ? request.Weight : 0.3m,
+                Width = request.Width > 0 ? request.Width : 11,
+                Height = request.Height > 0 ? request.Height : 2,
+                Length = request.Length > 0 ? request.Length : 16
+            }
+        };
+
         var apiRequest = new SuperFreteShipmentRequest
         {
             From = new SuperFreteAddress
             {
                 PostalCode = _settings.DefaultOriginPostalCode.Replace("-", ""),
                 Name = "Loja 100Control",
-                Phone = "11999999999" // Telefone da loja
+                Phone = "11999999999"
             },
             To = new SuperFreteAddress
             {
                 PostalCode = request.ReceiverZipCode.Replace("-", ""),
                 Name = request.ReceiverName,
-                Phone = request.ReceiverPhone.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", ""),
+                Phone = !string.IsNullOrEmpty(request.ReceiverPhone) 
+                    ? request.ReceiverPhone.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", "") 
+                    : "11999999999",
                 Email = request.ReceiverEmail,
                 Address = request.ReceiverAddress,
                 Number = !string.IsNullOrEmpty(request.ReceiverNumber) ? request.ReceiverNumber : "S/N",
@@ -160,13 +174,7 @@ public class SuperFreteService : ISuperFreteService
                 StateAbbr = request.ReceiverState
             },
             Products = products,
-            Package = new SuperFretePackage
-            {
-                Weight = request.Weight > 0 ? request.Weight : 0.3m,
-                Width = request.Width > 0 ? request.Width : 11,
-                Height = request.Height > 0 ? request.Height : 2,
-                Length = request.Length > 0 ? request.Length : 16
-            },
+            Volumes = volumes,
             Options = new SuperFreteOptions
             {
                 InsuranceValue = request.ShippingPrice,

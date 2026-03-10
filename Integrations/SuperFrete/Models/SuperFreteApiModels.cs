@@ -168,6 +168,21 @@ public class SuperFretePackage
     public int Length { get; set; } = 16; // Mínimo Correios
 }
 
+public class SuperFreteVolume
+{
+    [JsonPropertyName("weight")]
+    public decimal Weight { get; set; }
+
+    [JsonPropertyName("width")]
+    public int Width { get; set; } = 11;
+
+    [JsonPropertyName("height")]
+    public int Height { get; set; } = 2;
+
+    [JsonPropertyName("length")]
+    public int Length { get; set; } = 16;
+}
+
 public class SuperFreteProduct
 {
     [JsonPropertyName("name")]
@@ -191,8 +206,8 @@ public class SuperFreteShipmentRequest
     [JsonPropertyName("products")]
     public List<SuperFreteProduct> Products { get; set; } = new();
 
-    [JsonPropertyName("package")]
-    public SuperFretePackage? Package { get; set; }
+    [JsonPropertyName("volumes")]
+    public List<SuperFreteVolume> Volumes { get; set; } = new();
 
     [JsonPropertyName("options")]
     public SuperFreteOptions? Options { get; set; }
