@@ -119,12 +119,15 @@ public class SuperFreteService : ISuperFreteService
 
     public async Task<string> GenerateLabelAsync(ShipmentLabelRequest request)
     {
+        // Validação dos dados obrigatórios
+        ValidateRequest(request);
+
         // Monta a lista de produtos
         var products = request.Products.Select(p => new SuperFreteProduct
         {
-            Name = p.Name,
-            Quantity = p.Quantity,
-            UnitaryValue = p.UnitPrice
+            Name = !string.IsNullOrWhiteSpace(p.Name) ? p.Name : "Produto",
+            Quantity = p.Quantity > 0 ? p.Quantity : 1,
+            UnitaryValue = p.UnitPrice > 0 ? p.UnitPrice : 10.00m
         }).ToList();
 
         // Se não tiver produtos, cria um genérico
@@ -150,34 +153,40 @@ public class SuperFreteService : ISuperFreteService
             }
         };
 
+        // Extrai número do endereço se não foi informado separadamente
+        var (address, number) = ExtractAddressNumber(request.ReceiverAddress, request.ReceiverNumber);
+
         var apiRequest = new SuperFreteShipmentRequest
         {
             From = new SuperFreteAddress
             {
                 PostalCode = _settings.DefaultOriginPostalCode.Replace("-", ""),
                 Name = "Loja 100Control",
-                Phone = "11999999999"
+                Phone = "11999999999",
+                Address = "Rua Principal",
+                Number = "100",
+                District = "Centro",
+                City = "Limeira",
+                StateAbbr = "SP"
             },
             To = new SuperFreteAddress
             {
-                PostalCode = request.ReceiverZipCode.Replace("-", ""),
-                Name = request.ReceiverName,
-                Phone = !string.IsNullOrEmpty(request.ReceiverPhone) 
-                    ? request.ReceiverPhone.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", "") 
-                    : "11999999999",
-                Email = request.ReceiverEmail,
-                Address = request.ReceiverAddress,
-                Number = !string.IsNullOrEmpty(request.ReceiverNumber) ? request.ReceiverNumber : "S/N",
-                Complement = request.ReceiverComplement,
-                District = !string.IsNullOrEmpty(request.ReceiverDistrict) ? request.ReceiverDistrict : "Centro",
-                City = request.ReceiverCity,
-                StateAbbr = request.ReceiverState
+                PostalCode = CleanPostalCode(request.ReceiverZipCode),
+                Name = !string.IsNullOrWhiteSpace(request.ReceiverName) ? request.ReceiverName : "Destinatário",
+                Phone = CleanPhone(request.ReceiverPhone),
+                Email = !string.IsNullOrWhiteSpace(request.ReceiverEmail) ? request.ReceiverEmail : "cliente@email.com",
+                Address = !string.IsNullOrWhiteSpace(address) ? address : "Endereço não informado",
+                Number = !string.IsNullOrWhiteSpace(number) ? number : "S/N",
+                Complement = request.ReceiverComplement ?? "",
+                District = !string.IsNullOrWhiteSpace(request.ReceiverDistrict) ? request.ReceiverDistrict : "Centro",
+                City = !string.IsNullOrWhiteSpace(request.ReceiverCity) ? request.ReceiverCity : "Cidade",
+                StateAbbr = !string.IsNullOrWhiteSpace(request.ReceiverState) ? request.ReceiverState : "SP"
             },
             Products = products,
             Volumes = volumes,
             Options = new SuperFreteOptions
             {
-                InsuranceValue = request.ShippingPrice,
+                InsuranceValue = request.ShippingPrice > 0 ? request.ShippingPrice : 0,
                 Receipt = false,
                 OwnHand = false,
                 NonCommercial = false
@@ -204,6 +213,60 @@ public class SuperFreteService : ISuperFreteService
         }
 
         return shipment.Tracking ?? shipment.Id ?? throw new SuperFreteException("Código de rastreio não retornado pela API.");
+    }
+
+    private static void ValidateRequest(ShipmentLabelRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.ReceiverZipCode))
+            throw new SuperFreteException("CEP do destinatário é obrigatório.");
+    }
+
+    private static string CleanPostalCode(string postalCode)
+    {
+        if (string.IsNullOrWhiteSpace(postalCode))
+            return "00000000";
+        return postalCode.Replace("-", "").Replace(".", "").Replace(" ", "").Trim();
+    }
+
+    private static string CleanPhone(string phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone))
+            return "11999999999";
+        return phone.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", "").Trim();
+    }
+
+    private static (string address, string number) ExtractAddressNumber(string fullAddress, string number)
+    {
+        // Se já tem número, retorna como está
+        if (!string.IsNullOrWhiteSpace(number))
+            return (fullAddress ?? "", number);
+
+        if (string.IsNullOrWhiteSpace(fullAddress))
+            return ("", "S/N");
+
+        // Tenta extrair número do endereço (ex: "Rua das Flores, 123" ou "Rua das Flores 123")
+        var parts = fullAddress.Split(new[] { ',', '-' }, StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+        {
+            var possibleNumber = parts[1].Trim().Split(' ')[0];
+            if (int.TryParse(possibleNumber, out _))
+            {
+                return (parts[0].Trim(), possibleNumber);
+            }
+        }
+
+        // Tenta encontrar número no final do endereço
+        var words = fullAddress.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        for (int i = words.Length - 1; i >= 0; i--)
+        {
+            if (int.TryParse(words[i].Replace(",", ""), out _))
+            {
+                var addressPart = string.Join(" ", words.Take(i));
+                return (addressPart, words[i].Replace(",", ""));
+            }
+        }
+
+        return (fullAddress, "S/N");
     }
 
     public async Task<ShipmentTrackingDto> TrackShipmentAsync(string trackingNumber)
