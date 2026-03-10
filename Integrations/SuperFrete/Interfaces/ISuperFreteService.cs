@@ -27,19 +27,24 @@ public class FreightQuoteRequest
 
 public class ShipmentLabelRequest
 {
-    public string TrackingNumber { get; set; }
-    public string ReceiverName { get; set; }
-    public string ReceiverAddress { get; set; }
-    public string ReceiverCity { get; set; }
-    public string ReceiverState { get; set; }
-    public string ReceiverZipCode { get; set; }
+    public string ReceiverName { get; set; } = string.Empty;
+    public string ReceiverAddress { get; set; } = string.Empty;
+    public string ReceiverCity { get; set; } = string.Empty;
+    public string ReceiverState { get; set; } = string.Empty;
+    public string ReceiverZipCode { get; set; } = string.Empty;
     public decimal Weight { get; set; }
+    public int Width { get; set; } = 11;
+    public int Height { get; set; } = 2;
+    public int Length { get; set; } = 16;
+    public int ServiceId { get; set; } = 1; // 1 = SEDEX, 2 = PAC, etc.
+    public string ServiceName { get; set; } = string.Empty;
+    public decimal ShippingPrice { get; set; }
 }
 
 public class ShipmentTrackingDto
 {
-    public string TrackingNumber { get; set; }
-    public string Status { get; set; }
+    public string TrackingNumber { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
     public DateTime LastUpdate { get; set; }
-    public string Location { get; set; }
+    public string Location { get; set; } = string.Empty;
 }

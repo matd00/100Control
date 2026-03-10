@@ -858,23 +858,6 @@
                                     </Grid>
                                 </Border>
 
-                                <!-- Etiqueta Gerada (sucesso) -->
-                                <Border Background="#DCFCE7" BorderBrush="#22C55E" BorderThickness="2" CornerRadius="12" Padding="20" Margin="0,16,0,0"
-                                        Visibility="{Binding HasGeneratedLabel, Converter={StaticResource BoolToVisibility}}">
-                                    <StackPanel HorizontalAlignment="Center">
-                                        <TextBlock Text="🎉" FontSize="48" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="Etiqueta Gerada com Sucesso!" FontSize="18" FontWeight="Bold" Foreground="#16A34A" 
-                                                   HorizontalAlignment="Center" Margin="0,12,0,0"/>
-                                        <Border Background="White" CornerRadius="8" Padding="16" Margin="0,16,0,0">
-                                            <StackPanel>
-                                                <TextBlock Text="Código de Rastreio:" FontSize="12" Foreground="#64748B" HorizontalAlignment="Center"/>
-                                                <TextBlock Text="{Binding GeneratedTrackingCode}" FontSize="24" FontWeight="Bold" Foreground="#1E293B" 
-                                                           HorizontalAlignment="Center" Margin="0,8,0,0"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </StackPanel>
-                                </Border>
-
                                 <!-- Botões de Ação -->
                                 <Grid Margin="0,20,0,0">
                                     <Grid.ColumnDefinitions>
@@ -992,6 +975,86 @@
                                             </StackPanel>
                                         </Button>
                                     </Grid>
+                                </StackPanel>
+                            </Border>
+                        </Border>
+
+                        <!-- DIALOG DE SUCESSO -->
+                        <Border Background="#00000080" Visibility="{Binding ShowSuccessDialog, Converter={StaticResource BoolToVisibility}}"
+                                VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                            <Border Background="White" CornerRadius="16" Padding="40" 
+                                    VerticalAlignment="Center" HorizontalAlignment="Center"
+                                    MinWidth="500" MaxWidth="600">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="25" ShadowDepth="8" Opacity="0.3"/>
+                                </Border.Effect>
+                                <StackPanel>
+                                    <!-- Ícone de Sucesso -->
+                                    <Border Width="80" Height="80" CornerRadius="40" Background="#DCFCE7" HorizontalAlignment="Center">
+                                        <TextBlock Text="✅" FontSize="40" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+
+                                    <TextBlock Text="Pedido Finalizado!" FontSize="26" FontWeight="Bold" Foreground="#16A34A" 
+                                               HorizontalAlignment="Center" Margin="0,20,0,8"/>
+                                    <TextBlock Text="A etiqueta foi gerada com sucesso no SuperFrete" FontSize="14" Foreground="#64748B" 
+                                               HorizontalAlignment="Center"/>
+
+                                    <!-- Código de Rastreio -->
+                                    <Border Background="#F0FDF4" BorderBrush="#22C55E" BorderThickness="2" CornerRadius="12" 
+                                            Padding="24" Margin="0,24,0,0">
+                                        <StackPanel>
+                                            <TextBlock Text="CÓDIGO DE RASTREIO" FontSize="11" Foreground="#16A34A" FontWeight="Bold" 
+                                                       HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                            <TextBlock Text="{Binding GeneratedTrackingCode}" FontSize="28" FontWeight="Bold" 
+                                                       Foreground="#166534" HorizontalAlignment="Center" FontFamily="Consolas"/>
+                                            <Button Command="{Binding CopyTrackingCodeCommand}" 
+                                                    Background="#22C55E" Foreground="White" BorderThickness="0" 
+                                                    Padding="16,8" Cursor="Hand" HorizontalAlignment="Center" Margin="0,16,0,0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="📋" Margin="0,0,8,0"/>
+                                                    <TextBlock Text="Copiar Código"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Informações do Envio -->
+                                    <Border Background="#F8FAFC" CornerRadius="8" Padding="16" Margin="0,16,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="📦 Frete" FontSize="11" Foreground="#64748B"/>
+                                                <TextBlock Text="{Binding SelectedShipping.ServiceName}" FontWeight="SemiBold" Foreground="#1E293B"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                                <TextBlock Text="💰 Valor" FontSize="11" Foreground="#64748B"/>
+                                                <TextBlock Text="{Binding SelectedShipping.PriceFormatted}" FontWeight="Bold" Foreground="#22C55E"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Próximos Passos -->
+                                    <Border Background="#FEF3C7" CornerRadius="8" Padding="12" Margin="0,16,0,0">
+                                        <StackPanel>
+                                            <TextBlock Text="📋 Próximos Passos:" FontSize="12" FontWeight="Bold" Foreground="#92400E" Margin="0,0,0,8"/>
+                                            <TextBlock Text="1. Acesse o painel do SuperFrete para imprimir a etiqueta" FontSize="11" Foreground="#78350F"/>
+                                            <TextBlock Text="2. Cole a etiqueta na embalagem" FontSize="11" Foreground="#78350F"/>
+                                            <TextBlock Text="3. Leve o pacote até uma agência dos Correios" FontSize="11" Foreground="#78350F"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Botão Fechar -->
+                                    <Button Command="{Binding CloseSuccessCommand}" 
+                                            Style="{StaticResource PrimaryButton}" 
+                                            HorizontalAlignment="Stretch" Padding="0,16" Margin="0,24,0,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="✓" Margin="0,0,8,0"/>
+                                            <TextBlock Text="Concluir e Criar Novo Pedido"/>
+                                        </StackPanel>
+                                    </Button>
                                 </StackPanel>
                             </Border>
                         </Border>

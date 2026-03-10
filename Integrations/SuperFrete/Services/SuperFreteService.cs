@@ -136,11 +136,11 @@ public class SuperFreteService : ISuperFreteService
             Package = new SuperFretePackage
             {
                 Weight = request.Weight,
-                Width = 11,
-                Height = 2,
-                Length = 16
+                Width = request.Width > 0 ? request.Width : 11,
+                Height = request.Height > 0 ? request.Height : 2,
+                Length = request.Length > 0 ? request.Length : 16
             },
-            Service = 1 // SEDEX por padrão, pode ser parametrizado
+            Service = request.ServiceId > 0 ? request.ServiceId : 1
         };
 
         var json = JsonSerializer.Serialize(apiRequest, _jsonOptions);

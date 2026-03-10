@@ -222,6 +222,8 @@ namespace Desktop.Features.Orders
         public ICommand CancelFinalizeCommand { get; }
         public ICommand CancelOrderCommand { get; }
         public ICommand EditOrderCommand { get; }
+        public ICommand CloseSuccessCommand { get; }
+        public ICommand CopyTrackingCodeCommand { get; }
 
         // Propriedades para confirmação
         private bool _showConfirmationDialog;
@@ -229,6 +231,13 @@ namespace Desktop.Features.Orders
         {
             get => _showConfirmationDialog;
             set => SetProperty(ref _showConfirmationDialog, value);
+        }
+
+        private bool _showSuccessDialog;
+        public bool ShowSuccessDialog
+        {
+            get => _showSuccessDialog;
+            set => SetProperty(ref _showSuccessDialog, value);
         }
 
         private bool _isGeneratingLabel;
@@ -292,8 +301,37 @@ namespace Desktop.Features.Orders
             CancelFinalizeCommand = new RelayCommand(CancelFinalize);
             CancelOrderCommand = new AsyncRelayCommand(CancelOrderAsync);
             EditOrderCommand = new RelayCommand(EditOrder);
+            CloseSuccessCommand = new RelayCommand(CloseSuccessAndReset);
+            CopyTrackingCodeCommand = new RelayCommand(CopyTrackingCode);
 
             _ = LoadDataAsync();
+        }
+
+        private void CopyTrackingCode()
+        {
+            if (!string.IsNullOrEmpty(GeneratedTrackingCode))
+            {
+                System.Windows.Clipboard.SetText(GeneratedTrackingCode);
+                StatusMessage = "📋 Código copiado para a área de transferência!";
+                OnPropertyChanged(nameof(HasStatusMessage));
+            }
+        }
+
+        private void CloseSuccessAndReset()
+        {
+            ShowSuccessDialog = false;
+            GeneratedTrackingCode = string.Empty;
+            OnPropertyChanged(nameof(HasGeneratedLabel));
+
+            // Limpar e resetar
+            SelectedOrder = null;
+            SelectedCustomer = null;
+            SelectedShipping = null;
+            OrderItems.Clear();
+            ShippingQuotes.Clear();
+            OtherShippingOptions.Clear();
+            CurrentStep = 1;
+            OnPropertyChanged(nameof(HasSelectedOrder));
         }
 
         private void ShowConfirmation()
@@ -319,13 +357,17 @@ namespace Desktop.Features.Orders
             try
             {
                 IsGeneratingLabel = true;
-                ShowConfirmationDialog = false;
 
                 // Gerar etiqueta no SuperFrete
                 var labelRequest = new ShipmentLabelRequest
                 {
-                    TrackingNumber = SelectedOrder?.Id.ToString() ?? Guid.NewGuid().ToString(),
                     Weight = CalculatedWeight,
+                    Width = CalculatedWidth,
+                    Height = CalculatedHeight,
+                    Length = CalculatedLength,
+                    ServiceId = SelectedShipping.ServiceId,
+                    ServiceName = SelectedShipping.ServiceName,
+                    ShippingPrice = SelectedShipping.Price,
                     ReceiverName = SelectedCustomer.Name,
                     ReceiverAddress = SelectedCustomer.Address,
                     ReceiverCity = SelectedCustomer.City,
@@ -336,6 +378,8 @@ namespace Desktop.Features.Orders
                 var trackingCode = await _superFreteService.GenerateLabelAsync(labelRequest);
                 GeneratedTrackingCode = trackingCode;
                 OnPropertyChanged(nameof(HasGeneratedLabel));
+                ShowConfirmationDialog = false;
+                ShowSuccessDialog = true;
 
                 // Salvar pedido
                 if (SelectedOrder != null && SelectedOrder.IsNew)
@@ -358,12 +402,11 @@ namespace Desktop.Features.Orders
                     }
                 }
 
-                StatusMessage = $"✅ Pedido finalizado! Código de rastreio: {trackingCode}";
-                OnPropertyChanged(nameof(HasStatusMessage));
                 await LoadOrdersAsync();
             }
             catch (Exception ex)
             {
+                ShowConfirmationDialog = false;
                 StatusMessage = $"Erro ao gerar etiqueta: {ex.Message}";
                 OnPropertyChanged(nameof(HasStatusMessage));
             }
@@ -750,14 +793,15 @@ namespace Desktop.Features.Orders
                 {
                     ShippingQuotes.Add(new ShippingQuoteViewModel
                     {
+                        ServiceId = quote.Company?.Id ?? 1,
                         ServiceName = quote.Name ?? "Servico",
-                        CompanyName = quote.Company != null ? quote.Company.Name : "Transportadora",
+                        CompanyName = quote.Company?.Name ?? "Transportadora",
                         Price = quote.Price,
                         PriceFormatted = string.Format("R$ {0:N2}", quote.Price),
                         DeliveryTime = quote.DeliveryTime,
                         DeliveryRange = string.Format("{0} a {1} dias uteis", 
-                            quote.DeliveryRange != null ? quote.DeliveryRange.Min : quote.DeliveryTime, 
-                            quote.DeliveryRange != null ? quote.DeliveryRange.Max : quote.DeliveryTime)
+                            quote.DeliveryRange?.Min ?? quote.DeliveryTime, 
+                            quote.DeliveryRange?.Max ?? quote.DeliveryTime)
                     });
                 }
 
@@ -908,6 +952,7 @@ namespace Desktop.Features.Orders
 
     public class ShippingQuoteViewModel
     {
+        public int ServiceId { get; set; }
         public string ServiceName { get; set; } = string.Empty;
         public string CompanyName { get; set; } = string.Empty;
         public decimal Price { get; set; }
