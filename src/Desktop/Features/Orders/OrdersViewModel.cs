@@ -14,6 +14,7 @@ namespace Desktop.Features.Orders
         private readonly IOrderRepository _orderRepository;
         private readonly ICustomerRepository _customerRepository;
         private readonly IProductRepository _productRepository;
+        private readonly IShipmentRepository _shipmentRepository;
         private readonly ISuperFreteService _superFreteService;
         private readonly SuperFreteSettings _superFreteSettings;
 
@@ -267,12 +268,14 @@ namespace Desktop.Features.Orders
             IOrderRepository orderRepository,
             ICustomerRepository customerRepository,
             IProductRepository productRepository,
+            IShipmentRepository shipmentRepository,
             ISuperFreteService superFreteService,
             SuperFreteSettings superFreteSettings)
         {
             _orderRepository = orderRepository;
             _customerRepository = customerRepository;
             _productRepository = productRepository;
+            _shipmentRepository = shipmentRepository;
             _superFreteService = superFreteService;
             _superFreteSettings = superFreteSettings;
 
@@ -403,7 +406,8 @@ namespace Desktop.Features.Orders
                 ShowConfirmationDialog = false;
                 ShowSuccessDialog = true;
 
-                // Salvar pedido
+                // Salvar pedido e envio
+                Guid orderId;
                 if (SelectedOrder != null && SelectedOrder.IsNew)
                 {
                     var order = new Order(SelectedCustomer.Id, OrderSource.Direct);
@@ -413,6 +417,7 @@ namespace Desktop.Features.Orders
                     }
                     order.MarkAsProcessing();
                     await _orderRepository.SaveAsync(order);
+                    orderId = order.Id;
                 }
                 else if (SelectedOrder != null)
                 {
@@ -422,7 +427,21 @@ namespace Desktop.Features.Orders
                         order.MarkAsProcessing();
                         await _orderRepository.UpdateAsync(order);
                     }
+                    orderId = SelectedOrder.Id;
                 }
+                else
+                {
+                    orderId = Guid.NewGuid();
+                }
+
+                // Criar e salvar o Shipment (envio)
+                var shipment = new Shipment(orderId, ShipmentProvider.SuperFrete);
+                foreach (var item in OrderItems)
+                {
+                    shipment.AddItem(item.ProductId, item.Quantity);
+                }
+                shipment.GenerateLabel(trackingCode, SelectedShipping.Price);
+                await _shipmentRepository.SaveAsync(shipment);
 
                 await LoadOrdersAsync();
             }
