@@ -128,6 +128,9 @@ public class SuperFreteAddress
     [JsonPropertyName("name")]
     public string? Name { get; set; }
 
+    [JsonPropertyName("document")]
+    public string? Document { get; set; }
+
     [JsonPropertyName("address")]
     public string? Address { get; set; }
 

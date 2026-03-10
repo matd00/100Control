@@ -382,6 +382,7 @@ namespace Desktop.Features.Orders
 
                     // Dados do destinatário
                     ReceiverName = SelectedCustomer.Name,
+                    ReceiverDocument = SelectedCustomer.Document,
                     ReceiverPhone = SelectedCustomer.Phone,
                     ReceiverEmail = SelectedCustomer.Email,
                     ReceiverAddress = SelectedCustomer.Address,
@@ -590,6 +591,7 @@ namespace Desktop.Features.Orders
                 {
                     Id = customer.Id,
                     Name = customer.Name,
+                    Document = customer.Document,
                     Email = customer.Email,
                     Phone = customer.Phone,
                     ZipCode = customer.ZipCode,
@@ -914,6 +916,7 @@ namespace Desktop.Features.Orders
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public string Document { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public string ZipCode { get; set; } = string.Empty;

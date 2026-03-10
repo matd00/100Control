@@ -177,6 +177,7 @@ public class SuperFreteService : ISuperFreteService
             {
                 PostalCode = _settings.DefaultOriginPostalCode.Replace("-", ""),
                 Name = "Loja 100Control",
+                Document = "00000000000", // CNPJ da loja
                 Phone = "11999999999",
                 Address = "Rua Principal",
                 Number = "100",
@@ -188,6 +189,7 @@ public class SuperFreteService : ISuperFreteService
             {
                 PostalCode = CleanPostalCode(request.ReceiverZipCode),
                 Name = !string.IsNullOrWhiteSpace(request.ReceiverName) ? request.ReceiverName : "Destinatário",
+                Document = CleanDocument(request.ReceiverDocument),
                 Phone = CleanPhone(request.ReceiverPhone),
                 Email = !string.IsNullOrWhiteSpace(request.ReceiverEmail) ? request.ReceiverEmail : "cliente@email.com",
                 Address = !string.IsNullOrWhiteSpace(address) ? address : "Endereço não informado",
@@ -281,6 +283,9 @@ public class SuperFreteService : ISuperFreteService
     {
         if (string.IsNullOrWhiteSpace(request.ReceiverZipCode))
             throw new SuperFreteException("CEP do destinatário é obrigatório.");
+
+        if (string.IsNullOrWhiteSpace(request.ReceiverDocument))
+            throw new SuperFreteException("CPF/CNPJ do destinatário é obrigatório para gerar etiqueta.");
     }
 
     private static string CleanPostalCode(string postalCode)
@@ -295,6 +300,13 @@ public class SuperFreteService : ISuperFreteService
         if (string.IsNullOrWhiteSpace(phone))
             return "11999999999";
         return phone.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", "").Trim();
+    }
+
+    private static string CleanDocument(string document)
+    {
+        if (string.IsNullOrWhiteSpace(document))
+            return "00000000000"; // CPF padrão se não informado
+        return document.Replace("-", "").Replace(".", "").Replace("/", "").Replace(" ", "").Trim();
     }
 
     private static (string address, string number) ExtractAddressNumber(string fullAddress, string number)

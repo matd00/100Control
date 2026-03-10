@@ -29,6 +29,7 @@ public class ShipmentLabelRequest
 {
     // Dados do destinatário
     public string ReceiverName { get; set; } = string.Empty;
+    public string ReceiverDocument { get; set; } = string.Empty; // CPF ou CNPJ
     public string ReceiverPhone { get; set; } = string.Empty;
     public string ReceiverEmail { get; set; } = string.Empty;
     public string ReceiverAddress { get; set; } = string.Empty;
