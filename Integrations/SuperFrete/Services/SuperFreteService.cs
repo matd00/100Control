@@ -203,7 +203,8 @@ public class SuperFreteService : ISuperFreteService
             Volumes = volumes,
             Options = new SuperFreteOptions
             {
-                InsuranceValue = request.ShippingPrice > 0 ? request.ShippingPrice : 0,
+                // O valor do seguro deve ser igual ao valor total dos produtos declarados
+                InsuranceValue = products.Sum(p => p.UnitaryValue * p.Quantity),
                 Receipt = false,
                 OwnHand = false,
                 NonCommercial = false
