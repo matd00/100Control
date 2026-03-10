@@ -132,7 +132,7 @@ public class SuperFreteService : ISuperFreteService
         return quotes ?? new List<SuperFreteQuoteResponse>();
     }
 
-    public async Task<string> GenerateLabelAsync(ShipmentLabelRequest request)
+    public async Task<ShipmentResult> GenerateLabelAsync(ShipmentLabelRequest request)
     {
         // Validação dos dados obrigatórios
         ValidateRequest(request);
@@ -277,7 +277,83 @@ public class SuperFreteService : ISuperFreteService
             throw new SuperFreteException($"Erro ao gerar etiqueta: {shipment?.Message ?? shipment?.Error ?? "Erro desconhecido"}");
         }
 
-        return shipment.Tracking ?? shipment.Id ?? throw new SuperFreteException("Código de rastreio não retornado pela API.");
+        return new ShipmentResult
+        {
+            OrderId = shipment.Id ?? "",
+            TrackingCode = shipment.Tracking,
+            LabelUrl = shipment.Print?.Url,
+            Status = shipment.Status ?? "pending",
+            IsPaid = shipment.Status == "released" || shipment.Status == "posted",
+            ShippingCost = 0
+        };
+    }
+
+    /// <summary>
+    /// Realiza o checkout (pagamento) das etiquetas no carrinho
+    /// </summary>
+    public async Task<ShipmentResult> CheckoutAsync(string orderId)
+    {
+        var response = await _httpClient.PostAsync("/api/v0/checkout", null);
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        // Log
+        var logMessage = new StringBuilder();
+        logMessage.AppendLine("========== SUPERFRETE CHECKOUT ==========");
+        logMessage.AppendLine($"Timestamp: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        logMessage.AppendLine($"Status: {response.StatusCode}");
+        logMessage.AppendLine($"Response: {responseContent}");
+        logMessage.AppendLine("==========================================");
+        Debug.WriteLine(logMessage.ToString());
+        System.IO.File.AppendAllText(
+            System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "superfrete_debug.log"), 
+            logMessage.ToString() + Environment.NewLine);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new SuperFreteException($"Erro no checkout: {response.StatusCode} - {responseContent}");
+        }
+
+        // Após checkout, buscar a etiqueta
+        return await GetShipmentInfoAsync(orderId);
+    }
+
+    /// <summary>
+    /// Obtém a URL da etiqueta para impressão
+    /// </summary>
+    public async Task<string?> GetLabelUrlAsync(string orderId)
+    {
+        var response = await _httpClient.GetAsync($"/api/v0/order/{orderId}");
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new SuperFreteException($"Erro ao buscar etiqueta: {response.StatusCode} - {responseContent}");
+        }
+
+        var shipment = JsonSerializer.Deserialize<SuperFreteShipmentResponse>(responseContent, _jsonOptions);
+        return shipment?.Print?.Url;
+    }
+
+    private async Task<ShipmentResult> GetShipmentInfoAsync(string orderId)
+    {
+        var response = await _httpClient.GetAsync($"/api/v0/order/{orderId}");
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new SuperFreteException($"Erro ao buscar pedido: {response.StatusCode} - {responseContent}");
+        }
+
+        var shipment = JsonSerializer.Deserialize<SuperFreteShipmentResponse>(responseContent, _jsonOptions);
+
+        return new ShipmentResult
+        {
+            OrderId = shipment?.Id ?? orderId,
+            TrackingCode = shipment?.Tracking,
+            LabelUrl = shipment?.Print?.Url,
+            Status = shipment?.Status ?? "unknown",
+            IsPaid = shipment?.Status == "released" || shipment?.Status == "posted"
+        };
     }
 
     private static void ValidateRequest(ShipmentLabelRequest request)
@@ -287,6 +363,7 @@ public class SuperFreteService : ISuperFreteService
 
         if (string.IsNullOrWhiteSpace(request.ReceiverDocument))
             throw new SuperFreteException("CPF/CNPJ do destinatário é obrigatório para gerar etiqueta.");
+
 
         if (string.IsNullOrWhiteSpace(request.ReceiverName))
             throw new SuperFreteException("Nome do destinatário é obrigatório.");

@@ -400,8 +400,9 @@ namespace Desktop.Features.Orders
                     Products = products
                 };
 
-                var trackingCode = await _superFreteService.GenerateLabelAsync(labelRequest);
-                GeneratedTrackingCode = trackingCode;
+                var result = await _superFreteService.GenerateLabelAsync(labelRequest);
+                GeneratedTrackingCode = result.TrackingCode ?? result.OrderId;
+                GeneratedLabelUrl = result.LabelUrl ?? "";
                 OnPropertyChanged(nameof(HasGeneratedLabel));
                 ShowConfirmationDialog = false;
                 ShowSuccessDialog = true;
@@ -440,8 +441,9 @@ namespace Desktop.Features.Orders
                 {
                     shipment.AddItem(item.ProductId, item.Quantity);
                 }
-                shipment.GenerateLabel(trackingCode, SelectedShipping.Price);
+                shipment.GenerateLabel(result.TrackingCode ?? result.OrderId, SelectedShipping.Price);
                 await _shipmentRepository.SaveAsync(shipment);
+
 
                 await LoadOrdersAsync();
             }

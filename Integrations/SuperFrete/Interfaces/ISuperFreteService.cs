@@ -6,8 +6,23 @@ public interface ISuperFreteService
 {
     Task<decimal> CalculateFreightAsync(FreightQuoteRequest request);
     Task<List<SuperFreteQuoteResponse>> GetAllQuotesAsync(FreightQuoteRequest request);
-    Task<string> GenerateLabelAsync(ShipmentLabelRequest request);
+    Task<ShipmentResult> GenerateLabelAsync(ShipmentLabelRequest request);
+    Task<ShipmentResult> CheckoutAsync(string orderId);
+    Task<string?> GetLabelUrlAsync(string orderId);
     Task<ShipmentTrackingDto> TrackShipmentAsync(string trackingNumber);
+}
+
+/// <summary>
+/// Resultado da geração de etiqueta com todas as informações necessárias
+/// </summary>
+public class ShipmentResult
+{
+    public string OrderId { get; set; } = string.Empty;
+    public string? TrackingCode { get; set; }
+    public string? LabelUrl { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public bool IsPaid { get; set; }
+    public decimal ShippingCost { get; set; }
 }
 
 public class FreightQuoteRequest
