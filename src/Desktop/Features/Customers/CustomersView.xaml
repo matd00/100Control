@@ -136,7 +136,7 @@
             <StackPanel>
                 <TextBlock Text="{Binding IsEditing, Converter={StaticResource BoolToEditText}}" FontSize="16" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,0,0,20"/>
 
-                <TextBlock Text="Nome *" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
+                <TextBlock Text="Nome Completo * (ex: João Silva)" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
                 <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
 
                 <TextBlock Text="Email *" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>

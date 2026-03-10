@@ -20,16 +20,21 @@ public class RegisterCustomerUseCase
                 return RegisterCustomerResult.Failure("Command cannot be null");
 
             if (string.IsNullOrWhiteSpace(command.Name))
-                return RegisterCustomerResult.Failure("Customer name is required");
+                return RegisterCustomerResult.Failure("Nome do cliente é obrigatório");
+
+            // Validar nome completo (nome + sobrenome) - necessário para gerar etiqueta de frete
+            var nameParts = command.Name.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (nameParts.Length < 2)
+                return RegisterCustomerResult.Failure("Informe o nome completo (nome e sobrenome). Exemplo: 'João Silva'");
 
             if (string.IsNullOrWhiteSpace(command.Email))
-                return RegisterCustomerResult.Failure("Email is required");
+                return RegisterCustomerResult.Failure("Email é obrigatório");
 
             if (string.IsNullOrWhiteSpace(command.Phone))
-                return RegisterCustomerResult.Failure("Phone is required");
+                return RegisterCustomerResult.Failure("Telefone é obrigatório");
 
             if (string.IsNullOrWhiteSpace(command.Document))
-                return RegisterCustomerResult.Failure("Document is required");
+                return RegisterCustomerResult.Failure("CPF/CNPJ é obrigatório");
 
             var customer = new Customer(
                 command.Name,

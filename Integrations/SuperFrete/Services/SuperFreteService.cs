@@ -286,6 +286,14 @@ public class SuperFreteService : ISuperFreteService
 
         if (string.IsNullOrWhiteSpace(request.ReceiverDocument))
             throw new SuperFreteException("CPF/CNPJ do destinatário é obrigatório para gerar etiqueta.");
+
+        if (string.IsNullOrWhiteSpace(request.ReceiverName))
+            throw new SuperFreteException("Nome do destinatário é obrigatório.");
+
+        // SuperFrete exige nome completo (nome + sobrenome)
+        var nameParts = request.ReceiverName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (nameParts.Length < 2)
+            throw new SuperFreteException("Informe o nome completo do destinatário (nome e sobrenome). Exemplo: 'João Silva'");
     }
 
     private static string CleanPostalCode(string postalCode)
