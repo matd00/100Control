@@ -815,9 +815,16 @@ namespace Desktop.Features.Orders
 
                 foreach (var quote in quotes.Where(q => string.IsNullOrEmpty(q.Error)).OrderBy(q => q.Price))
                 {
+                    // O ServiceId deve ser o ID da cotação, não o ID da transportadora
+                    int serviceId = 1; // Default: SEDEX
+                    if (!string.IsNullOrEmpty(quote.Id) && int.TryParse(quote.Id, out int parsedId))
+                    {
+                        serviceId = parsedId;
+                    }
+
                     ShippingQuotes.Add(new ShippingQuoteViewModel
                     {
-                        ServiceId = quote.Company?.Id ?? 1,
+                        ServiceId = serviceId,
                         ServiceName = quote.Name ?? "Servico",
                         CompanyName = quote.Company?.Name ?? "Transportadora",
                         Price = quote.Price,

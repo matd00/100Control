@@ -115,7 +115,20 @@ public class SuperFreteService : ISuperFreteService
             throw new SuperFreteException($"Erro ao calcular frete: {response.StatusCode} - {errorContent}");
         }
 
-        var quotes = await response.Content.ReadFromJsonAsync<List<SuperFreteQuoteResponse>>(_jsonOptions);
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        // Log das cotações para debug
+        var logMessage = new StringBuilder();
+        logMessage.AppendLine("========== SUPERFRETE QUOTES DEBUG ==========");
+        logMessage.AppendLine($"Timestamp: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        logMessage.AppendLine($"Response JSON: {responseContent}");
+        logMessage.AppendLine("==============================================");
+        Debug.WriteLine(logMessage.ToString());
+        System.IO.File.AppendAllText(
+            System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "superfrete_debug.log"), 
+            logMessage.ToString() + Environment.NewLine);
+
+        var quotes = JsonSerializer.Deserialize<List<SuperFreteQuoteResponse>>(responseContent, _jsonOptions);
         return quotes ?? new List<SuperFreteQuoteResponse>();
     }
 
