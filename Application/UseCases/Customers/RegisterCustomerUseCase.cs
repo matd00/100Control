@@ -40,8 +40,11 @@ public class RegisterCustomerUseCase
 
             if (!string.IsNullOrEmpty(command.Address))
             {
-                customer.UpdateAddress(
+                customer.UpdateFullAddress(
                     command.Address,
+                    command.Number ?? string.Empty,
+                    command.Complement ?? string.Empty,
+                    command.District ?? string.Empty,
                     command.City ?? string.Empty,
                     command.State ?? string.Empty,
                     command.ZipCode ?? string.Empty
@@ -80,6 +83,9 @@ public class RegisterCustomerCommand
     public string Phone { get; set; } = string.Empty;
     public string Document { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
+    public string Number { get; set; } = string.Empty;
+    public string Complement { get; set; } = string.Empty;
+    public string District { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;
     public string State { get; set; } = string.Empty;
     public string ZipCode { get; set; } = string.Empty;

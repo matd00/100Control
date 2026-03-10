@@ -17,6 +17,9 @@ public class CustomersViewModel : ViewModelBase
     private string _phone = string.Empty;
     private string _document = string.Empty;
     private string _address = string.Empty;
+    private string _number = string.Empty;
+    private string _complement = string.Empty;
+    private string _district = string.Empty;
     private string _city = string.Empty;
     private string _state = string.Empty;
     private string _zipCode = string.Empty;
@@ -55,6 +58,24 @@ public class CustomersViewModel : ViewModelBase
     {
         get => _address;
         set => SetProperty(ref _address, value);
+    }
+
+    public string Number
+    {
+        get => _number;
+        set => SetProperty(ref _number, value);
+    }
+
+    public string Complement
+    {
+        get => _complement;
+        set => SetProperty(ref _complement, value);
+    }
+
+    public string District
+    {
+        get => _district;
+        set => SetProperty(ref _district, value);
     }
 
     public string City
@@ -149,6 +170,9 @@ public class CustomersViewModel : ViewModelBase
         Phone = customer.Phone;
         Document = customer.Document;
         Address = customer.Address;
+        Number = customer.Number;
+        Complement = customer.Complement;
+        District = customer.District;
         City = customer.City;
         State = customer.State;
         ZipCode = customer.ZipCode;
@@ -168,6 +192,9 @@ public class CustomersViewModel : ViewModelBase
                 Phone = Phone,
                 Document = Document,
                 Address = Address,
+                Number = Number,
+                Complement = Complement,
+                District = District,
                 City = City,
                 State = State,
                 ZipCode = ZipCode
@@ -211,8 +238,8 @@ public class CustomersViewModel : ViewModelBase
                 return;
             }
 
-            customer.UpdateContact(Email, Phone);
-            customer.UpdateAddress(Address, City, State, ZipCode);
+            customer.UpdateContactInfo(Name, Email, Phone);
+            customer.UpdateFullAddress(Address, Number, Complement, District, City, State, ZipCode);
             await _customerRepository.UpdateAsync(customer);
 
             StatusMessage = "✅ Cliente atualizado com sucesso!";
@@ -272,6 +299,9 @@ public class CustomersViewModel : ViewModelBase
                     Phone = customer.Phone,
                     Document = customer.Document,
                     Address = customer.Address,
+                    Number = customer.Number,
+                    Complement = customer.Complement,
+                    District = customer.District,
                     City = customer.City,
                     State = customer.State,
                     ZipCode = customer.ZipCode,
@@ -296,6 +326,9 @@ public class CustomersViewModel : ViewModelBase
         Phone = string.Empty;
         Document = string.Empty;
         Address = string.Empty;
+        Number = string.Empty;
+        Complement = string.Empty;
+        District = string.Empty;
         City = string.Empty;
         State = string.Empty;
         ZipCode = string.Empty;
@@ -312,10 +345,16 @@ public class CustomerItemViewModel : ViewModelBase
     public string Phone { get; set; } = string.Empty;
     public string Document { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
+    public string Number { get; set; } = string.Empty;
+    public string Complement { get; set; } = string.Empty;
+    public string District { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;
     public string State { get; set; } = string.Empty;
     public string ZipCode { get; set; } = string.Empty;
     public bool IsActive { get; set; }
 
     public string Location => !string.IsNullOrEmpty(City) ? $"{City}, {State}" : "Não informado";
+    public string FullAddress => !string.IsNullOrEmpty(Address) 
+        ? $"{Address}, {Number}{(!string.IsNullOrEmpty(Complement) ? $" - {Complement}" : "")}" 
+        : "Não informado";
 }
