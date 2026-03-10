@@ -123,10 +123,18 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
-                    <TextBlock Text="🛒 Pedidos" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B"/>
-                    <TextBlock Text="{Binding Orders.Count, StringFormat=' ({0})'}" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
-                </StackPanel>
+                <Grid Grid.Row="0" Margin="0,0,0,16">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🛒 Pedidos" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B"/>
+                        <TextBlock Text="{Binding Orders.Count, StringFormat=' ({0})'}" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button Command="{Binding RefreshOrdersCommand}" 
+                            HorizontalAlignment="Right" VerticalAlignment="Center"
+                            Background="Transparent" BorderThickness="0" Cursor="Hand"
+                            ToolTip="Atualizar lista de pedidos" Padding="8,4">
+                        <TextBlock Text="🔄" FontSize="16"/>
+                    </Button>
+                </Grid>
 
                 <Button Grid.Row="1" Content="+ Novo Pedido" Command="{Binding NewOrderCommand}" 
                         Style="{StaticResource SuccessButton}" HorizontalAlignment="Stretch" Margin="0,0,0,16"/>

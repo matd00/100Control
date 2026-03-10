@@ -229,6 +229,7 @@ namespace Desktop.Features.Orders
         public ICommand CancelShipmentCommand { get; }
         public ICommand PrintLabelCommand { get; }
         public ICommand CheckoutLabelCommand { get; }
+        public ICommand RefreshOrdersCommand { get; }
 
         // Propriedades para visualização de pedidos processados
         public bool IsOrderProcessed => SelectedOrder != null && !SelectedOrder.IsNew && SelectedOrder.Status != OrderStatus.Pending;
@@ -326,6 +327,7 @@ namespace Desktop.Features.Orders
             CancelShipmentCommand = new AsyncRelayCommand(CancelShipmentAsync);
             PrintLabelCommand = new AsyncRelayCommand(OpenLabelUrlAsync);
             CheckoutLabelCommand = new AsyncRelayCommand(CheckoutLabelAsync);
+            RefreshOrdersCommand = new AsyncRelayCommand(RefreshOrdersAsync);
 
             _ = LoadDataAsync();
         }
@@ -392,15 +394,34 @@ namespace Desktop.Features.Orders
 
             try
             {
-                // Aqui poderia chamar a API para cancelar o envio
-                // Por enquanto, apenas marca como cancelado localmente
+                StatusMessage = "Cancelando envio...";
+                OnPropertyChanged(nameof(HasStatusMessage));
+
+                // Cancelar o pedido no banco
                 var order = await _orderRepository.GetByIdAsync(SelectedOrder.Id);
                 if (order != null)
                 {
                     order.Cancel();
                     await _orderRepository.UpdateAsync(order);
-                    StatusMessage = "✅ Envio cancelado com sucesso!";
-                    await LoadOrdersAsync();
+                }
+
+                // Cancelar o shipment no banco
+                var shipment = await _shipmentRepository.GetByOrderIdAsync(SelectedOrder.Id);
+                if (shipment != null)
+                {
+                    shipment.Cancel();
+                    await _shipmentRepository.UpdateAsync(shipment);
+                }
+
+                StatusMessage = "✅ Envio cancelado com sucesso!";
+                await LoadOrdersAsync();
+
+                // Atualizar o pedido selecionado
+                var updated = Orders.FirstOrDefault(o => o.Id == SelectedOrder.Id);
+                if (updated != null)
+                {
+                    SelectedOrder = updated;
+                    NotifyOrderStateChanged();
                 }
             }
             catch (Exception ex)
@@ -453,6 +474,33 @@ namespace Desktop.Features.Orders
                 StatusMessage = "📋 Código copiado para a área de transferência!";
                 OnPropertyChanged(nameof(HasStatusMessage));
             }
+        }
+
+        private async Task RefreshOrdersAsync()
+        {
+            StatusMessage = "🔄 Atualizando pedidos...";
+            OnPropertyChanged(nameof(HasStatusMessage));
+
+            await LoadOrdersAsync();
+
+            // Re-selecionar o pedido atual se existir
+            if (SelectedOrder != null && !SelectedOrder.IsNew)
+            {
+                var updated = Orders.FirstOrDefault(o => o.Id == SelectedOrder.Id);
+                if (updated != null)
+                {
+                    SelectedOrder = updated;
+                    NotifyOrderStateChanged();
+                }
+            }
+
+            StatusMessage = "✅ Pedidos atualizados!";
+            OnPropertyChanged(nameof(HasStatusMessage));
+
+            // Limpar mensagem após 2 segundos
+            await Task.Delay(2000);
+            StatusMessage = "";
+            OnPropertyChanged(nameof(HasStatusMessage));
         }
 
         private void CloseSuccessAndReset()
@@ -809,6 +857,8 @@ namespace Desktop.Features.Orders
             if (order != null)
             {
                 SelectedOrder = order;
+                // Carregar detalhes do pedido
+                LoadOrderDetails(order);
                 // Se o pedido já foi processado, não vai para o wizard
                 if (order.IsNew || order.Status == OrderStatus.Pending)
                 {
