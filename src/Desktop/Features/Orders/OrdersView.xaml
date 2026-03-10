@@ -71,6 +71,41 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Estilo para botão de link/texto simples com hover -->
+        <Style x:Key="LinkButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Opacity" Value="0.8"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Opacity" Value="1"/>
+                    <Setter Property="RenderTransform">
+                        <Setter.Value>
+                            <ScaleTransform ScaleX="1.1" ScaleY="1.1"/>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
 
     <Grid>
@@ -298,11 +333,10 @@
 
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
                                     <Button Command="{Binding CopyTrackingCodeCommand}" 
-                                            Background="#FFFFFF30" Foreground="White" BorderThickness="0" 
-                                            Padding="16,10" Cursor="Hand" Margin="0,0,8,0">
+                                            Style="{StaticResource LinkButton}" Padding="8,4" Margin="0,0,16,0">
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="📋" Margin="0,0,8,0"/>
-                                            <TextBlock Text="Copiar"/>
+                                            <TextBlock Text="📋" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Copiar Código"/>
                                         </StackPanel>
                                     </Button>
                                     <Button Command="{Binding OpenLabelUrlCommand}" 

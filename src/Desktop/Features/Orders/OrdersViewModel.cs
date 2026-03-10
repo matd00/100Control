@@ -237,8 +237,10 @@ namespace Desktop.Features.Orders
         public bool CanGenerateLabel => SelectedOrder != null && (SelectedOrder.IsNew || SelectedOrder.Status == OrderStatus.Pending);
         public bool HasTrackingCode => !string.IsNullOrEmpty(SelectedOrder?.TrackingCode);
         public bool CanCancelShipment => SelectedOrder != null && SelectedOrder.Status == OrderStatus.Processing && !string.IsNullOrEmpty(SelectedOrder.TrackingCode);
-        public bool CanPrintLabel => !string.IsNullOrEmpty(SelectedOrder?.LabelUrl);
-        public bool NeedsCheckout => SelectedOrder != null && SelectedOrder.Status == OrderStatus.Processing && string.IsNullOrEmpty(SelectedOrder.LabelUrl);
+        // Sempre mostrar botão de imprimir se tiver tracking (o SuperFrete gera automaticamente após checkout)
+        public bool CanPrintLabel => HasTrackingCode;
+        // Card de checkout pendente não é mais necessário pois SuperFrete faz checkout automático
+        public bool NeedsCheckout => false;
 
         // Propriedades para confirmação
         private bool _showConfirmationDialog;
@@ -320,17 +322,47 @@ namespace Desktop.Features.Orders
             EditOrderCommand = new RelayCommand(EditOrder);
             CloseSuccessCommand = new RelayCommand(CloseSuccessAndReset);
             CopyTrackingCodeCommand = new RelayCommand(CopyTrackingCode);
-            OpenLabelUrlCommand = new RelayCommand(OpenLabelUrl);
+            OpenLabelUrlCommand = new AsyncRelayCommand(OpenLabelUrlAsync);
             CancelShipmentCommand = new AsyncRelayCommand(CancelShipmentAsync);
-            PrintLabelCommand = new RelayCommand(PrintLabel);
+            PrintLabelCommand = new AsyncRelayCommand(OpenLabelUrlAsync);
             CheckoutLabelCommand = new AsyncRelayCommand(CheckoutLabelAsync);
 
             _ = LoadDataAsync();
         }
 
-        private void OpenLabelUrl()
+        private async Task OpenLabelUrlAsync()
         {
+            // Primeiro tenta usar URL já carregada
             var url = SelectedOrder?.LabelUrl ?? GeneratedLabelUrl;
+
+            // Se não tiver URL mas tiver tracking code, busca na API
+            if (string.IsNullOrEmpty(url) && !string.IsNullOrEmpty(SelectedOrder?.TrackingCode))
+            {
+                try
+                {
+                    StatusMessage = "Buscando etiqueta...";
+                    OnPropertyChanged(nameof(HasStatusMessage));
+
+                    url = await _superFreteService.GetLabelUrlAsync(SelectedOrder.TrackingCode);
+
+                    if (string.IsNullOrEmpty(url))
+                    {
+                        // Se ainda não tiver, tenta fazer checkout primeiro
+                        var result = await _superFreteService.CheckoutAsync(SelectedOrder.TrackingCode);
+                        url = result.LabelUrl;
+                    }
+
+                    StatusMessage = "";
+                    OnPropertyChanged(nameof(HasStatusMessage));
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = $"Erro ao buscar etiqueta: {ex.Message}";
+                    OnPropertyChanged(nameof(HasStatusMessage));
+                    return;
+                }
+            }
+
             if (!string.IsNullOrEmpty(url))
             {
                 try
@@ -347,11 +379,11 @@ namespace Desktop.Features.Orders
                     OnPropertyChanged(nameof(HasStatusMessage));
                 }
             }
-        }
-
-        private void PrintLabel()
-        {
-            OpenLabelUrl(); // Por enquanto, apenas abre no navegador
+            else
+            {
+                StatusMessage = "⚠️ URL da etiqueta não disponível. Acesse o painel do SuperFrete.";
+                OnPropertyChanged(nameof(HasStatusMessage));
+            }
         }
 
         private async Task CancelShipmentAsync()
