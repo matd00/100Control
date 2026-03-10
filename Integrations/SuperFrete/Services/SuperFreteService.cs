@@ -119,26 +119,60 @@ public class SuperFreteService : ISuperFreteService
 
     public async Task<string> GenerateLabelAsync(ShipmentLabelRequest request)
     {
+        // Monta a lista de produtos
+        var products = request.Products.Select(p => new SuperFreteProduct
+        {
+            Name = p.Name,
+            Quantity = p.Quantity,
+            UnitaryValue = p.UnitPrice
+        }).ToList();
+
+        // Se não tiver produtos, cria um genérico
+        if (products.Count == 0)
+        {
+            products.Add(new SuperFreteProduct
+            {
+                Name = "Produto",
+                Quantity = 1,
+                UnitaryValue = request.ShippingPrice > 0 ? request.ShippingPrice : 10.00m
+            });
+        }
+
         var apiRequest = new SuperFreteShipmentRequest
         {
             From = new SuperFreteAddress
             {
-                PostalCode = _settings.DefaultOriginPostalCode.Replace("-", "")
+                PostalCode = _settings.DefaultOriginPostalCode.Replace("-", ""),
+                Name = "Loja 100Control",
+                Phone = "11999999999" // Telefone da loja
             },
             To = new SuperFreteAddress
             {
                 PostalCode = request.ReceiverZipCode.Replace("-", ""),
                 Name = request.ReceiverName,
+                Phone = request.ReceiverPhone.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", ""),
+                Email = request.ReceiverEmail,
                 Address = request.ReceiverAddress,
+                Number = !string.IsNullOrEmpty(request.ReceiverNumber) ? request.ReceiverNumber : "S/N",
+                Complement = request.ReceiverComplement,
+                District = !string.IsNullOrEmpty(request.ReceiverDistrict) ? request.ReceiverDistrict : "Centro",
                 City = request.ReceiverCity,
                 StateAbbr = request.ReceiverState
             },
+            Products = products,
             Package = new SuperFretePackage
             {
-                Weight = request.Weight,
+                Weight = request.Weight > 0 ? request.Weight : 0.3m,
                 Width = request.Width > 0 ? request.Width : 11,
                 Height = request.Height > 0 ? request.Height : 2,
                 Length = request.Length > 0 ? request.Length : 16
+            },
+            Options = new SuperFreteOptions
+            {
+                InsuranceValue = request.ShippingPrice,
+                Receipt = false,
+                OwnHand = false,
+                NonCommercial = false
             },
             Service = request.ServiceId > 0 ? request.ServiceId : 1
         };

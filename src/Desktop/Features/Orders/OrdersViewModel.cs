@@ -358,21 +358,42 @@ namespace Desktop.Features.Orders
             {
                 IsGeneratingLabel = true;
 
+                // Preparar lista de produtos
+                var products = OrderItems.Select(item => new ShipmentProduct
+                {
+                    Name = item.ProductName,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice
+                }).ToList();
+
                 // Gerar etiqueta no SuperFrete
                 var labelRequest = new ShipmentLabelRequest
                 {
+                    // Dimensões do pacote
                     Weight = CalculatedWeight,
                     Width = CalculatedWidth,
                     Height = CalculatedHeight,
                     Length = CalculatedLength,
+
+                    // Serviço de envio
                     ServiceId = SelectedShipping.ServiceId,
                     ServiceName = SelectedShipping.ServiceName,
                     ShippingPrice = SelectedShipping.Price,
+
+                    // Dados do destinatário
                     ReceiverName = SelectedCustomer.Name,
+                    ReceiverPhone = SelectedCustomer.Phone,
+                    ReceiverEmail = SelectedCustomer.Email,
                     ReceiverAddress = SelectedCustomer.Address,
+                    ReceiverNumber = SelectedCustomer.Number,
+                    ReceiverComplement = SelectedCustomer.Complement,
+                    ReceiverDistrict = SelectedCustomer.District,
                     ReceiverCity = SelectedCustomer.City,
                     ReceiverState = SelectedCustomer.State,
-                    ReceiverZipCode = SelectedCustomer.ZipCode
+                    ReceiverZipCode = SelectedCustomer.ZipCode,
+
+                    // Produtos
+                    Products = products
                 };
 
                 var trackingCode = await _superFreteService.GenerateLabelAsync(labelRequest);
@@ -573,6 +594,9 @@ namespace Desktop.Features.Orders
                     Phone = customer.Phone,
                     ZipCode = customer.ZipCode,
                     Address = customer.Address,
+                    Number = customer.Number,
+                    Complement = customer.Complement,
+                    District = customer.District,
                     City = customer.City,
                     State = customer.State
                 });
@@ -887,6 +911,9 @@ namespace Desktop.Features.Orders
         public string Phone { get; set; } = string.Empty;
         public string ZipCode { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
+        public string Number { get; set; } = string.Empty;
+        public string Complement { get; set; } = string.Empty;
+        public string District { get; set; } = string.Empty;
         public string City { get; set; } = string.Empty;
         public string State { get; set; } = string.Empty;
     }

@@ -27,18 +27,38 @@ public class FreightQuoteRequest
 
 public class ShipmentLabelRequest
 {
+    // Dados do destinatário
     public string ReceiverName { get; set; } = string.Empty;
+    public string ReceiverPhone { get; set; } = string.Empty;
+    public string ReceiverEmail { get; set; } = string.Empty;
     public string ReceiverAddress { get; set; } = string.Empty;
+    public string ReceiverNumber { get; set; } = string.Empty;
+    public string ReceiverComplement { get; set; } = string.Empty;
+    public string ReceiverDistrict { get; set; } = string.Empty;
     public string ReceiverCity { get; set; } = string.Empty;
     public string ReceiverState { get; set; } = string.Empty;
     public string ReceiverZipCode { get; set; } = string.Empty;
+
+    // Dimensões do pacote
     public decimal Weight { get; set; }
     public int Width { get; set; } = 11;
     public int Height { get; set; } = 2;
     public int Length { get; set; } = 16;
-    public int ServiceId { get; set; } = 1; // 1 = SEDEX, 2 = PAC, etc.
+
+    // Serviço de envio
+    public int ServiceId { get; set; } = 1;
     public string ServiceName { get; set; } = string.Empty;
     public decimal ShippingPrice { get; set; }
+
+    // Produtos
+    public List<ShipmentProduct> Products { get; set; } = new();
+}
+
+public class ShipmentProduct
+{
+    public string Name { get; set; } = string.Empty;
+    public int Quantity { get; set; } = 1;
+    public decimal UnitPrice { get; set; }
 }
 
 public class ShipmentTrackingDto

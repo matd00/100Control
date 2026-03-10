@@ -7,6 +7,9 @@ public class Customer
     public string Email { get; private set; } = string.Empty;
     public string Phone { get; private set; } = string.Empty;
     public string Address { get; private set; } = string.Empty;
+    public string Number { get; private set; } = string.Empty;
+    public string Complement { get; private set; } = string.Empty;
+    public string District { get; private set; } = string.Empty;
     public string City { get; private set; } = string.Empty;
     public string State { get; private set; } = string.Empty;
     public string ZipCode { get; private set; } = string.Empty;
@@ -91,6 +94,17 @@ public class Customer
         City = city;
         State = state;
         ZipCode = zipCode;
+    }
+
+    public void UpdateFullAddress(string address, string number, string complement, string district, string city, string state, string zipCode)
+    {
+        Address = address ?? string.Empty;
+        Number = number ?? string.Empty;
+        Complement = complement ?? string.Empty;
+        District = district ?? string.Empty;
+        City = city ?? string.Empty;
+        State = state ?? string.Empty;
+        ZipCode = zipCode ?? string.Empty;
     }
 
     public void Deactivate()

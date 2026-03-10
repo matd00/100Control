@@ -131,11 +131,26 @@ public class SuperFreteAddress
     [JsonPropertyName("address")]
     public string? Address { get; set; }
 
+    [JsonPropertyName("number")]
+    public string? Number { get; set; }
+
+    [JsonPropertyName("complement")]
+    public string? Complement { get; set; }
+
+    [JsonPropertyName("district")]
+    public string? District { get; set; }
+
     [JsonPropertyName("city")]
     public string? City { get; set; }
 
     [JsonPropertyName("state_abbr")]
     public string? StateAbbr { get; set; }
+
+    [JsonPropertyName("phone")]
+    public string? Phone { get; set; }
+
+    [JsonPropertyName("email")]
+    public string? Email { get; set; }
 }
 
 public class SuperFretePackage
@@ -153,6 +168,18 @@ public class SuperFretePackage
     public int Length { get; set; } = 16; // Mínimo Correios
 }
 
+public class SuperFreteProduct
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("quantity")]
+    public int Quantity { get; set; } = 1;
+
+    [JsonPropertyName("unitary_value")]
+    public decimal UnitaryValue { get; set; }
+}
+
 public class SuperFreteShipmentRequest
 {
     [JsonPropertyName("from")]
@@ -161,14 +188,35 @@ public class SuperFreteShipmentRequest
     [JsonPropertyName("to")]
     public SuperFreteAddress To { get; set; } = new();
 
+    [JsonPropertyName("products")]
+    public List<SuperFreteProduct> Products { get; set; } = new();
+
     [JsonPropertyName("package")]
-    public SuperFretePackage Package { get; set; } = new();
+    public SuperFretePackage? Package { get; set; }
+
+    [JsonPropertyName("options")]
+    public SuperFreteOptions? Options { get; set; }
 
     [JsonPropertyName("service")]
     public int Service { get; set; }
 
     [JsonPropertyName("invoice")]
     public SuperFreteInvoice? Invoice { get; set; }
+}
+
+public class SuperFreteOptions
+{
+    [JsonPropertyName("insurance_value")]
+    public decimal InsuranceValue { get; set; }
+
+    [JsonPropertyName("receipt")]
+    public bool Receipt { get; set; }
+
+    [JsonPropertyName("own_hand")]
+    public bool OwnHand { get; set; }
+
+    [JsonPropertyName("non_commercial")]
+    public bool NonCommercial { get; set; } = true;
 }
 
 public class SuperFreteInvoice
