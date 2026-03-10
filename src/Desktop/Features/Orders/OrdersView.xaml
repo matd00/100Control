@@ -179,8 +179,253 @@
                 </StackPanel>
             </Border>
 
-            <!-- Wizard de Pedido -->
-            <Grid Visibility="{Binding HasSelectedOrder, Converter={StaticResource BoolToVisibility}}">
+            <!-- ========== PAINEL DE DETALHES DO PEDIDO PROCESSADO ========== -->
+            <Border Style="{StaticResource CardStyle}" 
+                    Visibility="{Binding IsOrderProcessed, Converter={StaticResource BoolToVisibility}}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <!-- Header com Status -->
+                        <Grid Margin="0,0,0,20">
+                            <StackPanel>
+                                <TextBlock Text="📋 Detalhes do Pedido" FontSize="20" FontWeight="Bold" Foreground="#1E293B"/>
+                                <TextBlock Text="{Binding SelectedOrder.CreatedAtFormatted, StringFormat='Criado em: {0}'}" 
+                                           FontSize="12" Foreground="#64748B" Margin="0,4,0,0"/>
+                            </StackPanel>
+
+                            <!-- Badge de Status -->
+                            <Border HorizontalAlignment="Right" VerticalAlignment="Top" Padding="12,6" CornerRadius="8">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#FEF3C7"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedOrder.IsCompleted}" Value="True">
+                                                <Setter Property="Background" Value="#DCFCE7"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding SelectedOrder.IsCancelled}" Value="True">
+                                                <Setter Property="Background" Value="#FEE2E2"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding SelectedOrder.IsProcessing}" Value="True">
+                                                <Setter Property="Background" Value="#DBEAFE"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock Text="{Binding SelectedOrder.StatusText}" FontWeight="Bold" FontSize="12">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="#92400E"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedOrder.IsCompleted}" Value="True">
+                                                    <Setter Property="Foreground" Value="#16A34A"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding SelectedOrder.IsCancelled}" Value="True">
+                                                    <Setter Property="Foreground" Value="#DC2626"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding SelectedOrder.IsProcessing}" Value="True">
+                                                    <Setter Property="Foreground" Value="#2563EB"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
+                        </Grid>
+
+                        <!-- Card Cliente -->
+                        <Border Background="#F8FAFC" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="48" Height="48" CornerRadius="24" Background="#E0F2FE" Margin="0,0,16,0">
+                                    <TextBlock Text="👤" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="CLIENTE" FontSize="10" Foreground="#64748B" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding SelectedOrder.CustomerName}" FontSize="16" FontWeight="SemiBold" Foreground="#1E293B"/>
+                                    <TextBlock Text="{Binding SelectedOrder.CustomerEmail}" FontSize="12" Foreground="#64748B"/>
+                                    <TextBlock Text="{Binding SelectedOrder.CustomerAddress}" FontSize="11" Foreground="#94A3B8" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Card Valores -->
+                        <Border Background="#F0FDF4" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                    <TextBlock Text="💰" FontSize="20" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="TOTAL" FontSize="10" Foreground="#16A34A" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                    <TextBlock Text="{Binding SelectedOrder.TotalFormatted}" FontSize="18" FontWeight="Bold" Foreground="#166534" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                    <TextBlock Text="📦" FontSize="20" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="ITENS" FontSize="10" Foreground="#16A34A" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                    <TextBlock Text="{Binding SelectedOrder.ItemsCount}" FontSize="18" FontWeight="Bold" Foreground="#166534" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                                    <TextBlock Text="🚚" FontSize="20" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="FRETE" FontSize="10" Foreground="#16A34A" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                    <TextBlock Text="{Binding SelectedOrder.ShippingCostFormatted}" FontSize="18" FontWeight="Bold" Foreground="#166534" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Card Rastreamento (se tiver) -->
+                        <Border CornerRadius="12" Padding="20" Margin="0,0,0,16"
+                                Visibility="{Binding HasTrackingCode, Converter={StaticResource BoolToVisibility}}">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#3B82F6" Offset="0"/>
+                                    <GradientStop Color="#1D4ED8" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,12">
+                                    <TextBlock Text="📦" FontSize="20" Margin="0,0,8,0"/>
+                                    <TextBlock Text="CÓDIGO DE RASTREIO" FontSize="12" Foreground="White" FontWeight="Bold" VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <Border Background="#FFFFFF20" CornerRadius="8" Padding="16,12">
+                                    <TextBlock Text="{Binding SelectedOrder.TrackingCode}" FontSize="24" FontWeight="Bold" 
+                                               Foreground="White" HorizontalAlignment="Center" FontFamily="Consolas"/>
+                                </Border>
+
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
+                                    <Button Command="{Binding CopyTrackingCodeCommand}" 
+                                            Background="#FFFFFF30" Foreground="White" BorderThickness="0" 
+                                            Padding="16,10" Cursor="Hand" Margin="0,0,8,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="📋" Margin="0,0,8,0"/>
+                                            <TextBlock Text="Copiar"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Command="{Binding OpenLabelUrlCommand}" 
+                                            Background="#22C55E" Foreground="White" BorderThickness="0" 
+                                            Padding="16,10" Cursor="Hand"
+                                            Visibility="{Binding CanPrintLabel, Converter={StaticResource BoolToVisibility}}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="🖨️" Margin="0,0,8,0"/>
+                                            <TextBlock Text="Imprimir Etiqueta"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- Data de envio -->
+                                <TextBlock Text="{Binding SelectedOrder.ShippedAtFormatted, StringFormat='Enviado em: {0}'}" 
+                                           FontSize="11" Foreground="#FFFFFF80" HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Card Checkout Pendente (se precisar) -->
+                        <Border Background="#FEF3C7" CornerRadius="12" Padding="20" Margin="0,0,0,16"
+                                Visibility="{Binding NeedsCheckout, Converter={StaticResource BoolToVisibility}}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,12">
+                                    <TextBlock Text="⚠️" FontSize="20" Margin="0,0,8,0"/>
+                                    <TextBlock Text="ETIQUETA PENDENTE DE PAGAMENTO" FontSize="12" Foreground="#92400E" FontWeight="Bold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <TextBlock Text="A etiqueta foi gerada mas ainda não foi paga. Clique abaixo para finalizar o pagamento e liberar a impressão." 
+                                           FontSize="12" Foreground="#78350F" TextWrapping="Wrap" TextAlignment="Center"/>
+                                <Button Command="{Binding CheckoutLabelCommand}" 
+                                        Style="{StaticResource SuccessButton}" 
+                                        HorizontalAlignment="Center" Margin="0,16,0,0" Padding="24,12"
+                                        IsEnabled="{Binding IsGeneratingLabel, Converter={StaticResource InverseBool}}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="💳" FontSize="14" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Pagar e Liberar Etiqueta" FontWeight="Bold"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Timeline de Status -->
+                        <Border Background="#F8FAFC" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="📍 Histórico do Pedido" FontSize="14" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,0,0,16"/>
+
+                                <!-- Pedido Criado -->
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="32"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="24" Height="24" CornerRadius="12" Background="#22C55E" HorizontalAlignment="Center">
+                                        <TextBlock Text="✓" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Pedido Criado" FontWeight="SemiBold" Foreground="#1E293B"/>
+                                        <TextBlock Text="{Binding SelectedOrder.CreatedAtFormatted}" FontSize="11" Foreground="#64748B"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Etiqueta Gerada -->
+                                <Grid Margin="0,0,0,12" Visibility="{Binding HasTrackingCode, Converter={StaticResource BoolToVisibility}}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="32"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="24" Height="24" CornerRadius="12" Background="#22C55E" HorizontalAlignment="Center">
+                                        <TextBlock Text="✓" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Etiqueta Gerada" FontWeight="SemiBold" Foreground="#1E293B"/>
+                                        <TextBlock Text="{Binding SelectedOrder.TrackingCode}" FontSize="11" Foreground="#64748B"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Enviado -->
+                                <Grid Margin="0,0,0,12" Visibility="{Binding SelectedOrder.ShippedAt, Converter={StaticResource BoolToVisibility}}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="32"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="24" Height="24" CornerRadius="12" Background="#22C55E" HorizontalAlignment="Center">
+                                        <TextBlock Text="✓" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Pedido Enviado" FontWeight="SemiBold" Foreground="#1E293B"/>
+                                        <TextBlock Text="{Binding SelectedOrder.ShippedAtFormatted}" FontSize="11" Foreground="#64748B"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Ações -->
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button Grid.Column="0" Command="{Binding CancelShipmentCommand}" 
+                                    Style="{StaticResource DangerButton}" Margin="0,0,8,0" Padding="0,14"
+                                    Visibility="{Binding CanCancelShipment, Converter={StaticResource BoolToVisibility}}">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="❌" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Cancelar Envio"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Grid.Column="1" Command="{Binding NewOrderCommand}" 
+                                    Style="{StaticResource SuccessButton}" Padding="0,14">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="+" FontWeight="Bold" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Novo Pedido"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- ========== WIZARD DE NOVO PEDIDO ========== -->
+            <Grid Visibility="{Binding CanGenerateLabel, Converter={StaticResource BoolToVisibility}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>

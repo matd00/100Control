@@ -225,6 +225,20 @@ namespace Desktop.Features.Orders
         public ICommand EditOrderCommand { get; }
         public ICommand CloseSuccessCommand { get; }
         public ICommand CopyTrackingCodeCommand { get; }
+        public ICommand OpenLabelUrlCommand { get; }
+        public ICommand CancelShipmentCommand { get; }
+        public ICommand PrintLabelCommand { get; }
+        public ICommand CheckoutLabelCommand { get; }
+
+        // Propriedades para visualização de pedidos processados
+        public bool IsOrderProcessed => SelectedOrder != null && !SelectedOrder.IsNew && SelectedOrder.Status != OrderStatus.Pending;
+        public bool IsOrderNew => SelectedOrder != null && SelectedOrder.IsNew;
+        public bool IsOrderPending => SelectedOrder != null && !SelectedOrder.IsNew && SelectedOrder.Status == OrderStatus.Pending;
+        public bool CanGenerateLabel => SelectedOrder != null && (SelectedOrder.IsNew || SelectedOrder.Status == OrderStatus.Pending);
+        public bool HasTrackingCode => !string.IsNullOrEmpty(SelectedOrder?.TrackingCode);
+        public bool CanCancelShipment => SelectedOrder != null && SelectedOrder.Status == OrderStatus.Processing && !string.IsNullOrEmpty(SelectedOrder.TrackingCode);
+        public bool CanPrintLabel => !string.IsNullOrEmpty(SelectedOrder?.LabelUrl);
+        public bool NeedsCheckout => SelectedOrder != null && SelectedOrder.Status == OrderStatus.Processing && string.IsNullOrEmpty(SelectedOrder.LabelUrl);
 
         // Propriedades para confirmação
         private bool _showConfirmationDialog;
@@ -306,15 +320,104 @@ namespace Desktop.Features.Orders
             EditOrderCommand = new RelayCommand(EditOrder);
             CloseSuccessCommand = new RelayCommand(CloseSuccessAndReset);
             CopyTrackingCodeCommand = new RelayCommand(CopyTrackingCode);
+            OpenLabelUrlCommand = new RelayCommand(OpenLabelUrl);
+            CancelShipmentCommand = new AsyncRelayCommand(CancelShipmentAsync);
+            PrintLabelCommand = new RelayCommand(PrintLabel);
+            CheckoutLabelCommand = new AsyncRelayCommand(CheckoutLabelAsync);
 
             _ = LoadDataAsync();
         }
 
+        private void OpenLabelUrl()
+        {
+            var url = SelectedOrder?.LabelUrl ?? GeneratedLabelUrl;
+            if (!string.IsNullOrEmpty(url))
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = url,
+                        UseShellExecute = true
+                    });
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = $"Erro ao abrir etiqueta: {ex.Message}";
+                    OnPropertyChanged(nameof(HasStatusMessage));
+                }
+            }
+        }
+
+        private void PrintLabel()
+        {
+            OpenLabelUrl(); // Por enquanto, apenas abre no navegador
+        }
+
+        private async Task CancelShipmentAsync()
+        {
+            if (SelectedOrder == null || string.IsNullOrEmpty(SelectedOrder.TrackingCode)) return;
+
+            try
+            {
+                // Aqui poderia chamar a API para cancelar o envio
+                // Por enquanto, apenas marca como cancelado localmente
+                var order = await _orderRepository.GetByIdAsync(SelectedOrder.Id);
+                if (order != null)
+                {
+                    order.Cancel();
+                    await _orderRepository.UpdateAsync(order);
+                    StatusMessage = "✅ Envio cancelado com sucesso!";
+                    await LoadOrdersAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Erro ao cancelar envio: {ex.Message}";
+            }
+            OnPropertyChanged(nameof(HasStatusMessage));
+        }
+
+        private async Task CheckoutLabelAsync()
+        {
+            if (SelectedOrder == null || string.IsNullOrEmpty(SelectedOrder.TrackingCode)) return;
+
+            try
+            {
+                IsGeneratingLabel = true;
+                StatusMessage = "Processando pagamento da etiqueta...";
+                OnPropertyChanged(nameof(HasStatusMessage));
+
+                var result = await _superFreteService.CheckoutAsync(SelectedOrder.TrackingCode);
+
+                if (!string.IsNullOrEmpty(result.LabelUrl))
+                {
+                    GeneratedLabelUrl = result.LabelUrl;
+                    StatusMessage = "✅ Etiqueta liberada! Clique em 'Imprimir' para baixar.";
+                    await LoadOrdersAsync();
+                }
+                else
+                {
+                    StatusMessage = "⚠️ Etiqueta ainda não disponível. Tente novamente em alguns segundos.";
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Erro no checkout: {ex.Message}";
+            }
+            finally
+            {
+                IsGeneratingLabel = false;
+                OnPropertyChanged(nameof(HasStatusMessage));
+            }
+        }
+
         private void CopyTrackingCode()
         {
-            if (!string.IsNullOrEmpty(GeneratedTrackingCode))
+            var code = SelectedOrder?.TrackingCode ?? GeneratedTrackingCode;
+            if (!string.IsNullOrEmpty(code))
             {
-                System.Windows.Clipboard.SetText(GeneratedTrackingCode);
+                System.Windows.Clipboard.SetText(code);
                 StatusMessage = "📋 Código copiado para a área de transferência!";
                 OnPropertyChanged(nameof(HasStatusMessage));
             }
@@ -586,18 +689,27 @@ namespace Desktop.Features.Orders
             foreach (var order in orders.OrderByDescending(o => o.CreatedAt))
             {
                 var customer = await _customerRepository.GetByIdAsync(order.CustomerId);
+                var shipment = await _shipmentRepository.GetByOrderIdAsync(order.Id);
+
                 Orders.Add(new OrderItemViewModel
                 {
                     Id = order.Id,
                     CustomerId = order.CustomerId,
-                    CustomerName = customer != null ? customer.Name : "Sem cliente",
+                    CustomerName = customer?.Name ?? "Sem cliente",
+                    CustomerEmail = customer?.Email ?? "",
+                    CustomerPhone = customer?.Phone ?? "",
+                    CustomerAddress = customer != null ? $"{customer.Address}, {customer.Number} - {customer.City}/{customer.State}" : "",
                     Status = order.Status,
                     StatusText = GetStatusText(order.Status),
                     TotalAmount = order.TotalAmount,
                     TotalFormatted = string.Format("R$ {0:N2}", order.TotalAmount),
                     ItemsCount = order.Items.Count,
                     CreatedAt = order.CreatedAt,
-                    CreatedAtFormatted = order.CreatedAt.ToString("dd/MM HH:mm")
+                    CreatedAtFormatted = order.CreatedAt.ToString("dd/MM HH:mm"),
+                    // Informações de envio
+                    TrackingCode = shipment?.TrackingNumber,
+                    ShippingCost = shipment?.ShippingCost ?? 0,
+                    ShippedAt = shipment?.ShippedAt
                 });
             }
         }
@@ -657,8 +769,7 @@ namespace Desktop.Features.Orders
             OrderItems.Clear();
             ShippingQuotes.Clear();
             CurrentStep = 1;
-            OnPropertyChanged(nameof(HasSelectedOrder));
-            OnPropertyChanged(nameof(OrderTotalFormatted));
+            NotifyOrderStateChanged();
         }
 
         private void SelectOrder(OrderItemViewModel order)
@@ -666,8 +777,27 @@ namespace Desktop.Features.Orders
             if (order != null)
             {
                 SelectedOrder = order;
-                CurrentStep = 1;
+                // Se o pedido já foi processado, não vai para o wizard
+                if (order.IsNew || order.Status == OrderStatus.Pending)
+                {
+                    CurrentStep = 1;
+                }
+                NotifyOrderStateChanged();
             }
+        }
+
+        private void NotifyOrderStateChanged()
+        {
+            OnPropertyChanged(nameof(HasSelectedOrder));
+            OnPropertyChanged(nameof(OrderTotalFormatted));
+            OnPropertyChanged(nameof(IsOrderProcessed));
+            OnPropertyChanged(nameof(IsOrderNew));
+            OnPropertyChanged(nameof(IsOrderPending));
+            OnPropertyChanged(nameof(CanGenerateLabel));
+            OnPropertyChanged(nameof(HasTrackingCode));
+            OnPropertyChanged(nameof(CanCancelShipment));
+            OnPropertyChanged(nameof(CanPrintLabel));
+            OnPropertyChanged(nameof(NeedsCheckout));
         }
 
         private async void LoadOrderDetails(OrderItemViewModel order)
@@ -923,6 +1053,9 @@ namespace Desktop.Features.Orders
         public Guid Id { get; set; }
         public Guid CustomerId { get; set; }
         public string CustomerName { get; set; } = string.Empty;
+        public string CustomerEmail { get; set; } = string.Empty;
+        public string CustomerPhone { get; set; } = string.Empty;
+        public string CustomerAddress { get; set; } = string.Empty;
         public OrderStatus Status { get; set; }
         public string StatusText { get; set; } = string.Empty;
         public decimal TotalAmount { get; set; }
@@ -931,6 +1064,23 @@ namespace Desktop.Features.Orders
         public DateTime CreatedAt { get; set; }
         public string CreatedAtFormatted { get; set; } = string.Empty;
         public bool IsNew { get; set; }
+
+        // Informações de envio
+        public string? TrackingCode { get; set; }
+        public string? LabelUrl { get; set; }
+        public string? ShippingService { get; set; }
+        public decimal ShippingCost { get; set; }
+        public string ShippingCostFormatted => ShippingCost > 0 ? string.Format("R$ {0:N2}", ShippingCost) : "-";
+        public DateTime? ShippedAt { get; set; }
+        public string ShippedAtFormatted => ShippedAt?.ToString("dd/MM/yyyy HH:mm") ?? "-";
+
+        // Helpers para UI
+        public bool HasTracking => !string.IsNullOrEmpty(TrackingCode);
+        public bool HasLabel => !string.IsNullOrEmpty(LabelUrl);
+        public bool IsProcessing => Status == OrderStatus.Processing;
+        public bool IsCompleted => Status == OrderStatus.Completed;
+        public bool IsCancelled => Status == OrderStatus.Cancelled;
+        public bool IsPending => Status == OrderStatus.Pending;
     }
 
     public class CustomerForOrderViewModel
