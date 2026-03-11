@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Domain.Interfaces.Repositories;
-using Domain.Interfaces;
+using Domain.Services;
 using Application.UseCases.Orders;
 using Application.UseCases.Products;
 using Application.UseCases.Customers;

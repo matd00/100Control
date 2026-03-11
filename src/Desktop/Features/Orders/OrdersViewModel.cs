@@ -4,7 +4,7 @@ using System.Windows.Input;
 using Desktop.Infrastructure.MVVM;
 using Domain.Entities;
 using Domain.Interfaces.Repositories;
-using Domain.Interfaces;
+using Domain.Services;
 using Application.UseCases.Orders;
 using Application.UseCases.Products;
 using Integrations.SuperFrete.Configuration;
