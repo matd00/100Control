@@ -191,7 +191,7 @@ namespace Desktop.Features.Orders
         public bool HasCheapestOption => CheapestOption != null;
         public bool HasMultipleOptions => OtherShippingOptions.Count > 0;
 
-        public ShippingQuoteViewModel CheapestOption => ShippingQuotes.OrderBy(q => q.Price).FirstOrDefault();
+        public ShippingQuoteViewModel? CheapestOption => ShippingQuotes.OrderBy(q => q.Price).FirstOrDefault();
         public ObservableCollection<ShippingQuoteViewModel> OtherShippingOptions { get; } = new ObservableCollection<ShippingQuoteViewModel>();
 
         public ObservableCollection<OrderItemViewModel> Orders { get; } = new ObservableCollection<OrderItemViewModel>();
