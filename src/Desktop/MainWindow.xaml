@@ -1,6 +1,7 @@
 <Window x:Class="Desktop.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dash="clr-namespace:Desktop.Features.Dashboard"
         Title="PaintballManager - Sistema de Gestão" Height="800" Width="1300"
         WindowStartupLocation="CenterScreen"
         Background="#F0F2F5">
@@ -144,6 +145,55 @@
                     <!-- Dashboard Content -->
                     <Grid x:Name="DashboardContent" Visibility="Visible">
                         <StackPanel>
+                            <!-- Period Selector & Summary Metrics -->
+                            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,24">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,20">
+                                        <TextBlock Text="Desempenho de Vendas" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B" VerticalAlignment="Center"/>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                            <TextBlock Text="Período:" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#64748B"/>
+                                            <ComboBox SelectedValue="{Binding SelectedPeriod}" Width="150" Padding="8,4">
+                                                <dash:DashboardPeriod>Today</dash:DashboardPeriod>
+                                                <dash:DashboardPeriod>Last7Days</dash:DashboardPeriod>
+                                                <dash:DashboardPeriod>Last30Days</dash:DashboardPeriod>
+                                                <dash:DashboardPeriod>Last90Days</dash:DashboardPeriod>
+                                                <dash:DashboardPeriod>AllTime</dash:DashboardPeriod>
+                                            </ComboBox>
+                                        </StackPanel>
+                                    </Grid>
+                                    
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Faturamento Total" FontSize="13" Foreground="#64748B"/>
+                                            <TextBlock Text="{Binding TotalRevenue, StringFormat='R$ {0:N2}'}" FontSize="24" FontWeight="Bold" Foreground="#1E293B" Margin="0,8,0,0"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="Lucro Estimado" FontSize="13" Foreground="#64748B"/>
+                                            <TextBlock Text="{Binding TotalProfit, StringFormat='R$ {0:N2}'}" FontSize="24" FontWeight="Bold" Foreground="#22C55E" Margin="0,8,0,0"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Total de Pedidos" FontSize="13" Foreground="#64748B"/>
+                                            <TextBlock Text="{Binding OrderCount}" FontSize="24" FontWeight="Bold" Foreground="#3B82F6" Margin="0,8,0,0"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="3">
+                                            <TextBlock Text="Ticket Médio" FontSize="13" Foreground="#64748B"/>
+                                            <TextBlock Text="{Binding AverageOrderValue, StringFormat='R$ {0:N2}'}" FontSize="24" FontWeight="Bold" Foreground="#8B5CF6" Margin="0,8,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Operational Status -->
                             <Grid Margin="0,0,0,24">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -152,70 +202,142 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Grid Margin="0,0,0,24">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <Border Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource CardStyle}" Margin="0,0,12,0">
-                                        <StackPanel>
-                                            <TextBlock Text="Fábrica: Pedidos Pendentes" FontSize="13" Foreground="#64748B"/>
-                                            <TextBlock Text="{Binding FactoryPendingOrders}" FontSize="28" FontWeight="Bold" Foreground="#F59E0B" Margin="0,10,0,0"/>
-                                        </StackPanel>
-                                    </Border>
-
-                                    <Border Grid.Column="2" Grid.ColumnSpan="2" Style="{StaticResource CardStyle}" Margin="12,0,0,0">
-                                        <StackPanel>
-                                            <TextBlock Text="Fábrica: Receita do Mês" FontSize="13" Foreground="#64748B"/>
-                                            <TextBlock Text="{Binding FactoryMonthRevenue, StringFormat='R$ {0:N2}'}" FontSize="28" FontWeight="Bold" Foreground="#22C55E" Margin="0,10,0,0"/>
-                                        </StackPanel>
-                                    </Border>
-                                </Grid>
-
-                                <Border Grid.Column="0" Style="{StaticResource CardStyle}" Margin="0,0,12,0">
+                                <Border Grid.Column="0" Style="{StaticResource CardStyle}" Margin="0,0,12,0" Padding="20">
                                     <StackPanel>
-                                        <TextBlock Text="Vendas Hoje" FontSize="13" Foreground="#64748B"/>
-                                        <TextBlock Text="{Binding TodaysSales, StringFormat='R$ {0:N2}'}" FontSize="28" FontWeight="Bold" Foreground="#1E293B" Margin="0,10,0,0"/>
+                                        <TextBlock Text="📦 Pedidos Pendentes" FontSize="13" Foreground="#64748B"/>
+                                        <TextBlock Text="{Binding PendingOrders}" FontSize="26" FontWeight="Bold" Foreground="#F59E0B" Margin="0,8,0,0"/>
                                     </StackPanel>
                                 </Border>
 
-                                <Border Grid.Column="1" Style="{StaticResource CardStyle}" Margin="12,0,12,0">
+                                <Border Grid.Column="1" Style="{StaticResource CardStyle}" Margin="12,0,12,0" Padding="20">
                                     <StackPanel>
-                                        <TextBlock Text="Pedidos Pendentes" FontSize="13" Foreground="#64748B"/>
-                                        <TextBlock Text="{Binding PendingOrders}" FontSize="28" FontWeight="Bold" Foreground="#F59E0B" Margin="0,10,0,0"/>
+                                        <TextBlock Text="⚠️ Estoque Baixo" FontSize="13" Foreground="#64748B"/>
+                                        <TextBlock Text="{Binding LowStockProductsCount}" FontSize="26" FontWeight="Bold" Foreground="#EF4444" Margin="0,8,0,0"/>
                                     </StackPanel>
                                 </Border>
 
-                                <Border Grid.Column="2" Style="{StaticResource CardStyle}" Margin="12,0,12,0">
+                                <Border Grid.Column="2" Style="{StaticResource CardStyle}" Margin="12,0,12,0" Padding="20">
                                     <StackPanel>
-                                        <TextBlock Text="Estoque Baixo" FontSize="13" Foreground="#64748B"/>
-                                        <TextBlock Text="{Binding LowStockProducts}" FontSize="28" FontWeight="Bold" Foreground="#EF4444" Margin="0,10,0,0"/>
+                                        <TextBlock Text="🏭 Fábrica Pendente" FontSize="13" Foreground="#64748B"/>
+                                        <TextBlock Text="{Binding FactoryPendingOrders}" FontSize="26" FontWeight="Bold" Foreground="#F59E0B" Margin="0,8,0,0"/>
                                     </StackPanel>
                                 </Border>
 
-                                <Border Grid.Column="3" Style="{StaticResource CardStyle}" Margin="12,0,0,0">
+                                <Border Grid.Column="3" Style="{StaticResource CardStyle}" Margin="12,0,0,0" Padding="20">
                                     <StackPanel>
-                                        <TextBlock Text="Lucro do Mês" FontSize="13" Foreground="#64748B"/>
-                                        <TextBlock Text="{Binding TodaysProfit, StringFormat='R$ {0:N2}'}" FontSize="28" FontWeight="Bold" Foreground="#22C55E" Margin="0,10,0,0"/>
+                                        <TextBlock Text="🏭 Receita Fábrica" FontSize="13" Foreground="#64748B"/>
+                                        <TextBlock Text="{Binding FactoryPeriodRevenue, StringFormat='R$ {0:N2}'}" FontSize="26" FontWeight="Bold" Foreground="#10B981" Margin="0,8,0,0"/>
                                     </StackPanel>
                                 </Border>
                             </Grid>
 
-                            <Border Style="{StaticResource CardStyle}">
-                                <StackPanel>
-                                    <TextBlock Text="Ações Rápidas" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,0,0,20"/>
-                                    <WrapPanel>
-                                        <Button Content="+ Novo Produto" Style="{StaticResource PrimaryButton}" Margin="0,0,12,12" Click="Products_Click"/>
-                                        <Button Content="+ Novo Pedido" Style="{StaticResource SuccessButton}" Margin="0,0,12,12" Click="Orders_Click"/>
-                                        <Button Content="+ Novo Cliente" Style="{StaticResource PrimaryButton}" Margin="0,0,12,12" Click="Customers_Click"/>
-                                        <Button Content="+ Novo Kit" Style="{StaticResource PrimaryButton}" Margin="0,0,12,12" Click="Kits_Click" Background="#8B5CF6"/>
-                                        <Button Content="+ Novo Fornecedor" Style="{StaticResource PrimaryButton}" Margin="0,0,12,12" Click="Suppliers_Click" Background="#8B5CF6"/>
-                                    </WrapPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Recent Orders & Top Products -->
+                                <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                                    <Border Style="{StaticResource CardStyle}" Margin="0,0,0,24">
+                                        <StackPanel>
+                                            <TextBlock Text="Pedidos Recentes" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,0,0,15"/>
+                                            <ItemsControl ItemsSource="{Binding RecentOrders}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border BorderBrush="#F1F5F9" BorderThickness="0,0,0,1" Padding="0,12">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Text="{Binding OrderId}" Foreground="#3B82F6" FontWeight="Medium" Width="80"/>
+                                                                <TextBlock Grid.Column="1" Text="{Binding CustomerName}" Foreground="#1E293B"/>
+                                                                <TextBlock Grid.Column="2" Text="{Binding Total, StringFormat='R$ {0:N2}'}" FontWeight="SemiBold" Width="100" TextAlignment="Right" Margin="10,0"/>
+                                                                <Border Grid.Column="3" CornerRadius="4" Padding="8,2" Background="#F1F5F9">
+                                                                    <TextBlock Text="{Binding Status}" FontSize="11" Foreground="#475569"/>
+                                                                </Border>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Style="{StaticResource CardStyle}">
+                                        <StackPanel>
+                                            <TextBlock Text="Produtos Mais Vendidos" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,0,0,15"/>
+                                            <ItemsControl ItemsSource="{Binding TopProducts}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border BorderBrush="#F1F5F9" BorderThickness="0,0,0,1" Padding="0,12">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Text="{Binding ProductName}" Foreground="#1E293B" FontWeight="Medium"/>
+                                                                <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat='{}{0} un.'}" Foreground="#64748B" Width="80" TextAlignment="Right"/>
+                                                                <TextBlock Grid.Column="2" Text="{Binding Revenue, StringFormat='R$ {0:N2}'}" FontWeight="SemiBold" Width="120" TextAlignment="Right" Margin="10,0"/>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
                                 </StackPanel>
-                            </Border>
+
+                                <!-- Side Panels -->
+                                <StackPanel Grid.Column="1">
+                                    <Border Style="{StaticResource CardStyle}" Margin="0,0,0,24">
+                                        <StackPanel>
+                                            <TextBlock Text="Vendas por Origem" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,0,0,15"/>
+                                            <ItemsControl ItemsSource="{Binding SalesBySource}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Margin="0,0,0,15">
+                                                            <Grid>
+                                                                <TextBlock Text="{Binding Source}" Foreground="#475569" FontSize="13"/>
+                                                                <TextBlock Text="{Binding Revenue, StringFormat='R$ {0:N2}'}" HorizontalAlignment="Right" FontSize="13" FontWeight="SemiBold"/>
+                                                            </Grid>
+                                                            <Grid Margin="0,5,0,0">
+                                                                <Border Background="#F1F5F9" Height="8" CornerRadius="4">
+                                                                    <ProgressBar Value="{Binding Percentage}" Maximum="100" Height="8" Background="Transparent" BorderThickness="0">
+                                                                        <ProgressBar.Template>
+                                                                            <ControlTemplate TargetType="ProgressBar">
+                                                                                <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                                                                                    <Grid Name="PART_Track">
+                                                                                        <Border Name="PART_Indicator" Background="#3B82F6" CornerRadius="4" HorizontalAlignment="Left"/>
+                                                                                    </Grid>
+                                                                                </Border>
+                                                                            </ControlTemplate>
+                                                                        </ProgressBar.Template>
+                                                                    </ProgressBar>
+                                                                </Border>
+                                                            </Grid>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Style="{StaticResource CardStyle}">
+                                        <StackPanel>
+                                            <TextBlock Text="Ações Rápidas" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,0,0,20"/>
+                                            <Button Content="+ Novo Produto" Style="{StaticResource PrimaryButton}" Margin="0,0,0,12" HorizontalAlignment="Stretch" Click="Products_Click"/>
+                                            <Button Content="+ Novo Pedido" Style="{StaticResource SuccessButton}" Margin="0,0,0,12" HorizontalAlignment="Stretch" Click="Orders_Click"/>
+                                            <Button Content="+ Novo Cliente" Style="{StaticResource PrimaryButton}" Margin="0,0,0,12" HorizontalAlignment="Stretch" Click="Customers_Click" Background="#6366F1"/>
+                                            <Button Content="+ Novo Kit" Style="{StaticResource PrimaryButton}" Margin="0,0,0,12" HorizontalAlignment="Stretch" Click="Kits_Click" Background="#8B5CF6"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
                         </StackPanel>
                     </Grid>
 
