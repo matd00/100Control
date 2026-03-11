@@ -140,7 +140,12 @@
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0">
                                             <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="#1E293B"/>
-                                            <TextBlock Text="{Binding SKU, StringFormat='SKU: {0}'}" FontSize="11" Foreground="#94A3B8"/>
+                                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                <Border Background="#E2E8F0" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
+                                                    <TextBlock Text="{Binding Category}" FontSize="10" Foreground="#475569" FontWeight="SemiBold"/>
+                                                </Border>
+                                                <TextBlock Text="{Binding SKU, StringFormat='SKU: {0}'}" FontSize="11" Foreground="#94A3B8" VerticalAlignment="Center"/>
+                                            </StackPanel>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding Stock}" FontWeight="SemiBold">
@@ -197,6 +202,26 @@
 
                         <TextBlock Text="Nome *" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
                         <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="Categoria *" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
+                        <ComboBox SelectedValue="{Binding Category, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Content" Margin="0,0,0,12" Height="36" Padding="12,0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" Foreground="#1E293B">
+                            <ComboBox.Resources>
+                                <Style TargetType="ComboBoxItem">
+                                    <Setter Property="Padding" Value="12,8"/>
+                                    <Setter Property="Foreground" Value="#1E293B"/>
+                                </Style>
+                            </ComboBox.Resources>
+                            <ComboBoxItem Content="Kits de Peças" />
+                            <ComboBoxItem Content="Cilindros de CO2" />
+                            <ComboBoxItem Content="Válvulas de CO2" />
+                            <ComboBoxItem Content="Cilindros de HPA" />
+                            <ComboBoxItem Content="Válvulas de HPA" />
+                            <ComboBoxItem Content="Loaders" />
+                            <ComboBoxItem Content="Placas" />
+                            <ComboBoxItem Content="Cilindro e Válvula de HPA" />
+                            <ComboBoxItem Content="Cilindro e Válvula de CO2" />
+                            <ComboBoxItem Content="Geral" />
+                        </ComboBox>
 
                         <TextBlock Text="Descrição" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
                         <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 

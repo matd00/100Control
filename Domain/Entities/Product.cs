@@ -6,6 +6,7 @@ public class Product
     public string Name { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
     public string SKU { get; private set; } = string.Empty;
+    public string Category { get; private set; } = string.Empty;
     public int Stock { get; private set; }
     public decimal Cost { get; private set; }
     public decimal Price { get; private set; }
@@ -45,6 +46,7 @@ public class Product
         Name = name.Trim();
         Description = description?.Trim() ?? string.Empty;
         SKU = GenerateSKU(name);
+        Category = "Geral"; // Default category for existing products
         Cost = cost;
         Price = price;
         Stock = 0;
@@ -126,16 +128,17 @@ public class Product
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void UpdateDetails(string name, string description)
+    public void UpdateDetails(string name, string description, string category = "Geral")
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Product name cannot be empty", nameof(name));
+            throw new ArgumentException("Product name cannot be empty.", nameof(name));
 
         if (name.Length > 200)
             throw new ArgumentException("Product name cannot exceed 200 characters", nameof(name));
 
         Name = name.Trim();
         Description = description?.Trim() ?? string.Empty;
+        Category = category.Trim();
         UpdatedAt = DateTime.UtcNow;
     }
 

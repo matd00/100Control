@@ -32,6 +32,11 @@ public class CreateProductUseCase
                 command.Price
             );
 
+            if (!string.IsNullOrWhiteSpace(command.Category))
+            {
+                product.UpdateDetails(command.Name, command.Description, command.Category);
+            }
+
             if (command.Weight > 0)
             {
                 product.UpdateShippingDimensions(
@@ -71,6 +76,7 @@ public class CreateProductCommand
 {
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string Category { get; set; } = "Geral";
     public decimal Cost { get; set; }
     public decimal Price { get; set; }
 

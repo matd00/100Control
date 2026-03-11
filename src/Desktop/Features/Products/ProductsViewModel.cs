@@ -18,6 +18,7 @@ public class ProductsViewModel : ViewModelBase
     // Product Fields
     private string _name = string.Empty;
     private string _description = string.Empty;
+    private string _category = "Geral";
     private decimal _cost;
     private decimal _price;
 
@@ -65,6 +66,12 @@ public class ProductsViewModel : ViewModelBase
     {
         get => _description;
         set => SetProperty(ref _description, value);
+    }
+
+    public string Category
+    {
+        get => _category;
+        set => SetProperty(ref _category, value);
     }
 
     public decimal Cost
@@ -207,6 +214,7 @@ public class ProductsViewModel : ViewModelBase
             _editingProductId = product.Id;
             Name = product.Name;
             Description = product.Description;
+            Category = product.Category;
             Cost = product.Cost;
             Price = product.Price;
             Weight = product.Weight;
@@ -230,6 +238,7 @@ public class ProductsViewModel : ViewModelBase
             {
                 Name = Name,
                 Description = Description,
+                Category = Category,
                 Cost = Cost,
                 Price = Price,
                 Weight = Weight,
@@ -278,7 +287,7 @@ public class ProductsViewModel : ViewModelBase
                 return;
             }
 
-            product.UpdateDetails(Name, Description);
+            product.UpdateDetails(Name, Description, Category);
             product.UpdatePricing(Cost, Price);
             product.UpdateShippingDimensions(Weight, Width, Height, Length);
 
@@ -435,6 +444,7 @@ public class ProductsViewModel : ViewModelBase
                     SKU = product.SKU,
                     Name = product.Name,
                     Description = product.Description,
+                    Category = product.Category,
                     Stock = product.Stock,
                     Cost = product.Cost,
                     Price = product.Price,
@@ -497,6 +507,7 @@ public class ProductItemViewModel : ViewModelBase
     public string SKU { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string Category { get; set; } = string.Empty;
     public int Stock { get; set; }
     public decimal Cost { get; set; }
     public decimal Price { get; set; }
