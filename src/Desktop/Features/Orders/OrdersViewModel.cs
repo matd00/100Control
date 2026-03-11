@@ -24,6 +24,7 @@ namespace Desktop.Features.Orders
         private ShippingQuoteViewModel? _selectedShipping;
         private bool _isCalculatingShipping;
         private string _statusMessage = string.Empty;
+        private string _searchText = string.Empty;
         private decimal _calculatedWeight;
         private int _calculatedWidth;
         private int _calculatedHeight;
@@ -107,6 +108,18 @@ namespace Desktop.Features.Orders
         {
             get => _statusMessage;
             set => SetProperty(ref _statusMessage, value);
+        }
+
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                if (SetProperty(ref _searchText, value))
+                {
+                    FilterOrders();
+                }
+            }
         }
 
         public decimal CalculatedWeight
@@ -194,6 +207,7 @@ namespace Desktop.Features.Orders
         public ShippingQuoteViewModel? CheapestOption => ShippingQuotes.OrderBy(q => q.Price).FirstOrDefault();
         public ObservableCollection<ShippingQuoteViewModel> OtherShippingOptions { get; } = new ObservableCollection<ShippingQuoteViewModel>();
 
+        public ObservableCollection<OrderItemViewModel> AllOrders { get; } = new ObservableCollection<OrderItemViewModel>();
         public ObservableCollection<OrderItemViewModel> Orders { get; } = new ObservableCollection<OrderItemViewModel>();
         public ObservableCollection<CustomerForOrderViewModel> Customers { get; } = new ObservableCollection<CustomerForOrderViewModel>();
         public ObservableCollection<ProductForOrderViewModel> AvailableProducts { get; } = new ObservableCollection<ProductForOrderViewModel>();
@@ -229,6 +243,7 @@ namespace Desktop.Features.Orders
         public ICommand CancelShipmentCommand { get; }
         public ICommand PrintLabelCommand { get; }
         public ICommand CheckoutLabelCommand { get; }
+        public ICommand ClearSearchCommand { get; }
         public ICommand RefreshOrdersCommand { get; }
 
         // Propriedades para visualização de pedidos processados
@@ -322,9 +337,10 @@ namespace Desktop.Features.Orders
             CloseSuccessCommand = new RelayCommand(CloseSuccessAndReset);
             CopyTrackingCodeCommand = new RelayCommand(CopyTrackingCode);
             OpenLabelUrlCommand = new AsyncRelayCommand(OpenLabelUrlAsync);
-            CancelShipmentCommand = new AsyncRelayCommand(CancelShipmentAsync);
-            PrintLabelCommand = new AsyncRelayCommand(OpenLabelUrlAsync);
-            CheckoutLabelCommand = new AsyncRelayCommand(CheckoutLabelAsync);
+            CancelShipmentCommand = new AsyncRelayCommand(CancelShipmentAsync, () => CanCancelShipment);
+            PrintLabelCommand = new AsyncRelayCommand(OpenLabelUrlAsync, () => CanPrintLabel);
+            CheckoutLabelCommand = new AsyncRelayCommand(CheckoutLabelAsync, () => NeedsCheckout);
+            ClearSearchCommand = new RelayCommand(() => SearchText = string.Empty);
             RefreshOrdersCommand = new AsyncRelayCommand(RefreshOrdersAsync);
 
             _ = LoadDataAsync();
@@ -780,34 +796,12 @@ namespace Desktop.Features.Orders
         private async Task LoadOrdersAsync()
         {
             var orders = await _orderRepository.GetAllAsync();
-            Orders.Clear();
+            AllOrders.Clear();
             foreach (var order in orders.OrderByDescending(o => o.CreatedAt))
             {
-                var customer = await _customerRepository.GetByIdAsync(order.CustomerId);
-                var shipment = await _shipmentRepository.GetByOrderIdAsync(order.Id);
-
-                Orders.Add(new OrderItemViewModel
-                {
-                    Id = order.Id,
-                    CustomerId = order.CustomerId,
-                    CustomerName = customer?.Name ?? "Sem cliente",
-                    CustomerEmail = customer?.Email ?? "",
-                    CustomerPhone = customer?.Phone ?? "",
-                    CustomerAddress = customer != null ? $"{customer.Address}, {customer.Number} - {customer.City}/{customer.State}" : "",
-                    Status = order.Status,
-                    StatusText = GetStatusText(order.Status),
-                    TotalAmount = order.TotalAmount,
-                    TotalFormatted = string.Format("R$ {0:N2}", order.TotalAmount),
-                    ItemsCount = order.Items.Count,
-                    CreatedAt = order.CreatedAt,
-                    CreatedAtFormatted = order.CreatedAt.ToString("dd/MM HH:mm"),
-                    // Informações de envio
-                    TrackingCode = shipment?.TrackingNumber,
-                    SuperFreteOrderId = shipment?.SuperFreteOrderId ?? "",
-                    ShippingCost = shipment?.ShippingCost ?? 0,
-                    ShippedAt = shipment?.ShippedAt
-                });
+                AllOrders.Add(await MapToViewModel(order));
             }
+            FilterOrders();
         }
 
         private async Task LoadCustomersAsync()
@@ -866,6 +860,52 @@ namespace Desktop.Features.Orders
             ShippingQuotes.Clear();
             CurrentStep = 1;
             NotifyOrderStateChanged();
+        }
+
+        private void FilterOrders()
+        {
+            Orders.Clear();
+            var search = SearchText?.ToLowerInvariant() ?? "";
+
+            foreach (var o in AllOrders)
+            {
+                if (!string.IsNullOrEmpty(search))
+                {
+                    if (!o.CustomerName.ToLowerInvariant().Contains(search) &&
+                        !(o.TrackingCode?.ToLowerInvariant().Contains(search) ?? false))
+                        continue;
+                }
+
+                Orders.Add(o);
+            }
+        }
+
+        private async Task<OrderItemViewModel> MapToViewModel(Order order)
+        {
+            var customer = await _customerRepository.GetByIdAsync(order.CustomerId);
+            var shipment = await _shipmentRepository.GetByOrderIdAsync(order.Id);
+
+            return new OrderItemViewModel
+            {
+                Id = order.Id,
+                CustomerId = order.CustomerId,
+                CustomerName = customer?.Name ?? "Sem cliente",
+                CustomerEmail = customer?.Email ?? "",
+                CustomerPhone = customer?.Phone ?? "",
+                CustomerAddress = customer != null ? $"{customer.Address}, {customer.Number} - {customer.City}/{customer.State}" : "",
+                Status = order.Status,
+                StatusText = GetStatusText(order.Status),
+                TotalAmount = order.TotalAmount,
+                TotalFormatted = string.Format("R$ {0:N2}", order.TotalAmount),
+                ItemsCount = order.Items.Count,
+                CreatedAt = order.CreatedAt,
+                CreatedAtFormatted = order.CreatedAt.ToString("dd/MM HH:mm"),
+                // Informações de envio
+                TrackingCode = shipment?.TrackingNumber,
+                SuperFreteOrderId = shipment?.SuperFreteOrderId ?? "",
+                ShippingCost = shipment?.ShippingCost ?? 0,
+                ShippedAt = shipment?.ShippedAt
+            };
         }
 
         private void SelectOrder(OrderItemViewModel? order)

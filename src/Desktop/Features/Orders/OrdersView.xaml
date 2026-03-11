@@ -124,16 +124,31 @@
                 </Grid.RowDefinitions>
 
                 <Grid Grid.Row="0" Margin="0,0,0,16">
-                    <StackPanel Orientation="Horizontal">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
                         <TextBlock Text="🛒 Pedidos" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B"/>
                         <TextBlock Text="{Binding Orders.Count, StringFormat=' ({0})'}" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <Button Command="{Binding RefreshOrdersCommand}" 
-                            HorizontalAlignment="Right" VerticalAlignment="Center"
-                            Background="Transparent" BorderThickness="0" Cursor="Hand"
-                            ToolTip="Atualizar lista de pedidos" Padding="8,4">
-                        <TextBlock Text="🔄" FontSize="16"/>
-                    </Button>
+
+                    <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource ModernTextBox}" Margin="16,0" MaxWidth="180" HorizontalAlignment="Right"
+                             ToolTip="Buscar por Cliente ou Rastreio"/>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Content="Limpar Filtro" Command="{Binding ClearSearchCommand}" Style="{StaticResource SecondaryButton}" 
+                                Visibility="{Binding SearchText, Converter={StaticResource NullToVisibility}}" Padding="8,4" Margin="0,0,8,0" 
+                                FontSize="11"/>
+                        <Button Command="{Binding RefreshOrdersCommand}" 
+                                Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                ToolTip="Atualizar lista de pedidos" Padding="8,4" VerticalAlignment="Center">
+                            <TextBlock Text="🔄" FontSize="16"/>
+                        </Button>
+                    </StackPanel>
                 </Grid>
 
                 <Button Grid.Row="1" Content="+ Novo Pedido" Command="{Binding NewOrderCommand}" 
