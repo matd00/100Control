@@ -8,6 +8,7 @@ using Desktop.Features.Purchases;
 using Desktop.Features.Kits;
 using Desktop.Features.Shipments;
 using Desktop.Features.Dashboard;
+using Desktop.Features.Inventory;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Desktop;
@@ -81,6 +82,12 @@ public partial class MainWindow : Window
     {
         SetActiveButton(BtnSuppliers);
         LoadView<SuppliersView, SuppliersViewModel>("Fornecedores", "Cadastro de fornecedores");
+    }
+
+    private void Inventory_Click(object sender, RoutedEventArgs e)
+    {
+        SetActiveButton(BtnInventory);
+        LoadView<InventoryView, InventoryViewModel>("Histórico de Estoque", "Movimentações de entrada e saída de produtos");
     }
 
     private void Purchases_Click(object sender, RoutedEventArgs e)

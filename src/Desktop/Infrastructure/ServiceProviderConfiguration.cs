@@ -21,6 +21,7 @@ using Desktop.Features.Customers;
 using Desktop.Features.Suppliers;
 using Desktop.Features.Purchases;
 using Desktop.Features.Kits;
+using Desktop.Features.Inventory;
 using Desktop.Features.Shipments;
 using Integrations.SuperFrete.Extensions;
 using Integrations.SuperFrete.Interfaces;
@@ -110,6 +111,7 @@ public static class ServiceProviderConfiguration
         services.AddTransient<SuppliersViewModel>();
         services.AddTransient<PurchasesViewModel>();
         services.AddTransient<KitsViewModel>();
+        services.AddTransient<InventoryViewModel>();
         services.AddTransient<ShipmentsViewModel>();
 
         return services.BuildServiceProvider();

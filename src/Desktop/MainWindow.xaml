@@ -99,6 +99,7 @@
                         <Button x:Name="BtnSuppliers" Content="🏭 Fornecedores" Style="{StaticResource MenuButton}" Click="Suppliers_Click"/>
                         <Button x:Name="BtnPurchases" Content="💰 Compras" Style="{StaticResource MenuButton}" Click="Purchases_Click"/>
                         <Button x:Name="BtnKits" Content="🎯 Kits" Style="{StaticResource MenuButton}" Click="Kits_Click"/>
+                        <Button x:Name="BtnInventory" Content="📦 Estoque" Style="{StaticResource MenuButton}" Click="Inventory_Click"/>
                         <Button x:Name="BtnShipments" Content="🚚 Envios" Style="{StaticResource MenuButton}" Click="Shipments_Click"/>
                         
                         <TextBlock Text="INTEGRAÇÕES" FontSize="10" Foreground="#64748B" Margin="24,30,0,12" FontWeight="Bold"/>
