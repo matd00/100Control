@@ -5,12 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Domain.Interfaces.Repositories;
-using Domain.Interfaces.Services;
-using Application.UseCases.Orders;
-using Application.UseCases.Products;
-using Application.UseCases.Customers;
-using Persistence.Context;
-using Persistence.Repositories;
+using Domain.Interfaces;
 using Application.UseCases.Orders;
 using Application.UseCases.Products;
 using Application.UseCases.Customers;
@@ -18,6 +13,8 @@ using Application.UseCases.Purchases;
 using Application.UseCases.Shipments;
 using Application.UseCases.FactoryOrders;
 using Application.Services;
+using Persistence.Context;
+using Persistence.Repositories;
 using Desktop.Features.Dashboard;
 using Desktop.Features.Products;
 using Desktop.Features.Orders;
@@ -34,9 +31,6 @@ using Integrations.MercadoLivre.Interfaces;
 using Integrations.MercadoLivre.Services;
 using Integrations.Shopee.Interfaces;
 using Integrations.Shopee.Services;
-
-using Domain.Interfaces.Services;
-using Application.Services;
 
 namespace Desktop.Infrastructure;
 
@@ -95,7 +89,7 @@ public static class ServiceProviderConfiguration
             System.Diagnostics.Debug.WriteLine("ServiceProviderConfiguration: Registrando Use Cases...");
             // Use Cases
             services.AddTransient<CreateOrderUseCase>();
-            services.AddScoped<UpdateOrderUseCase>(); // Added line as per instruction
+            services.AddScoped<UpdateOrderUseCase>();
             services.AddTransient<GetOrdersUseCase>();
             services.AddTransient<DeleteOrderUseCase>();
             services.AddTransient<CreateProductUseCase>();
@@ -127,18 +121,6 @@ public static class ServiceProviderConfiguration
             // SuperFrete Integration
             try
             {
-                var superFreteSection = configuration.GetSection(SuperFreteSettings.SectionName);
-                System.Diagnostics.Debug.WriteLine($"  Seção SuperFrete existe: {superFreteSection.Exists()}");
-                if (superFreteSection.Exists())
-                {
-                    var apiToken = superFreteSection["ApiToken"];
-                    var baseUrl = superFreteSection["BaseUrl"];
-                    var postalCode = superFreteSection["DefaultOriginPostalCode"];
-                    System.Diagnostics.Debug.WriteLine($"  ApiToken: {(string.IsNullOrEmpty(apiToken) ? "VAZIO" : "OK")}");
-                    System.Diagnostics.Debug.WriteLine($"  BaseUrl: {baseUrl}");
-                    System.Diagnostics.Debug.WriteLine($"  DefaultOriginPostalCode: {postalCode}");
-                }
-
                 services.AddSuperFrete(configuration);
                 System.Diagnostics.Debug.WriteLine("  SuperFrete registrado com sucesso");
             }

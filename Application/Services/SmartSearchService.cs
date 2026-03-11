@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Domain.Interfaces.Services;
+using Domain.Interfaces;
 
 namespace Application.Services;
 
