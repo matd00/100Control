@@ -140,8 +140,8 @@
                 </Grid>
             </Border>
 
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="30">
-                <Grid>
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <Grid Padding="30">
                     <!-- Dashboard Content -->
                     <Grid x:Name="DashboardContent" Visibility="Visible">
                         <StackPanel>
