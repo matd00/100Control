@@ -10,6 +10,7 @@ public interface ISuperFreteService
     Task<ShipmentResult> CheckoutAsync(string orderId);
     Task<string?> GetLabelUrlAsync(string orderId);
     Task<ShipmentTrackingDto> TrackShipmentAsync(string trackingNumber);
+    Task CancelOrderAsync(string superFreteOrderId);
 }
 
 /// <summary>

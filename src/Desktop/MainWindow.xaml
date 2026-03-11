@@ -151,6 +151,29 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
+                                <Grid Margin="0,0,0,24">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource CardStyle}" Margin="0,0,12,0">
+                                        <StackPanel>
+                                            <TextBlock Text="Fábrica: Pedidos Pendentes" FontSize="13" Foreground="#64748B"/>
+                                            <TextBlock Text="{Binding FactoryPendingOrders}" FontSize="28" FontWeight="Bold" Foreground="#F59E0B" Margin="0,10,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Grid.Column="2" Grid.ColumnSpan="2" Style="{StaticResource CardStyle}" Margin="12,0,0,0">
+                                        <StackPanel>
+                                            <TextBlock Text="Fábrica: Receita do Mês" FontSize="13" Foreground="#64748B"/>
+                                            <TextBlock Text="{Binding FactoryMonthRevenue, StringFormat='R$ {0:N2}'}" FontSize="28" FontWeight="Bold" Foreground="#22C55E" Margin="0,10,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+
                                 <Border Grid.Column="0" Style="{StaticResource CardStyle}" Margin="0,0,12,0">
                                     <StackPanel>
                                         <TextBlock Text="Vendas Hoje" FontSize="13" Foreground="#64748B"/>

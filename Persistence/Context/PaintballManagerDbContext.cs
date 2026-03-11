@@ -18,6 +18,8 @@ public class PaintballManagerDbContext : DbContext
     public DbSet<ShipmentItem> ShipmentItems => Set<ShipmentItem>();
     public DbSet<InventoryMovement> InventoryMovements => Set<InventoryMovement>();
     public DbSet<Part> Parts => Set<Part>();
+    public DbSet<FactoryOrder> FactoryOrders => Set<FactoryOrder>();
+    public DbSet<FactoryOrderItem> FactoryOrderItems => Set<FactoryOrderItem>();
 
     public PaintballManagerDbContext(DbContextOptions<PaintballManagerDbContext> options)
         : base(options)
@@ -133,6 +135,7 @@ public class PaintballManagerDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.TrackingNumber).HasMaxLength(50);
+            entity.Property(e => e.SuperFreteOrderId).HasMaxLength(100);
             entity.Property(e => e.ShippingCost).HasPrecision(18, 2);
             entity.HasMany(e => e.Items)
                   .WithOne()
@@ -164,6 +167,38 @@ public class PaintballManagerDbContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(1000);
             entity.Property(e => e.Cost).HasPrecision(18, 2);
             entity.HasIndex(e => e.ProductId);
+        });
+
+        // FactoryOrder
+        modelBuilder.Entity<FactoryOrder>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CustomerName).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.CustomerContact).HasMaxLength(100);
+            entity.Property(e => e.DeliveryAddress).HasMaxLength(500);
+            entity.Property(e => e.SupplierName).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.SupplierContact).HasMaxLength(100);
+            entity.Property(e => e.TotalCost).HasPrecision(18, 2);
+            entity.Property(e => e.TotalSalePrice).HasPrecision(18, 2);
+            entity.Property(e => e.Margin).HasPrecision(6, 2);
+            entity.Property(e => e.TrackingCode).HasMaxLength(100);
+            entity.Property(e => e.Notes).HasMaxLength(1000);
+            
+            entity.HasMany(e => e.Items)
+                  .WithOne()
+                  .HasForeignKey("FactoryOrderId")
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // FactoryOrderItem
+        modelBuilder.Entity<FactoryOrderItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Description).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.UnitCost).HasPrecision(18, 2);
+            entity.Property(e => e.UnitSalePrice).HasPrecision(18, 2);
+            entity.Property(e => e.SubtotalCost).HasPrecision(18, 2);
+            entity.Property(e => e.SubtotalSalePrice).HasPrecision(18, 2);
         });
     }
 }

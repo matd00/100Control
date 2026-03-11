@@ -23,6 +23,7 @@ public class Shipment
     public ShipmentProvider Provider { get; private set; }
     public ShipmentStatus Status { get; private set; }
     public string TrackingNumber { get; private set; } = string.Empty;
+    public string SuperFreteOrderId { get; private set; } = string.Empty;
     public decimal ShippingCost { get; private set; }
     public List<ShipmentItem> Items { get; private set; } = new();
     public DateTime? ShippedAt { get; private set; }
@@ -64,7 +65,7 @@ public class Shipment
         Items.Add(item);
     }
 
-    public void GenerateLabel(string trackingNumber, decimal shippingCost)
+    public void GenerateLabel(string trackingNumber, decimal shippingCost, string superFreteOrderId = "")
     {
         // Security: Input validation
         if (string.IsNullOrWhiteSpace(trackingNumber))
@@ -86,6 +87,7 @@ public class Shipment
             throw new InvalidOperationException("Shipment must contain items");
 
         TrackingNumber = trackingNumber.Trim();
+        SuperFreteOrderId = superFreteOrderId?.Trim() ?? "";
         ShippingCost = shippingCost;
         Status = ShipmentStatus.Processing;
     }

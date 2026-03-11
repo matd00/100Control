@@ -176,6 +176,9 @@
                                                             <DataTrigger Binding="{Binding Status}" Value="Cancelled">
                                                                 <Setter Property="Background" Value="#FEE2E2"/>
                                                             </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Status}" Value="Shipped">
+                                                                <Setter Property="Background" Value="#DBEAFE"/>
+                                                            </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </Border.Style>
@@ -189,6 +192,9 @@
                                                                 </DataTrigger>
                                                                 <DataTrigger Binding="{Binding Status}" Value="Cancelled">
                                                                     <Setter Property="Foreground" Value="#DC2626"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="Shipped">
+                                                                    <Setter Property="Foreground" Value="#2563EB"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -250,6 +256,9 @@
                                             <DataTrigger Binding="{Binding SelectedOrder.IsProcessing}" Value="True">
                                                 <Setter Property="Background" Value="#DBEAFE"/>
                                             </DataTrigger>
+                                            <DataTrigger Binding="{Binding SelectedOrder.IsShipped}" Value="True">
+                                                <Setter Property="Background" Value="#DBEAFE"/>
+                                            </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Border.Style>
@@ -265,6 +274,9 @@
                                                     <Setter Property="Foreground" Value="#DC2626"/>
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding SelectedOrder.IsProcessing}" Value="True">
+                                                    <Setter Property="Foreground" Value="#2563EB"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding SelectedOrder.IsShipped}" Value="True">
                                                     <Setter Property="Foreground" Value="#2563EB"/>
                                                 </DataTrigger>
                                             </Style.Triggers>

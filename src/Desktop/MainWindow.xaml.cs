@@ -68,7 +68,7 @@ public partial class MainWindow : Window
     private void Orders_Click(object sender, RoutedEventArgs e)
     {
         SetActiveButton(BtnOrders);
-        LoadView<OrdersView, OrdersViewModel>("Pedidos", "Criar e gerenciar pedidos");
+        LoadView<OrdersLayoutView, OrdersLayoutViewModel>("Pedidos", "Criar e gerenciar pedidos");
     }
 
     private void Customers_Click(object sender, RoutedEventArgs e)

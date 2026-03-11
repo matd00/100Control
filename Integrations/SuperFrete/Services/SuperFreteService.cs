@@ -429,6 +429,33 @@ public class SuperFreteService : ISuperFreteService
         return (fullAddress, "S/N");
     }
 
+    public async Task CancelOrderAsync(string superFreteOrderId)
+    {
+        if (string.IsNullOrWhiteSpace(superFreteOrderId))
+            throw new SuperFreteException("ID do pedido SuperFrete é obrigatório para cancelamento.");
+
+        var response = await _httpClient.DeleteAsync($"/api/v0/order/{superFreteOrderId}");
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        // Log
+        var logMessage = new StringBuilder();
+        logMessage.AppendLine("========== SUPERFRETE CANCEL ORDER ==========");
+        logMessage.AppendLine($"Timestamp: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        logMessage.AppendLine($"OrderId: {superFreteOrderId}");
+        logMessage.AppendLine($"Status: {response.StatusCode}");
+        logMessage.AppendLine($"Response: {responseContent}");
+        logMessage.AppendLine("==============================================");
+        Debug.WriteLine(logMessage.ToString());
+        System.IO.File.AppendAllText(
+            System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "superfrete_debug.log"), 
+            logMessage.ToString() + Environment.NewLine);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new SuperFreteException($"Erro ao cancelar etiqueta: {response.StatusCode} - {responseContent}");
+        }
+    }
+
     public async Task<ShipmentTrackingDto> TrackShipmentAsync(string trackingNumber)
     {
         var response = await _httpClient.GetAsync($"/api/v0/tracking/{trackingNumber}");

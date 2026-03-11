@@ -73,6 +73,12 @@ public class Order
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void MarkAsShipped()
+    {
+        Status = OrderStatus.Shipped;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void MarkAsCompleted()
     {
         Status = OrderStatus.Completed;
@@ -91,7 +97,8 @@ public enum OrderStatus
     Pending = 1,
     Processing = 2,
     Completed = 3,
-    Cancelled = 4
+    Cancelled = 4,
+    Shipped = 5
 }
 
 public class OrderItem

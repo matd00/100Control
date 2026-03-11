@@ -9,11 +9,15 @@ public class DashboardViewModel : ViewModelBase
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IProductRepository _productRepository;
+    private readonly IFactoryOrderRepository _factoryOrderRepository;
 
     private decimal _todaysSales;
     private int _pendingOrders;
     private int _lowStockProducts;
     private decimal _todaysProfit;
+    
+    private int _factoryPendingOrders;
+    private decimal _factoryMonthRevenue;
 
     public decimal TodaysSales
     {
@@ -39,14 +43,30 @@ public class DashboardViewModel : ViewModelBase
         set => SetProperty(ref _todaysProfit, value);
     }
 
+    public int FactoryPendingOrders
+    {
+        get => _factoryPendingOrders;
+        set => SetProperty(ref _factoryPendingOrders, value);
+    }
+
+    public decimal FactoryMonthRevenue
+    {
+        get => _factoryMonthRevenue;
+        set => SetProperty(ref _factoryMonthRevenue, value);
+    }
+
     public ObservableCollection<RecentOrderViewModel> RecentOrders { get; } = new();
 
     public ICommand RefreshCommand { get; }
 
-    public DashboardViewModel(IOrderRepository orderRepository, IProductRepository productRepository)
+    public DashboardViewModel(
+        IOrderRepository orderRepository, 
+        IProductRepository productRepository,
+        IFactoryOrderRepository factoryOrderRepository)
     {
         _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
+        _factoryOrderRepository = factoryOrderRepository ?? throw new ArgumentNullException(nameof(factoryOrderRepository));
 
         RefreshCommand = new AsyncRelayCommand(LoadDashboardDataAsync);
 
@@ -75,6 +95,16 @@ public class DashboardViewModel : ViewModelBase
 
             // Calculate profit (simplified: Price - Cost)
             TodaysProfit = TodaysSales * 0.30m; // Placeholder
+
+            // Factory Orders Metrics
+            var factoryOrders = await _factoryOrderRepository.GetAllAsync();
+            FactoryPendingOrders = factoryOrders.Count(o => o.Status == Domain.Entities.FactoryOrderStatus.Pendente);
+            
+            var currentMonth = DateTime.UtcNow.Month;
+            var currentYear = DateTime.UtcNow.Year;
+            FactoryMonthRevenue = factoryOrders
+                .Where(o => o.CreatedAt.Month == currentMonth && o.CreatedAt.Year == currentYear && o.Status != Domain.Entities.FactoryOrderStatus.Cancelado)
+                .Sum(o => o.TotalSalePrice);
 
             // Recent orders
             RecentOrders.Clear();

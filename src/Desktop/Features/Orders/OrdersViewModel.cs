@@ -237,10 +237,8 @@ namespace Desktop.Features.Orders
         public bool IsOrderPending => SelectedOrder != null && !SelectedOrder.IsNew && SelectedOrder.Status == OrderStatus.Pending;
         public bool CanGenerateLabel => SelectedOrder != null && (SelectedOrder.IsNew || SelectedOrder.Status == OrderStatus.Pending);
         public bool HasTrackingCode => !string.IsNullOrEmpty(SelectedOrder?.TrackingCode);
-        public bool CanCancelShipment => SelectedOrder != null && SelectedOrder.Status == OrderStatus.Processing && !string.IsNullOrEmpty(SelectedOrder.TrackingCode);
-        // Sempre mostrar botão de imprimir se tiver tracking (o SuperFrete gera automaticamente após checkout)
-        public bool CanPrintLabel => HasTrackingCode;
-        // Card de checkout pendente não é mais necessário pois SuperFrete faz checkout automático
+        public bool CanCancelShipment => SelectedOrder != null && (SelectedOrder.Status == OrderStatus.Processing || SelectedOrder.Status == OrderStatus.Shipped) && !string.IsNullOrEmpty(SelectedOrder.SuperFreteOrderId);
+        public bool CanPrintLabel => HasTrackingCode && !string.IsNullOrEmpty(SelectedOrder?.SuperFreteOrderId);
         public bool NeedsCheckout => false;
 
         // Propriedades para confirmação
@@ -337,22 +335,16 @@ namespace Desktop.Features.Orders
             // Primeiro tenta usar URL já carregada
             var url = SelectedOrder?.LabelUrl ?? GeneratedLabelUrl;
 
-            // Se não tiver URL mas tiver tracking code, busca na API
-            if (string.IsNullOrEmpty(url) && !string.IsNullOrEmpty(SelectedOrder?.TrackingCode))
+            // Se não tiver URL mas tiver SuperFreteOrderId, busca na API
+            var superFreteOrderId = SelectedOrder?.SuperFreteOrderId;
+            if (string.IsNullOrEmpty(url) && !string.IsNullOrEmpty(superFreteOrderId))
             {
                 try
                 {
                     StatusMessage = "Buscando etiqueta...";
                     OnPropertyChanged(nameof(HasStatusMessage));
 
-                    url = await _superFreteService.GetLabelUrlAsync(SelectedOrder.TrackingCode);
-
-                    if (string.IsNullOrEmpty(url))
-                    {
-                        // Se ainda não tiver, tenta fazer checkout primeiro
-                        var result = await _superFreteService.CheckoutAsync(SelectedOrder.TrackingCode);
-                        url = result.LabelUrl;
-                    }
+                    url = await _superFreteService.GetLabelUrlAsync(superFreteOrderId);
 
                     StatusMessage = "";
                     OnPropertyChanged(nameof(HasStatusMessage));
@@ -390,12 +382,23 @@ namespace Desktop.Features.Orders
 
         private async Task CancelShipmentAsync()
         {
-            if (SelectedOrder == null || string.IsNullOrEmpty(SelectedOrder.TrackingCode)) return;
+            if (SelectedOrder == null || string.IsNullOrEmpty(SelectedOrder.SuperFreteOrderId)) return;
 
             try
             {
-                StatusMessage = "Cancelando envio...";
+                StatusMessage = "Cancelando envio no SuperFrete...";
                 OnPropertyChanged(nameof(HasStatusMessage));
+
+                // Cancelar no SuperFrete primeiro
+                try
+                {
+                    await _superFreteService.CancelOrderAsync(SelectedOrder.SuperFreteOrderId);
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = $"⚠️ Erro ao cancelar no SuperFrete: {ex.Message}. Cancelando localmente...";
+                    OnPropertyChanged(nameof(HasStatusMessage));
+                }
 
                 // Cancelar o pedido no banco
                 var order = await _orderRepository.GetByIdAsync(SelectedOrder.Id);
@@ -543,6 +546,8 @@ namespace Desktop.Features.Orders
             try
             {
                 IsGeneratingLabel = true;
+                StatusMessage = "Gerando etiqueta no SuperFrete...";
+                OnPropertyChanged(nameof(HasStatusMessage));
 
                 // Preparar lista de produtos
                 var products = OrderItems.Select(item => new ShipmentProduct
@@ -552,21 +557,16 @@ namespace Desktop.Features.Orders
                     UnitPrice = item.UnitPrice
                 }).ToList();
 
-                // Gerar etiqueta no SuperFrete
+                // 1. Gerar etiqueta no SuperFrete (adiciona ao carrinho)
                 var labelRequest = new ShipmentLabelRequest
                 {
-                    // Dimensões do pacote
                     Weight = CalculatedWeight,
                     Width = CalculatedWidth,
                     Height = CalculatedHeight,
                     Length = CalculatedLength,
-
-                    // Serviço de envio
                     ServiceId = SelectedShipping.ServiceId,
                     ServiceName = SelectedShipping.ServiceName,
                     ShippingPrice = SelectedShipping.Price,
-
-                    // Dados do destinatário
                     ReceiverName = SelectedCustomer.Name,
                     ReceiverDocument = SelectedCustomer.Document,
                     ReceiverPhone = SelectedCustomer.Phone,
@@ -578,19 +578,26 @@ namespace Desktop.Features.Orders
                     ReceiverCity = SelectedCustomer.City,
                     ReceiverState = SelectedCustomer.State,
                     ReceiverZipCode = SelectedCustomer.ZipCode,
-
-                    // Produtos
                     Products = products
                 };
 
                 var result = await _superFreteService.GenerateLabelAsync(labelRequest);
-                GeneratedTrackingCode = result.TrackingCode ?? result.OrderId;
-                GeneratedLabelUrl = result.LabelUrl ?? "";
+                var superFreteOrderId = result.OrderId;
+
+                // 2. Fazer checkout (pagar e emitir a etiqueta)
+                StatusMessage = "Pagando e emitindo etiqueta...";
+                OnPropertyChanged(nameof(HasStatusMessage));
+
+                var checkoutResult = await _superFreteService.CheckoutAsync(superFreteOrderId);
+
+                // Usar dados do checkout se disponíveis
+                GeneratedTrackingCode = checkoutResult.TrackingCode ?? result.TrackingCode ?? superFreteOrderId;
+                GeneratedLabelUrl = checkoutResult.LabelUrl ?? result.LabelUrl ?? "";
                 OnPropertyChanged(nameof(HasGeneratedLabel));
                 ShowConfirmationDialog = false;
                 ShowSuccessDialog = true;
 
-                // Salvar pedido e envio
+                // 3. Salvar pedido no banco
                 Guid orderId;
                 if (SelectedOrder != null && SelectedOrder.IsNew)
                 {
@@ -600,6 +607,7 @@ namespace Desktop.Features.Orders
                         order.AddItem(item.ProductId, item.Quantity, item.UnitPrice);
                     }
                     order.MarkAsProcessing();
+                    order.MarkAsShipped();
                     await _orderRepository.SaveAsync(order);
                     orderId = order.Id;
                 }
@@ -609,6 +617,7 @@ namespace Desktop.Features.Orders
                     if (order != null)
                     {
                         order.MarkAsProcessing();
+                        order.MarkAsShipped();
                         await _orderRepository.UpdateAsync(order);
                     }
                     orderId = SelectedOrder.Id;
@@ -618,22 +627,28 @@ namespace Desktop.Features.Orders
                     orderId = Guid.NewGuid();
                 }
 
-                // Criar e salvar o Shipment (envio)
+                // 4. Criar e salvar o Shipment com SuperFreteOrderId
                 var shipment = new Shipment(orderId, ShipmentProvider.SuperFrete);
                 foreach (var item in OrderItems)
                 {
                     shipment.AddItem(item.ProductId, item.Quantity);
                 }
-                shipment.GenerateLabel(result.TrackingCode ?? result.OrderId, SelectedShipping.Price);
+                shipment.GenerateLabel(
+                    GeneratedTrackingCode, 
+                    SelectedShipping.Price, 
+                    superFreteOrderId);
+                shipment.MarkAsShipped();
                 await _shipmentRepository.SaveAsync(shipment);
 
+                StatusMessage = "✅ Etiqueta emitida com sucesso!";
+                OnPropertyChanged(nameof(HasStatusMessage));
 
                 await LoadOrdersAsync();
             }
             catch (Exception ex)
             {
                 ShowConfirmationDialog = false;
-                StatusMessage = $"Erro ao gerar etiqueta: {ex.Message}";
+                StatusMessage = $"Erro ao emitir etiqueta: {ex.Message}";
                 OnPropertyChanged(nameof(HasStatusMessage));
             }
             finally
@@ -788,6 +803,7 @@ namespace Desktop.Features.Orders
                     CreatedAtFormatted = order.CreatedAt.ToString("dd/MM HH:mm"),
                     // Informações de envio
                     TrackingCode = shipment?.TrackingNumber,
+                    SuperFreteOrderId = shipment?.SuperFreteOrderId ?? "",
                     ShippingCost = shipment?.ShippingCost ?? 0,
                     ShippedAt = shipment?.ShippedAt
                 });
@@ -1123,6 +1139,7 @@ namespace Desktop.Features.Orders
             {
                 case OrderStatus.Pending: return "PENDENTE";
                 case OrderStatus.Processing: return "PROCESSANDO";
+                case OrderStatus.Shipped: return "ENVIADO";
                 case OrderStatus.Completed: return "CONCLUIDO";
                 case OrderStatus.Cancelled: return "CANCELADO";
                 default: return status.ToString();
@@ -1151,6 +1168,7 @@ namespace Desktop.Features.Orders
         public string? TrackingCode { get; set; }
         public string? LabelUrl { get; set; }
         public string? ShippingService { get; set; }
+        public string SuperFreteOrderId { get; set; } = string.Empty;
         public decimal ShippingCost { get; set; }
         public string ShippingCostFormatted => ShippingCost > 0 ? string.Format("R$ {0:N2}", ShippingCost) : "-";
         public DateTime? ShippedAt { get; set; }
@@ -1160,6 +1178,7 @@ namespace Desktop.Features.Orders
         public bool HasTracking => !string.IsNullOrEmpty(TrackingCode);
         public bool HasLabel => !string.IsNullOrEmpty(LabelUrl);
         public bool IsProcessing => Status == OrderStatus.Processing;
+        public bool IsShipped => Status == OrderStatus.Shipped;
         public bool IsCompleted => Status == OrderStatus.Completed;
         public bool IsCancelled => Status == OrderStatus.Cancelled;
         public bool IsPending => Status == OrderStatus.Pending;

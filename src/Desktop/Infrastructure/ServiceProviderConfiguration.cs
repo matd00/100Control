@@ -11,6 +11,7 @@ using Application.UseCases.Products;
 using Application.UseCases.Customers;
 using Application.UseCases.Purchases;
 using Application.UseCases.Shipments;
+using Application.UseCases.FactoryOrders;
 using Application.Services;
 using Desktop.Features.Dashboard;
 using Desktop.Features.Products;
@@ -75,6 +76,11 @@ public static class ServiceProviderConfiguration
         services.AddTransient<GenerateShipmentUseCase>();
         services.AddTransient<UpdateOrderStatusUseCase>();
 
+        // Factory Order Use Cases
+        services.AddTransient<CreateFactoryOrderUseCase>();
+        services.AddTransient<UpdateFactoryOrderStatusUseCase>();
+        services.AddTransient<AddTrackingCodeUseCase>();
+
         // Services
         services.AddScoped<IMarketplaceSyncService, MarketplaceSyncService>();
         services.AddScoped<IAutomationService, AutomationService>();
@@ -86,6 +92,8 @@ public static class ServiceProviderConfiguration
         services.AddTransient<DashboardViewModel>();
         services.AddTransient<ProductsViewModel>();
         services.AddTransient<OrdersViewModel>();
+        services.AddTransient<FactoryOrdersViewModel>();
+        services.AddTransient<OrdersLayoutViewModel>();
         services.AddTransient<CustomersViewModel>();
         services.AddTransient<SuppliersViewModel>();
         services.AddTransient<PurchasesViewModel>();
