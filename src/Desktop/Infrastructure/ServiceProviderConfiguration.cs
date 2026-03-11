@@ -1,4 +1,5 @@
 using System.IO;
+using System.Net.Http;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,10 @@ using Desktop.Features.Kits;
 using Desktop.Features.Shipments;
 using Integrations.SuperFrete.Extensions;
 using Integrations.SuperFrete.Interfaces;
+using Integrations.MercadoLivre.Interfaces;
+using Integrations.MercadoLivre.Services;
+using Integrations.Shopee.Interfaces;
+using Integrations.Shopee.Services;
 
 namespace Desktop.Infrastructure;
 
@@ -67,6 +72,7 @@ public static class ServiceProviderConfiguration
         services.AddScoped<IShipmentRepository, EfShipmentRepository>();
         services.AddScoped<IPartRepository, EfPartRepository>();
         services.AddScoped<IInventoryMovementRepository, EfInventoryMovementRepository>();
+        services.AddScoped<IFactoryOrderRepository, EfFactoryOrderRepository>();
 
         // Use Cases
         services.AddTransient<CreateOrderUseCase>();
@@ -84,6 +90,12 @@ public static class ServiceProviderConfiguration
         // Services
         services.AddScoped<IMarketplaceSyncService, MarketplaceSyncService>();
         services.AddScoped<IAutomationService, AutomationService>();
+
+        // Integration Services (placeholder tokens - configure with real values)
+        services.AddScoped<IMercadoLivreService>(sp =>
+            new MercadoLivreService(new HttpClient { BaseAddress = new Uri("https://api.mercadolibre.com") }, ""));
+        services.AddScoped<IShopeeService>(sp =>
+            new ShopeeService(new HttpClient { BaseAddress = new Uri("https://partner.shopeemobile.com") }, "", ""));
 
         // SuperFrete Integration
         services.AddSuperFrete(configuration);

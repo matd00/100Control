@@ -34,6 +34,8 @@ builder.Services.AddScoped<ISupplierRepository, EfSupplierRepository>();
 builder.Services.AddScoped<IPurchaseRepository, EfPurchaseRepository>();
 builder.Services.AddScoped<IKitRepository, EfKitRepository>();
 builder.Services.AddScoped<IShipmentRepository, EfShipmentRepository>();
+builder.Services.AddScoped<IPartRepository, EfPartRepository>();
+builder.Services.AddScoped<IInventoryMovementRepository, EfInventoryMovementRepository>();
 
 // Use Cases
 builder.Services.AddTransient<CreateProductUseCase>();

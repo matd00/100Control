@@ -293,3 +293,14 @@ public class FactoryOrderItemViewModel : ViewModelBase
         OnPropertyChanged(nameof(SubtotalSalePriceFormatted));
     }
 }
+
+public class CustomerForFactoryOrderViewModel : ViewModelBase
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string FullAddress { get; set; } = string.Empty;
+    public string Document { get; set; } = string.Empty;
+    public string DisplayText => $"{Name} — {Phone}";
+}

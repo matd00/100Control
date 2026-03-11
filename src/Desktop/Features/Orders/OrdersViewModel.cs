@@ -19,9 +19,9 @@ namespace Desktop.Features.Orders
         private readonly SuperFreteSettings _superFreteSettings;
 
         private int _currentStep = 1;
-        private OrderItemViewModel _selectedOrder;
-        private CustomerForOrderViewModel _selectedCustomer;
-        private ShippingQuoteViewModel _selectedShipping;
+        private OrderItemViewModel? _selectedOrder;
+        private CustomerForOrderViewModel? _selectedCustomer;
+        private ShippingQuoteViewModel? _selectedShipping;
         private bool _isCalculatingShipping;
         private string _statusMessage = string.Empty;
         private decimal _calculatedWeight;
@@ -57,7 +57,7 @@ namespace Desktop.Features.Orders
         public bool HasOrderItems => OrderItems.Count > 0;
         public bool HasSelectedShipping => _selectedShipping != null;
 
-        public OrderItemViewModel SelectedOrder
+        public OrderItemViewModel? SelectedOrder
         {
             get => _selectedOrder;
             set
@@ -70,7 +70,7 @@ namespace Desktop.Features.Orders
             }
         }
 
-        public CustomerForOrderViewModel SelectedCustomer
+        public CustomerForOrderViewModel? SelectedCustomer
         {
             get => _selectedCustomer;
             set
@@ -83,7 +83,7 @@ namespace Desktop.Features.Orders
             }
         }
 
-        public ShippingQuoteViewModel SelectedShipping
+        public ShippingQuoteViewModel? SelectedShipping
         {
             get => _selectedShipping;
             set
@@ -868,7 +868,7 @@ namespace Desktop.Features.Orders
             NotifyOrderStateChanged();
         }
 
-        private void SelectOrder(OrderItemViewModel order)
+        private void SelectOrder(OrderItemViewModel? order)
         {
             if (order != null)
             {
@@ -935,13 +935,13 @@ namespace Desktop.Features.Orders
             OnPropertyChanged(nameof(Step2Completed));
         }
 
-        private void SelectCustomer(CustomerForOrderViewModel customer)
+        private void SelectCustomer(CustomerForOrderViewModel? customer)
         {
             SelectedCustomer = customer;
             OnPropertyChanged(nameof(DestinationPostalCode));
         }
 
-        private void AddProductToOrder(ProductForOrderViewModel product)
+        private void AddProductToOrder(ProductForOrderViewModel? product)
         {
             if (product == null || product.QuantityToAdd <= 0) return;
 
@@ -977,7 +977,7 @@ namespace Desktop.Features.Orders
             OnPropertyChanged(nameof(Step2Completed));
         }
 
-        private void RemoveItem(OrderLineItemViewModel item)
+        private void RemoveItem(OrderLineItemViewModel? item)
         {
             if (item != null)
             {
@@ -1002,7 +1002,7 @@ namespace Desktop.Features.Orders
             if (CurrentStep > 1) CurrentStep--;
         }
 
-        private void GoToStep(string step)
+        private void GoToStep(string? step)
         {
             if (int.TryParse(step, out int stepNum) && stepNum >= 1 && stepNum <= 3)
             {
@@ -1120,7 +1120,7 @@ namespace Desktop.Features.Orders
             }
         }
 
-        private void SelectShipping(ShippingQuoteViewModel shipping)
+        private void SelectShipping(ShippingQuoteViewModel? shipping)
         {
             SelectedShipping = shipping;
         }

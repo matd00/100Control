@@ -13,6 +13,7 @@ using PaintballManager.Integrations.MercadoLivre.Interfaces;
 using PaintballManager.Integrations.MercadoLivre.Services;
 using PaintballManager.Integrations.Shopee.Interfaces;
 using PaintballManager.Integrations.Shopee.Services;
+using PaintballManager.Integrations.SuperFrete.Configuration;
 using PaintballManager.Integrations.SuperFrete.Interfaces;
 using PaintballManager.Integrations.SuperFrete.Services;
 using PaintballManager.Persistence.Repositories;
@@ -35,6 +36,15 @@ public static class ServiceProviderConfiguration
         services.AddSingleton<IKitRepository, InMemoryKitRepository>();
         services.AddSingleton<IPartRepository, InMemoryPartRepository>();
         services.AddSingleton<IInventoryMovementRepository, InMemoryInventoryMovementRepository>();
+
+        // SuperFrete Settings
+        var superFreteSettings = new SuperFreteSettings
+        {
+            ApiToken = "YOUR_API_KEY",
+            BaseUrl = "https://api.superfrete.com",
+            DefaultOriginPostalCode = "00000000"
+        };
+        services.AddSingleton(superFreteSettings);
 
         // Use Cases
         services.AddScoped<CreateProductUseCase>();
@@ -62,9 +72,10 @@ public static class ServiceProviderConfiguration
             client.BaseAddress = new Uri("https://partner.shopeemobile.com");
         });
 
-        services.AddHttpClient<ISuperFreteService>(client =>
+        services.AddHttpClient<ISuperFreteService, SuperFreteService>(client =>
         {
-            client.BaseAddress = new Uri("https://api.superfrete.com");
+            client.BaseAddress = new Uri(superFreteSettings.BaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(superFreteSettings.TimeoutSeconds);
         });
 
         // Register implementations
@@ -73,9 +84,6 @@ public static class ServiceProviderConfiguration
 
         services.AddScoped<IShopeeService>(sp =>
             new ShopeeService(sp.GetRequiredService<HttpClient>(), "YOUR_PARTNER_ID", "YOUR_PARTNER_KEY"));
-
-        services.AddScoped<ISuperFreteService>(sp =>
-            new SuperFreteService(sp.GetRequiredService<HttpClient>(), "YOUR_API_KEY"));
 
         // ViewModels
         services.AddScoped<DashboardViewModel>();

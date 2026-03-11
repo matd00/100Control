@@ -39,6 +39,14 @@
             <Setter Property="Background" Value="#22C55E"/>
         </Style>
 
+        <Style x:Key="WarningButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#F59E0B"/>
+        </Style>
+
+        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#EF4444"/>
+        </Style>
+
         <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
             <Setter Property="Background" Value="#F1F5F9"/>
             <Setter Property="Foreground" Value="#475569"/>
@@ -81,47 +89,62 @@
 
             <Border Grid.Column="0" Style="{StaticResource CardStyle}" Margin="0,0,12,0">
                 <StackPanel>
-                    <TextBlock Text="Total Pedidos Fábrica" FontSize="13" Foreground="#64748B"/>
+                    <TextBlock Text="📋 Total Pedidos" FontSize="13" Foreground="#64748B"/>
                     <TextBlock Text="{Binding MetricsTotalOrders}" FontSize="28" FontWeight="Bold" Foreground="#1E293B" Margin="0,10,0,0"/>
                 </StackPanel>
             </Border>
 
             <Border Grid.Column="1" Style="{StaticResource CardStyle}" Margin="12,0,12,0">
                 <StackPanel>
-                    <TextBlock Text="Receita (Fábrica)" FontSize="13" Foreground="#64748B"/>
+                    <TextBlock Text="💰 Receita" FontSize="13" Foreground="#64748B"/>
                     <TextBlock Text="{Binding MetricsTotalRevenue, StringFormat='R$ {0:N2}'}" FontSize="28" FontWeight="Bold" Foreground="#22C55E" Margin="0,10,0,0"/>
                 </StackPanel>
             </Border>
 
             <Border Grid.Column="2" Style="{StaticResource CardStyle}" Margin="12,0,12,0">
                 <StackPanel>
-                    <TextBlock Text="Custo Total" FontSize="13" Foreground="#64748B"/>
+                    <TextBlock Text="📦 Custo Total" FontSize="13" Foreground="#64748B"/>
                     <TextBlock Text="{Binding MetricsTotalCost, StringFormat='R$ {0:N2}'}" FontSize="28" FontWeight="Bold" Foreground="#F59E0B" Margin="0,10,0,0"/>
                 </StackPanel>
             </Border>
 
             <Border Grid.Column="3" Style="{StaticResource CardStyle}" Margin="12,0,0,0">
                 <StackPanel>
-                    <TextBlock Text="Margem Média" FontSize="13" Foreground="#64748B"/>
-                    <TextBlock Text="{Binding MetricsAverageMargin, StringFormat='{}{0:N2} %'}" FontSize="28" FontWeight="Bold" Foreground="#3B82F6" Margin="0,10,0,0"/>
+                    <TextBlock Text="📊 Margem Média" FontSize="13" Foreground="#64748B"/>
+                    <TextBlock Text="{Binding MetricsAverageMargin, StringFormat='{}{0:N1}%'}" FontSize="28" FontWeight="Bold" Foreground="#3B82F6" Margin="0,10,0,0"/>
                 </StackPanel>
             </Border>
         </Grid>
 
-        <!-- ToolBar -->
+        <!-- ToolBar with search -->
         <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,0,0,16">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
+
                 <StackPanel Orientation="Horizontal" Grid.Column="0">
                     <Button Content="🔄 Atualizar" Command="{Binding RefreshOrdersCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,12,0"/>
                     <TextBlock Text="{Binding StatusMessage}" Foreground="#1E293B" VerticalAlignment="Center" FontWeight="SemiBold"/>
                 </StackPanel>
 
-                <Button Grid.Column="2" Content="+ Novo Pedido Fábrica" Command="{Binding NewOrderCommand}" Style="{StaticResource SuccessButton}"/>
+                <!-- Search box -->
+                <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+                         Style="{StaticResource ModernTextBox}" Margin="12,0,12,0"
+                         MaxWidth="300" HorizontalAlignment="Right"/>
+
+                <!-- Status filter -->
+                <ComboBox Grid.Column="2" SelectedItem="{Binding StatusFilter}" Margin="0,0,12,0" 
+                          MinWidth="140" VerticalAlignment="Center" FontSize="13" Padding="8,6">
+                    <ComboBox.Items>
+                        <ComboBoxItem Content="Todos os Status" IsSelected="True"/>
+                    </ComboBox.Items>
+                </ComboBox>
+
+                <Button Grid.Column="3" Content="+ Novo Pedido Fábrica" Command="{Binding NewOrderCommand}" Style="{StaticResource SuccessButton}"/>
             </Grid>
         </Border>
 
@@ -129,7 +152,7 @@
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="350"/>
+                <ColumnDefinition Width="380"/>
             </Grid.ColumnDefinitions>
 
             <!-- DataGrid Section -->
@@ -140,7 +163,7 @@
                           SelectionMode="Single"
                           SelectedItem="{Binding SelectedOrder}"
                           Background="White"
-                          RowHeight="40"
+                          RowHeight="44"
                           BorderThickness="0"
                           HeadersVisibility="Column"
                           GridLinesVisibility="Horizontal"
@@ -150,9 +173,10 @@
                         <DataGridTextColumn Header="Data" Binding="{Binding CreatedAtFormatted}" Width="Auto"/>
                         <DataGridTextColumn Header="Cliente" Binding="{Binding CustomerName}" Width="*"/>
                         <DataGridTextColumn Header="Fornecedor" Binding="{Binding SupplierName}" Width="*"/>
+                        <DataGridTextColumn Header="Itens" Binding="{Binding ItemsCount}" Width="50"/>
                         <DataGridTextColumn Header="Venda" Binding="{Binding TotalSalePriceFormatted}" Width="Auto"/>
                         <DataGridTextColumn Header="Margem" Binding="{Binding MarginFormatted}" Width="Auto"/>
-                        <DataGridTemplateColumn Header="Status" Width="120">
+                        <DataGridTemplateColumn Header="Status" Width="130">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Background="{Binding StatusBackgroundColor}" Padding="8,4" CornerRadius="4" HorizontalAlignment="Left">
@@ -162,20 +186,46 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                     </DataGrid.Columns>
-                    <DataGrid.InputBindings>
-                        <MouseBinding MouseAction="LeftDoubleClick" 
-                                      Command="{Binding DataContext.SelectOrderCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                      CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
-                    </DataGrid.InputBindings>
                 </DataGrid>
             </Border>
             
-            <!-- Editing Form (Takes up the whole grid when IsEditing is True) -->
+            <!-- ===== Editing Form ===== -->
             <Border Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource CardStyle}" Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibility}}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel>
                         <TextBlock Text="Novo Pedido Fábrica" FontSize="20" FontWeight="Bold" Foreground="#1E293B" Margin="0,0,0,24"/>
                         
+                        <!-- Customer Picker Section -->
+                        <Border Background="#F0F9FF" CornerRadius="8" Padding="16" Margin="0,0,0,20">
+                            <StackPanel>
+                                <TextBlock Text="👤 Selecionar Cliente Cadastrado" FontSize="14" FontWeight="SemiBold" Foreground="#0369A1" Margin="0,0,0,12"/>
+                                
+                                <TextBox Text="{Binding CustomerSearchText, UpdateSourceTrigger=PropertyChanged}" 
+                                         Style="{StaticResource ModernTextBox}" Margin="0,0,0,8"/>
+                                
+                                <ListBox ItemsSource="{Binding FilteredCustomers}" MaxHeight="150" BorderThickness="0" Background="Transparent"
+                                         SelectedItem="{Binding SelectedCustomer}">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Margin="4,4">
+                                                <TextBlock Text="👤" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13" Foreground="#1E293B"/>
+                                                    <TextBlock FontSize="11" Foreground="#64748B">
+                                                        <Run Text="{Binding Phone}"/> — <Run Text="{Binding Email}"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                
+                                <TextBlock Text="ou preencha manualmente abaixo" FontSize="11" Foreground="#94A3B8" Margin="0,8,0,0" 
+                                           Visibility="{Binding HasSelectedCustomer, Converter={StaticResource InverseBoolToVisibility}}"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Customer fields -->
                         <Grid Margin="0,0,0,16">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -185,43 +235,58 @@
                             
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Nome do Cliente *" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,8"/>
-                                <TextBox Text="{Binding SelectedOrder.CustomerName}" Style="{StaticResource ModernTextBox}"/>
+                                <TextBox Text="{Binding SelectedOrder.CustomerName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
                             </StackPanel>
                             
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="WhatsApp/E-mail *" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,8"/>
-                                <TextBox Text="{Binding SelectedOrder.CustomerContact}" Style="{StaticResource ModernTextBox}"/>
+                                <TextBlock Text="WhatsApp / E-mail *" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,8"/>
+                                <TextBox Text="{Binding SelectedOrder.CustomerContact, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
                             </StackPanel>
                         </Grid>
                         
                         <StackPanel Margin="0,0,0,16">
                             <TextBlock Text="Endereço Completo Entrega *" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,8"/>
-                            <TextBox Text="{Binding SelectedOrder.DeliveryAddress}" Style="{StaticResource ModernTextBox}" Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
+                            <TextBox Text="{Binding SelectedOrder.DeliveryAddress, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
                         </StackPanel>
                         
+                        <!-- Supplier + Channel -->
                         <Grid Margin="0,0,0,16">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="16"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Nome da Fábrica *" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,8"/>
-                                <TextBox Text="{Binding SelectedOrder.SupplierName}" Style="{StaticResource ModernTextBox}"/>
+                                <TextBox Text="{Binding SelectedOrder.SupplierName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
                             </StackPanel>
                             
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Contato da Fábrica" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,8"/>
-                                <TextBox Text="{Binding SelectedOrder.SupplierContact}" Style="{StaticResource ModernTextBox}"/>
+                                <TextBox Text="{Binding SelectedOrder.SupplierContact, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="4" MinWidth="150">
+                                <TextBlock Text="Canal" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,8"/>
+                                <ComboBox SelectedItem="{Binding SelectedOrder.Channel}" FontSize="14" Padding="10,8" MinWidth="140">
+                                    <domain:OrderSource>Direct</domain:OrderSource>
+                                    <domain:OrderSource>MercadoLivre</domain:OrderSource>
+                                    <domain:OrderSource>Shopee</domain:OrderSource>
+                                    <domain:OrderSource>Instagram</domain:OrderSource>
+                                    <domain:OrderSource>WhatsApp</domain:OrderSource>
+                                </ComboBox>
                             </StackPanel>
                         </Grid>
                         
                         <StackPanel Margin="0,0,0,16">
                             <TextBlock Text="Observações" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,8"/>
-                            <TextBox Text="{Binding SelectedOrder.Notes}" Style="{StaticResource ModernTextBox}" Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
+                            <TextBox Text="{Binding SelectedOrder.Notes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
                         </StackPanel>
                         
+                        <!-- Items section -->
                         <Border BorderBrush="#E2E8F0" BorderThickness="0,1,0,0" Margin="0,16" Padding="0,16,0,0">
                             <StackPanel>
                                 <Grid Margin="0,0,0,16">
@@ -229,8 +294,8 @@
                                     <Button Content="+ Adicionar Item" Command="{Binding AddItemCommand}" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Right" Padding="12,6"/>
                                 </Grid>
                                 
-                                <!-- Header dos items -->
-                                <Grid Margin="0,0,0,8" Visibility="{Binding SelectedOrder.ItemsCount, Converter={StaticResource BoolToVisibility}}">
+                                <!-- Item header -->
+                                <Grid Margin="0,0,0,8">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="60"/>
@@ -255,14 +320,14 @@
                                                     <ColumnDefinition Width="100"/>
                                                     <ColumnDefinition Width="40"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBox Grid.Column="0" Text="{Binding Description}" Style="{StaticResource ModernTextBox}" Margin="0,0,8,0"/>
-                                                <TextBox Grid.Column="1" Text="{Binding Quantity}" Style="{StaticResource ModernTextBox}" Margin="0,0,8,0" TextAlignment="Center"/>
-                                                <TextBox Grid.Column="2" Text="{Binding UnitCost}" Style="{StaticResource ModernTextBox}" Margin="0,0,8,0"/>
-                                                <TextBox Grid.Column="3" Text="{Binding UnitSalePrice}" Style="{StaticResource ModernTextBox}" Margin="0,0,8,0"/>
+                                                <TextBox Grid.Column="0" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Margin="0,0,8,0"/>
+                                                <TextBox Grid.Column="1" Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Margin="0,0,8,0" TextAlignment="Center"/>
+                                                <TextBox Grid.Column="2" Text="{Binding UnitCost, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Margin="0,0,8,0"/>
+                                                <TextBox Grid.Column="3" Text="{Binding UnitSalePrice, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Margin="0,0,8,0"/>
                                                 <Button Grid.Column="4" Content="✕" 
                                                         Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                         CommandParameter="{Binding}"
-                                                        Background="#FEE2E2" Foreground="#DC2626" BorderThickness="0" Cursor="Hand"/>
+                                                        Background="#FEE2E2" Foreground="#DC2626" BorderThickness="0" Cursor="Hand" FontWeight="Bold"/>
                                             </Grid>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -270,15 +335,16 @@
                             </StackPanel>
                         </Border>
                         
+                        <!-- Action buttons -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,24,0,0">
                             <Button Content="Cancelar" Command="{Binding CancelEditCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,12,0" Padding="24,12"/>
-                            <Button Content="Salvar Pedido" Command="{Binding SaveOrderCommand}" Style="{StaticResource PrimaryButton}" Padding="24,12"/>
+                            <Button Content="💾 Salvar Pedido" Command="{Binding SaveOrderCommand}" Style="{StaticResource PrimaryButton}" Padding="24,12"/>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
             </Border>
 
-            <!-- Details Sidebar (Only visible when an order is selected but NOT editing) -->
+            <!-- ===== Details Sidebar ===== -->
             <Border Grid.Column="1" Style="{StaticResource CardStyle}" 
                     Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibility}}">
                 <Grid>
@@ -288,37 +354,40 @@
                                
                     <ScrollViewer Visibility="{Binding HasSelectedOrder, Converter={StaticResource BoolToVisibility}}" VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <TextBlock Text="Detalhes" FontSize="18" FontWeight="Bold" Foreground="#1E293B" Margin="0,0,0,16"/>
+                            <TextBlock Text="Detalhes do Pedido" FontSize="18" FontWeight="Bold" Foreground="#1E293B" Margin="0,0,0,16"/>
                             
-                            <!-- Badges -->
+                            <!-- Status Badge -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                <Border Background="{Binding SelectedOrder.StatusBackgroundColor}" Padding="8,4" CornerRadius="4" Margin="0,0,8,0">
-                                    <TextBlock Text="{Binding SelectedOrder.StatusText}" Foreground="{Binding SelectedOrder.StatusColor}" FontWeight="Bold" FontSize="11"/>
+                                <Border Background="{Binding SelectedOrder.StatusBackgroundColor}" Padding="10,5" CornerRadius="6" Margin="0,0,8,0">
+                                    <TextBlock Text="{Binding SelectedOrder.StatusText}" Foreground="{Binding SelectedOrder.StatusColor}" FontWeight="Bold" FontSize="12"/>
                                 </Border>
                             </StackPanel>
                             
-                            <!-- Tracking (se existir) -->
+                            <!-- Tracking (if exists) -->
                             <Border Background="#F0F9FF" CornerRadius="8" Padding="12" Margin="0,0,0,16" Visibility="{Binding SelectedOrder.HasTrackingCode, Converter={StaticResource BoolToVisibility}}">
                                 <StackPanel>
-                                    <TextBlock Text="Rastreio da Fábrica" FontSize="10" FontWeight="Bold" Foreground="#0284C7"/>
+                                    <TextBlock Text="📦 Rastreio da Fábrica" FontSize="10" FontWeight="Bold" Foreground="#0284C7"/>
                                     <TextBlock Text="{Binding SelectedOrder.TrackingCode}" FontSize="14" FontWeight="Bold" Foreground="#0369A1" Margin="0,4,0,0"/>
                                 </StackPanel>
                             </Border>
 
-                            <TextBlock Text="Cliente" FontSize="11" Foreground="#64748B" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <!-- Customer info -->
+                            <TextBlock Text="👤 CLIENTE" FontSize="11" Foreground="#64748B" FontWeight="Bold" Margin="0,0,0,4"/>
                             <TextBlock Text="{Binding SelectedOrder.CustomerName}" FontWeight="SemiBold" Foreground="#1E293B"/>
                             <TextBlock Text="{Binding SelectedOrder.CustomerContact}" FontSize="12" Foreground="#64748B"/>
                             <TextBlock Text="{Binding SelectedOrder.DeliveryAddress}" FontSize="12" Foreground="#64748B" TextWrapping="Wrap" Margin="0,4,0,16"/>
                             
-                            <TextBlock Text="Fábrica" FontSize="11" Foreground="#64748B" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <!-- Supplier info -->
+                            <TextBlock Text="🏭 FÁBRICA" FontSize="11" Foreground="#64748B" FontWeight="Bold" Margin="0,0,0,4"/>
                             <TextBlock Text="{Binding SelectedOrder.SupplierName}" FontWeight="SemiBold" Foreground="#1E293B"/>
                             <TextBlock Text="{Binding SelectedOrder.SupplierContact}" FontSize="12" Foreground="#64748B" Margin="0,0,0,16"/>
                             
-                            <TextBlock Text="Itens" FontSize="11" Foreground="#64748B" FontWeight="Bold" Margin="0,0,0,8"/>
+                            <!-- Items -->
+                            <TextBlock Text="📋 ITENS" FontSize="11" Foreground="#64748B" FontWeight="Bold" Margin="0,0,0,8"/>
                             <ItemsControl ItemsSource="{Binding SelectedOrder.Items}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border BorderBrush="#F1F5F9" BorderThickness="0,0,0,1" Padding="0,4,0,4">
+                                        <Border BorderBrush="#F1F5F9" BorderThickness="0,0,0,1" Padding="0,6,0,6">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
@@ -337,6 +406,7 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                             
+                            <!-- Financial summary -->
                             <Border BorderBrush="#F1F5F9" BorderThickness="0,1,0,0" Margin="0,16,0,16" Padding="0,16,0,0">
                                 <StackPanel>
                                     <Grid Margin="0,0,0,4">
@@ -354,21 +424,40 @@
                                 </StackPanel>
                             </Border>
 
-                            <TextBlock Text="Ações de Status" FontSize="11" Foreground="#64748B" FontWeight="Bold" Margin="0,0,0,8"/>
-                            <Button Content="Marcar como Confirmado" 
-                                    Command="{Binding UpdateStatusCommand}" 
-                                    CommandParameter="{x:Static domain:FactoryOrderStatus.Confirmado}"
-                                    Style="{StaticResource PrimaryButton}" Margin="0,0,0,8" Padding="12,8"/>
+                            <!-- Tracking code input (for MarkSent) -->
+                            <Border Background="#FFFBEB" CornerRadius="8" Padding="12" Margin="0,0,0,16"
+                                    Visibility="{Binding CanMarkSent, Converter={StaticResource BoolToVisibility}}">
+                                <StackPanel>
+                                    <TextBlock Text="📦 Código de Rastreio" FontSize="11" FontWeight="Bold" Foreground="#92400E" Margin="0,0,0,8"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Grid.Column="0" Text="{Binding TrackingCodeInput, UpdateSourceTrigger=PropertyChanged}" 
+                                                 Style="{StaticResource ModernTextBox}" Margin="0,0,8,0"/>
+                                        <Button Grid.Column="1" Content="Enviar" Command="{Binding MarkSentCommand}" Style="{StaticResource WarningButton}" Padding="12,8"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Smart Status Action Buttons -->
+                            <TextBlock Text="⚡ AÇÕES" FontSize="11" Foreground="#64748B" FontWeight="Bold" Margin="0,0,0,8"/>
                             
-                            <Button Content="Marcar como Entregue" 
-                                    Command="{Binding UpdateStatusCommand}" 
-                                    CommandParameter="{x:Static domain:FactoryOrderStatus.Entregue}"
-                                    Style="{StaticResource SuccessButton}" Margin="0,0,0,8" Padding="12,8"/>
+                            <Button Content="✅ Confirmar Pedido" 
+                                    Command="{Binding ConfirmOrderCommand}" 
+                                    Style="{StaticResource PrimaryButton}" Margin="0,0,0,8" Padding="12,10"
+                                    Visibility="{Binding CanConfirm, Converter={StaticResource BoolToVisibility}}"/>
+
+                            <Button Content="🚚 Marcar Entregue" 
+                                    Command="{Binding MarkDeliveredCommand}" 
+                                    Style="{StaticResource SuccessButton}" Margin="0,0,0,8" Padding="12,10"
+                                    Visibility="{Binding CanMarkDelivered, Converter={StaticResource BoolToVisibility}}"/>
                                     
-                            <Button Content="Cancelar Pedido" 
-                                    Command="{Binding UpdateStatusCommand}" 
-                                    CommandParameter="{x:Static domain:FactoryOrderStatus.Cancelado}"
-                                    Background="#FEF2F2" Foreground="#DC2626" BorderThickness="0" Padding="12,8" Cursor="Hand" FontWeight="SemiBold"/>
+                            <Button Content="❌ Cancelar Pedido" 
+                                    Command="{Binding CancelOrderCommand}" 
+                                    Style="{StaticResource DangerButton}" Margin="0,0,0,8" Padding="12,10"
+                                    Visibility="{Binding CanCancel, Converter={StaticResource BoolToVisibility}}"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Grid>

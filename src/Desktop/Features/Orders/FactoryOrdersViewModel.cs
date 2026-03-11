@@ -10,6 +10,7 @@ namespace Desktop.Features.Orders;
 public class FactoryOrdersViewModel : ViewModelBase
 {
     private readonly IFactoryOrderRepository _repository;
+    private readonly ICustomerRepository _customerRepository;
     private readonly CreateFactoryOrderUseCase _createUseCase;
     private readonly UpdateFactoryOrderStatusUseCase _updateStatusUseCase;
     private readonly AddTrackingCodeUseCase _addTrackingUseCase;
@@ -21,7 +22,21 @@ public class FactoryOrdersViewModel : ViewModelBase
     private decimal _metricsAverageMargin;
     private int _metricsTotalOrders;
 
+    // Customer picker
+    private CustomerForFactoryOrderViewModel? _selectedCustomer;
+    private string _customerSearchText = string.Empty;
+
+    // Search / filter
+    private string _searchText = string.Empty;
+    private FactoryOrderStatus? _statusFilter;
+
+    // Tracking code input
+    private string _trackingCodeInput = string.Empty;
+
+    public ObservableCollection<FactoryOrderViewModel> AllOrders { get; } = new();
     public ObservableCollection<FactoryOrderViewModel> Orders { get; } = new();
+    public ObservableCollection<CustomerForFactoryOrderViewModel> AllCustomers { get; } = new();
+    public ObservableCollection<CustomerForFactoryOrderViewModel> FilteredCustomers { get; } = new();
 
     public FactoryOrderViewModel? SelectedOrder
     {
@@ -31,6 +46,10 @@ public class FactoryOrdersViewModel : ViewModelBase
             if (SetProperty(ref _selectedOrder, value))
             {
                 OnPropertyChanged(nameof(HasSelectedOrder));
+                OnPropertyChanged(nameof(CanConfirm));
+                OnPropertyChanged(nameof(CanMarkSent));
+                OnPropertyChanged(nameof(CanMarkDelivered));
+                OnPropertyChanged(nameof(CanCancel));
             }
         }
     }
@@ -75,6 +94,76 @@ public class FactoryOrdersViewModel : ViewModelBase
         set => SetProperty(ref _metricsTotalOrders, value);
     }
 
+    // Customer picker
+    public CustomerForFactoryOrderViewModel? SelectedCustomer
+    {
+        get => _selectedCustomer;
+        set
+        {
+            if (SetProperty(ref _selectedCustomer, value))
+            {
+                if (value != null && SelectedOrder != null)
+                {
+                    SelectedOrder.CustomerName = value.Name;
+                    SelectedOrder.CustomerContact = !string.IsNullOrEmpty(value.Phone) ? value.Phone : value.Email;
+                    SelectedOrder.DeliveryAddress = value.FullAddress;
+                }
+                OnPropertyChanged(nameof(HasSelectedCustomer));
+            }
+        }
+    }
+    public bool HasSelectedCustomer => _selectedCustomer != null;
+
+    public string CustomerSearchText
+    {
+        get => _customerSearchText;
+        set
+        {
+            if (SetProperty(ref _customerSearchText, value))
+            {
+                FilterCustomers();
+            }
+        }
+    }
+
+    // Search and filter
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (SetProperty(ref _searchText, value))
+            {
+                ApplyFilters();
+            }
+        }
+    }
+
+    public FactoryOrderStatus? StatusFilter
+    {
+        get => _statusFilter;
+        set
+        {
+            if (SetProperty(ref _statusFilter, value))
+            {
+                ApplyFilters();
+            }
+        }
+    }
+
+    // Tracking code
+    public string TrackingCodeInput
+    {
+        get => _trackingCodeInput;
+        set => SetProperty(ref _trackingCodeInput, value);
+    }
+
+    // Smart status buttons
+    public bool CanConfirm => SelectedOrder != null && !SelectedOrder.IsNew && SelectedOrder.Status == FactoryOrderStatus.Pendente;
+    public bool CanMarkSent => SelectedOrder != null && !SelectedOrder.IsNew && SelectedOrder.Status == FactoryOrderStatus.Confirmado;
+    public bool CanMarkDelivered => SelectedOrder != null && !SelectedOrder.IsNew && SelectedOrder.Status == FactoryOrderStatus.EnviadoPelaFabrica;
+    public bool CanCancel => SelectedOrder != null && !SelectedOrder.IsNew && SelectedOrder.Status != FactoryOrderStatus.Entregue && SelectedOrder.Status != FactoryOrderStatus.Cancelado;
+
     // Creating/Editing Flags
     private bool _isEditing;
     public bool IsEditing
@@ -91,16 +180,24 @@ public class FactoryOrdersViewModel : ViewModelBase
     public ICommand CancelEditCommand { get; }
     public ICommand AddItemCommand { get; }
     public ICommand RemoveItemCommand { get; }
-    public ICommand UpdateStatusCommand { get; }
+    public ICommand ConfirmOrderCommand { get; }
+    public ICommand MarkSentCommand { get; }
+    public ICommand MarkDeliveredCommand { get; }
+    public ICommand CancelOrderCommand { get; }
     public ICommand AddTrackingCodeCommand { get; }
+    public ICommand ClearSearchCommand { get; }
+    public ICommand ClearStatusFilterCommand { get; }
+    public ICommand SelectCustomerCommand { get; }
 
     public FactoryOrdersViewModel(
         IFactoryOrderRepository repository,
+        ICustomerRepository customerRepository,
         CreateFactoryOrderUseCase createUseCase,
         UpdateFactoryOrderStatusUseCase updateStatusUseCase,
         AddTrackingCodeUseCase addTrackingUseCase)
     {
         _repository = repository;
+        _customerRepository = customerRepository;
         _createUseCase = createUseCase;
         _updateStatusUseCase = updateStatusUseCase;
         _addTrackingUseCase = addTrackingUseCase;
@@ -112,10 +209,79 @@ public class FactoryOrdersViewModel : ViewModelBase
         CancelEditCommand = new RelayCommand(CancelEdit);
         AddItemCommand = new RelayCommand(AddItem);
         RemoveItemCommand = new RelayCommand<FactoryOrderItemViewModel>(RemoveItem);
-        UpdateStatusCommand = new AsyncRelayCommand<FactoryOrderStatus>(UpdateStatusAsync);
-        AddTrackingCodeCommand = new AsyncRelayCommand<string>(AddTrackingCodeAsync);
+        ConfirmOrderCommand = new AsyncRelayCommand(ConfirmOrderAsync);
+        MarkSentCommand = new AsyncRelayCommand(MarkSentAsync);
+        MarkDeliveredCommand = new AsyncRelayCommand(MarkDeliveredAsync);
+        CancelOrderCommand = new AsyncRelayCommand(CancelOrderAsync);
+        AddTrackingCodeCommand = new AsyncRelayCommand(AddTrackingCodeAsync);
+        ClearSearchCommand = new RelayCommand(() => SearchText = string.Empty);
+        ClearStatusFilterCommand = new RelayCommand(() => StatusFilter = null);
+        SelectCustomerCommand = new RelayCommand<CustomerForFactoryOrderViewModel>(c => SelectedCustomer = c);
 
-        _ = LoadOrdersAsync();
+        _ = LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        await LoadCustomersAsync();
+        await LoadOrdersAsync();
+    }
+
+    private async Task LoadCustomersAsync()
+    {
+        try
+        {
+            var customers = await _customerRepository.GetAllAsync();
+            AllCustomers.Clear();
+            FilteredCustomers.Clear();
+            foreach (var c in customers.Where(c => c.IsActive).OrderBy(c => c.Name))
+            {
+                var vm = new CustomerForFactoryOrderViewModel
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Phone = c.Phone,
+                    Email = c.Email,
+                    Document = c.Document,
+                    FullAddress = BuildFullAddress(c)
+                };
+                AllCustomers.Add(vm);
+                FilteredCustomers.Add(vm);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading customers: {ex.Message}");
+        }
+    }
+
+    private static string BuildFullAddress(Customer c)
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(c.Address)) parts.Add(c.Address);
+        if (!string.IsNullOrWhiteSpace(c.Number)) parts.Add(c.Number);
+        if (!string.IsNullOrWhiteSpace(c.Complement)) parts.Add(c.Complement);
+        if (!string.IsNullOrWhiteSpace(c.District)) parts.Add(c.District);
+        if (!string.IsNullOrWhiteSpace(c.City) && !string.IsNullOrWhiteSpace(c.State))
+            parts.Add($"{c.City}/{c.State}");
+        if (!string.IsNullOrWhiteSpace(c.ZipCode)) parts.Add($"CEP {c.ZipCode}");
+        return string.Join(", ", parts);
+    }
+
+    private void FilterCustomers()
+    {
+        FilteredCustomers.Clear();
+        var search = CustomerSearchText?.ToLowerInvariant() ?? "";
+        foreach (var c in AllCustomers)
+        {
+            if (string.IsNullOrEmpty(search) ||
+                c.Name.ToLowerInvariant().Contains(search) ||
+                c.Phone.ToLowerInvariant().Contains(search) ||
+                c.Email.ToLowerInvariant().Contains(search))
+            {
+                FilteredCustomers.Add(c);
+            }
+        }
     }
 
     private async Task LoadOrdersAsync()
@@ -126,14 +292,15 @@ public class FactoryOrdersViewModel : ViewModelBase
         {
             var dbOrders = await _repository.GetAllAsync();
             
-            Orders.Clear();
+            AllOrders.Clear();
             foreach (var o in dbOrders.OrderByDescending(x => x.CreatedAt))
             {
                 var vm = new FactoryOrderViewModel();
                 vm.LoadFromEntity(o);
-                Orders.Add(vm);
+                AllOrders.Add(vm);
             }
 
+            ApplyFilters();
             CalculateMetrics();
             
             StatusMessage = "";
@@ -144,11 +311,34 @@ public class FactoryOrdersViewModel : ViewModelBase
         }
     }
 
+    private void ApplyFilters()
+    {
+        Orders.Clear();
+        var search = SearchText?.ToLowerInvariant() ?? "";
+
+        foreach (var o in AllOrders)
+        {
+            // Status filter
+            if (StatusFilter.HasValue && o.Status != StatusFilter.Value) continue;
+
+            // Text search
+            if (!string.IsNullOrEmpty(search))
+            {
+                if (!o.CustomerName.ToLowerInvariant().Contains(search) &&
+                    !o.SupplierName.ToLowerInvariant().Contains(search) &&
+                    !(o.TrackingCode?.ToLowerInvariant().Contains(search) ?? false))
+                    continue;
+            }
+
+            Orders.Add(o);
+        }
+    }
+
     private void CalculateMetrics()
     {
-        MetricsTotalOrders = Orders.Count;
-        MetricsTotalRevenue = Orders.Where(o => o.Status != FactoryOrderStatus.Cancelado).Sum(o => o.TotalSalePrice);
-        MetricsTotalCost = Orders.Where(o => o.Status != FactoryOrderStatus.Cancelado).Sum(o => o.TotalCost);
+        MetricsTotalOrders = AllOrders.Count;
+        MetricsTotalRevenue = AllOrders.Where(o => o.Status != FactoryOrderStatus.Cancelado).Sum(o => o.TotalSalePrice);
+        MetricsTotalCost = AllOrders.Where(o => o.Status != FactoryOrderStatus.Cancelado).Sum(o => o.TotalCost);
         
         if (MetricsTotalRevenue > 0)
         {
@@ -162,7 +352,7 @@ public class FactoryOrdersViewModel : ViewModelBase
 
     private void SelectOrder(FactoryOrderViewModel? order)
     {
-        if (IsEditing) return; // Ignore selection while editing
+        if (IsEditing) return;
         SelectedOrder = order;
     }
 
@@ -172,6 +362,8 @@ public class FactoryOrdersViewModel : ViewModelBase
         {
             Channel = OrderSource.Direct
         };
+        SelectedCustomer = null;
+        CustomerSearchText = string.Empty;
         IsEditing = true;
     }
 
@@ -196,6 +388,7 @@ public class FactoryOrdersViewModel : ViewModelBase
     {
         IsEditing = false;
         SelectedOrder = null;
+        SelectedCustomer = null;
     }
 
     private async Task SaveOrderAsync()
@@ -206,7 +399,6 @@ public class FactoryOrdersViewModel : ViewModelBase
         {
             StatusMessage = "Salvando pedido...";
             
-            // Only create is currently implemented via UI
             if (SelectedOrder.IsNew)
             {
                 var command = new CreateFactoryOrderCommand
@@ -233,6 +425,7 @@ public class FactoryOrdersViewModel : ViewModelBase
             StatusMessage = "Pedido salvo com sucesso!";
             IsEditing = false;
             SelectedOrder = null;
+            SelectedCustomer = null;
             await LoadOrdersAsync();
         }
         catch (Exception ex)
@@ -241,15 +434,14 @@ public class FactoryOrdersViewModel : ViewModelBase
         }
     }
 
-    private async Task UpdateStatusAsync(FactoryOrderStatus newStatus)
+    private async Task ConfirmOrderAsync()
     {
         if (SelectedOrder == null || SelectedOrder.IsNew) return;
-        
         try
         {
-            await _updateStatusUseCase.Execute(SelectedOrder.Id, newStatus);
-            await LoadOrdersAsync(); // reload to reflect changes
-            StatusMessage = "Status atualizado!";
+            await _updateStatusUseCase.Execute(SelectedOrder.Id, FactoryOrderStatus.Confirmado);
+            StatusMessage = "✅ Pedido confirmado!";
+            await LoadOrdersAsync();
         }
         catch (Exception ex)
         {
@@ -257,15 +449,71 @@ public class FactoryOrdersViewModel : ViewModelBase
         }
     }
 
-    private async Task AddTrackingCodeAsync(string code)
+    private async Task MarkSentAsync()
     {
         if (SelectedOrder == null || SelectedOrder.IsNew) return;
-        
+        if (string.IsNullOrWhiteSpace(TrackingCodeInput))
+        {
+            StatusMessage = "⚠️ Informe o código de rastreio para marcar como enviado.";
+            return;
+        }
         try
         {
-            await _addTrackingUseCase.Execute(SelectedOrder.Id, code);
-            await LoadOrdersAsync(); // reload to reflect changes
+            await _addTrackingUseCase.Execute(SelectedOrder.Id, TrackingCodeInput.Trim());
+            StatusMessage = "📦 Pedido marcado como enviado pela fábrica!";
+            TrackingCodeInput = string.Empty;
+            await LoadOrdersAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Erro: {ex.Message}";
+        }
+    }
+
+    private async Task MarkDeliveredAsync()
+    {
+        if (SelectedOrder == null || SelectedOrder.IsNew) return;
+        try
+        {
+            await _updateStatusUseCase.Execute(SelectedOrder.Id, FactoryOrderStatus.Entregue);
+            StatusMessage = "✅ Pedido entregue!";
+            await LoadOrdersAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Erro: {ex.Message}";
+        }
+    }
+
+    private async Task CancelOrderAsync()
+    {
+        if (SelectedOrder == null || SelectedOrder.IsNew) return;
+        try
+        {
+            await _updateStatusUseCase.Execute(SelectedOrder.Id, FactoryOrderStatus.Cancelado);
+            StatusMessage = "Pedido cancelado.";
+            await LoadOrdersAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Erro: {ex.Message}";
+        }
+    }
+
+    private async Task AddTrackingCodeAsync()
+    {
+        if (SelectedOrder == null || SelectedOrder.IsNew) return;
+        if (string.IsNullOrWhiteSpace(TrackingCodeInput))
+        {
+            StatusMessage = "Informe o código de rastreio.";
+            return;
+        }
+        try
+        {
+            await _addTrackingUseCase.Execute(SelectedOrder.Id, TrackingCodeInput.Trim());
             StatusMessage = "Rastreio atualizado com sucesso!";
+            TrackingCodeInput = string.Empty;
+            await LoadOrdersAsync();
         }
         catch (Exception ex)
         {
