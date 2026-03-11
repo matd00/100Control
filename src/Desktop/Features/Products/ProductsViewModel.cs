@@ -13,6 +13,7 @@ public class ProductsViewModel : ViewModelBase
 {
     private readonly IProductRepository _productRepository;
     private readonly CreateProductUseCase _createProductUseCase;
+    private readonly AdjustStockUseCase _adjustStockUseCase;
     private readonly ISuperFreteService _superFreteService;
 
     // Product Fields
@@ -21,6 +22,8 @@ public class ProductsViewModel : ViewModelBase
     private string _category = "Geral";
     private decimal _cost;
     private decimal _price;
+    private int _stockAdjustment;
+    private string _adjustmentNotes = string.Empty;
 
     // Shipping Fields
     private decimal _weight = 0.3m;
@@ -84,6 +87,18 @@ public class ProductsViewModel : ViewModelBase
     {
         get => _price;
         set => SetProperty(ref _price, value);
+    }
+
+    public int StockAdjustment
+    {
+        get => _stockAdjustment;
+        set => SetProperty(ref _stockAdjustment, value);
+    }
+
+    public string AdjustmentNotes
+    {
+        get => _adjustmentNotes;
+        set => SetProperty(ref _adjustmentNotes, value);
     }
 
     public decimal Weight
@@ -179,16 +194,19 @@ public class ProductsViewModel : ViewModelBase
     public ICommand CalculateFreightCommand { get; }
     public ICommand UpdateDimensionsCommand { get; }
     public ICommand SelectProductCommand { get; }
+    public ICommand AdjustStockCommand { get; }
 
     #endregion
 
     public ProductsViewModel(
         IProductRepository productRepository, 
         CreateProductUseCase createProductUseCase,
+        AdjustStockUseCase adjustStockUseCase,
         ISuperFreteService superFreteService)
     {
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         _createProductUseCase = createProductUseCase ?? throw new ArgumentNullException(nameof(createProductUseCase));
+        _adjustStockUseCase = adjustStockUseCase ?? throw new ArgumentNullException(nameof(adjustStockUseCase));
         _superFreteService = superFreteService ?? throw new ArgumentNullException(nameof(superFreteService));
 
         CreateProductCommand = new AsyncRelayCommand(CreateProductAsync, () => !IsLoading && !string.IsNullOrWhiteSpace(Name) && Price > 0);
@@ -200,8 +218,35 @@ public class ProductsViewModel : ViewModelBase
         CalculateFreightCommand = new AsyncRelayCommand(CalculateFreightAsync, () => !IsCalculatingFreight && SelectedProduct != null && !string.IsNullOrWhiteSpace(DestinationCep));
         UpdateDimensionsCommand = new AsyncRelayCommand(UpdateProductDimensionsAsync, () => SelectedProduct != null);
         SelectProductCommand = new RelayCommand<ProductItemViewModel>(SelectProduct);
+        AdjustStockCommand = new AsyncRelayCommand(AdjustStockAsync, () => SelectedProduct != null && StockAdjustment != 0);
 
         _ = LoadProductsAsync();
+    }
+
+    private async Task AdjustStockAsync()
+    {
+        if (SelectedProduct == null || StockAdjustment == 0) return;
+
+        try
+        {
+            IsLoading = true;
+            StatusMessage = $"Ajustando estoque de {SelectedProduct.Name}...";
+
+            await _adjustStockUseCase.Execute(SelectedProduct.Id, StockAdjustment, AdjustmentNotes);
+
+            StatusMessage = "✅ Estoque ajustado com sucesso!";
+            StockAdjustment = 0;
+            AdjustmentNotes = string.Empty;
+            await LoadProductsAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"❌ Erro ao ajustar estoque: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     private void SelectProduct(ProductItemViewModel? product)

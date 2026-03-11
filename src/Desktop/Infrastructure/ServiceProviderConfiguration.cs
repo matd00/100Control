@@ -89,7 +89,10 @@ public static class ServiceProviderConfiguration
             // Use Cases
             services.AddTransient<CreateOrderUseCase>();
             services.AddScoped<UpdateOrderUseCase>(); // Added line as per instruction
+            services.AddTransient<GetOrdersUseCase>();
+            services.AddTransient<DeleteOrderUseCase>();
             services.AddTransient<CreateProductUseCase>();
+            services.AddTransient<AdjustStockUseCase>();
             services.AddTransient<RegisterCustomerUseCase>();
             services.AddTransient<RegisterPurchaseUseCase>();
             services.AddTransient<GenerateShipmentUseCase>();

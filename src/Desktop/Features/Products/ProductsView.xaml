@@ -289,6 +289,31 @@
                     </StackPanel>
                 </Border>
 
+                <!-- Ajuste de Estoque -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,16" Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel>
+                        <TextBlock Text="🔄 Ajuste de Estoque" FontSize="16" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,0,0,16"/>
+                        
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="2*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                <TextBlock Text="Qtd (+ ou -)" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
+                                <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding StockAdjustment, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Motivo / Notas" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
+                                <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding AdjustmentNotes, UpdateSourceTrigger=PropertyChanged}" MaxLength="100"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Button Content="Confirmar Ajuste" Command="{Binding AdjustStockCommand}" Style="{StaticResource PrimaryButton}" 
+                                HorizontalAlignment="Stretch" Background="#6366F1"/>
+                    </StackPanel>
+                </Border>
+
                 <!-- Calculadora de Frete (SuperFrete) -->
                 <Border Style="{StaticResource CardStyle}" Visibility="{Binding SelectedProduct, Converter={StaticResource NullToVisibility}}">
                     <StackPanel>

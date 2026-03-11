@@ -209,7 +209,6 @@ namespace Desktop.Features.Orders
 
         public ObservableCollection<OrderItemViewModel> FilteredOrders { get; } = new ObservableCollection<OrderItemViewModel>();
         public ObservableCollection<OrderItemViewModel> AllOrders { get; } = new ObservableCollection<OrderItemViewModel>();
-        public ObservableCollection<OrderItemViewModel> Orders { get; } = new ObservableCollection<OrderItemViewModel>();
         public ObservableCollection<CustomerForOrderViewModel> Customers { get; } = new ObservableCollection<CustomerForOrderViewModel>();
         public ObservableCollection<ProductForOrderViewModel> AvailableProducts { get; } = new ObservableCollection<ProductForOrderViewModel>();
         public ObservableCollection<OrderLineItemViewModel> OrderItems { get; } = new ObservableCollection<OrderLineItemViewModel>();
@@ -298,13 +297,20 @@ namespace Desktop.Features.Orders
 
         public bool HasGeneratedLabel => !string.IsNullOrEmpty(GeneratedTrackingCode);
 
+        private readonly GetOrdersUseCase _getOrdersUseCase;
+        private readonly DeleteOrderUseCase _deleteOrderUseCase;
+        private readonly UpdateOrderStatusUseCase _updateOrderStatusUseCase;
+
         public OrdersViewModel(
             IOrderRepository orderRepository,
             ICustomerRepository customerRepository,
             IProductRepository productRepository,
             IShipmentRepository shipmentRepository,
             ISuperFreteService superFreteService,
-            SuperFreteSettings superFreteSettings)
+            SuperFreteSettings superFreteSettings,
+            GetOrdersUseCase getOrdersUseCase,
+            DeleteOrderUseCase deleteOrderUseCase,
+            UpdateOrderStatusUseCase updateOrderStatusUseCase)
         {
             try
             {
@@ -312,27 +318,19 @@ namespace Desktop.Features.Orders
 
                 System.Diagnostics.Debug.WriteLine("OrdersViewModel: Validando dependências...");
                 _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
-                System.Diagnostics.Debug.WriteLine("  ✓ orderRepository OK");
-
                 _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(customerRepository));
-                System.Diagnostics.Debug.WriteLine("  ✓ customerRepository OK");
-
                 _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
-                System.Diagnostics.Debug.WriteLine("  ✓ productRepository OK");
-
                 _shipmentRepository = shipmentRepository ?? throw new ArgumentNullException(nameof(shipmentRepository));
-                System.Diagnostics.Debug.WriteLine("  ✓ shipmentRepository OK");
-
                 _superFreteService = superFreteService ?? throw new ArgumentNullException(nameof(superFreteService));
-                System.Diagnostics.Debug.WriteLine("  ✓ superFreteService OK");
-
                 _superFreteSettings = superFreteSettings ?? throw new ArgumentNullException(nameof(superFreteSettings));
-                System.Diagnostics.Debug.WriteLine("  ✓ superFreteSettings OK");
+                _getOrdersUseCase = getOrdersUseCase ?? throw new ArgumentNullException(nameof(getOrdersUseCase));
+                _deleteOrderUseCase = deleteOrderUseCase ?? throw new ArgumentNullException(nameof(deleteOrderUseCase));
+                _updateOrderStatusUseCase = updateOrderStatusUseCase ?? throw new ArgumentNullException(nameof(updateOrderStatusUseCase));
+
+                System.Diagnostics.Debug.WriteLine("  ✓ Dependências OK");
 
                 System.Diagnostics.Debug.WriteLine("OrdersViewModel: Configurando OriginPostalCode...");
-                // Carregar CEP de origem das configurações
-                OriginPostalCode = superFreteSettings.DefaultOriginPostalCode;
-                System.Diagnostics.Debug.WriteLine($"  ✓ OriginPostalCode = {OriginPostalCode}");
+                OriginPostalCode = _superFreteSettings.DefaultOriginPostalCode;
 
                 System.Diagnostics.Debug.WriteLine("OrdersViewModel: Inicializando comandos...");
                 NewOrderCommand = new RelayCommand(NewOrder);
@@ -378,12 +376,6 @@ namespace Desktop.Features.Orders
             {
                 System.Diagnostics.Debug.WriteLine($"!!! ERRO CRÍTICO no OrdersViewModel construtor: {ex.GetType().Name}");
                 System.Diagnostics.Debug.WriteLine($"!!! Mensagem: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"!!! StackTrace: {ex.StackTrace}");
-                if (ex.InnerException != null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"!!! InnerException: {ex.InnerException.Message}");
-                    System.Diagnostics.Debug.WriteLine($"!!! InnerException StackTrace: {ex.InnerException.StackTrace}");
-                }
                 throw;
             }
         }
@@ -459,12 +451,7 @@ namespace Desktop.Features.Orders
                 }
 
                 // Cancelar o pedido no banco
-                var order = await _orderRepository.GetByIdAsync(SelectedOrder.Id);
-                if (order != null)
-                {
-                    order.Cancel();
-                    await _orderRepository.UpdateAsync(order);
-                }
+                await _updateOrderStatusUseCase.Execute(SelectedOrder.Id, (int)OrderStatus.Cancelled);
 
                 // Cancelar o shipment no banco
                 var shipment = await _shipmentRepository.GetByOrderIdAsync(SelectedOrder.Id);
@@ -664,20 +651,13 @@ namespace Desktop.Features.Orders
                     {
                         order.AddItem(item.ProductId, item.Quantity, item.UnitPrice);
                     }
-                    order.MarkAsProcessing();
-                    order.MarkAsShipped();
                     await _orderRepository.SaveAsync(order);
+                    await _updateOrderStatusUseCase.Execute(order.Id, (int)OrderStatus.Shipped);
                     orderId = order.Id;
                 }
                 else if (SelectedOrder != null)
                 {
-                    var order = await _orderRepository.GetByIdAsync(SelectedOrder.Id);
-                    if (order != null)
-                    {
-                        order.MarkAsProcessing();
-                        order.MarkAsShipped();
-                        await _orderRepository.UpdateAsync(order);
-                    }
+                    await _updateOrderStatusUseCase.Execute(SelectedOrder.Id, (int)OrderStatus.Shipped);
                     orderId = SelectedOrder.Id;
                 }
                 else
@@ -734,24 +714,19 @@ namespace Desktop.Features.Orders
 
             try
             {
-                var order = await _orderRepository.GetByIdAsync(SelectedOrder.Id);
-                if (order != null)
-                {
-                    order.Cancel();
-                    await _orderRepository.UpdateAsync(order);
-                    StatusMessage = "Pedido cancelado com sucesso.";
-                    OnPropertyChanged(nameof(HasStatusMessage));
-                    await LoadOrdersAsync();
+                await _updateOrderStatusUseCase.Execute(SelectedOrder.Id, (int)OrderStatus.Cancelled);
+                StatusMessage = "Pedido cancelado com sucesso.";
+                OnPropertyChanged(nameof(HasStatusMessage));
+                await LoadOrdersAsync();
 
-                    // Limpar seleção
-                    SelectedOrder = null;
-                    SelectedCustomer = null;
-                    SelectedShipping = null;
-                    OrderItems.Clear();
-                    ShippingQuotes.Clear();
-                    CurrentStep = 1;
-                    OnPropertyChanged(nameof(HasSelectedOrder));
-                }
+                // Limpar seleção
+                SelectedOrder = null;
+                SelectedCustomer = null;
+                SelectedShipping = null;
+                OrderItems.Clear();
+                ShippingQuotes.Clear();
+                CurrentStep = 1;
+                OnPropertyChanged(nameof(HasSelectedOrder));
             }
             catch (Exception ex)
             {
@@ -882,35 +857,24 @@ namespace Desktop.Features.Orders
             try
             {
                 System.Diagnostics.Debug.WriteLine("  >> LoadOrdersAsync: Iniciando...");
-                System.Diagnostics.Debug.WriteLine("  >> LoadOrdersAsync: Chamando GetAllAsync()...");
-                var orders = await _orderRepository.GetAllAsync();
+                var orders = await _getOrdersUseCase.Execute();
                 System.Diagnostics.Debug.WriteLine($"  >> LoadOrdersAsync: Retornados {orders.Count()} pedidos");
 
-                System.Diagnostics.Debug.WriteLine("  >> LoadOrdersAsync: Limpando AllOrders...");
                 AllOrders.Clear();
 
-                System.Diagnostics.Debug.WriteLine("  >> LoadOrdersAsync: Mapeando pedidos...");
                 var orderedOrders = orders.OrderByDescending(o => o.CreatedAt).ToList();
-                for (int i = 0; i < orderedOrders.Count; i++)
+                foreach (var order in orderedOrders)
                 {
-                    var order = orderedOrders[i];
-                    System.Diagnostics.Debug.WriteLine($"  >> LoadOrdersAsync: Mapeando pedido {i + 1}/{orderedOrders.Count} (ID: {order.Id})");
                     var viewModel = await MapToViewModel(order);
                     AllOrders.Add(viewModel);
                 }
 
-                System.Diagnostics.Debug.WriteLine("  >> LoadOrdersAsync: Chamando FilterOrders()...");
                 FilterOrders();
                 System.Diagnostics.Debug.WriteLine("  >> LoadOrdersAsync: Concluído com sucesso");
             }
             catch (Exception ex)
             {
-                var errorMsg = $"❌ Erro ao carregar pedidos: {ex.Message}";
-                System.Diagnostics.Debug.WriteLine($"  !! LoadOrdersAsync ERRO: {ex.GetType().Name}");
-                System.Diagnostics.Debug.WriteLine($"  !! Mensagem: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"  !! StackTrace: {ex.StackTrace}");
-
-                StatusMessage = errorMsg;
+                StatusMessage = $"❌ Erro ao carregar pedidos: {ex.Message}";
                 OnPropertyChanged(nameof(HasStatusMessage));
             }
         }
@@ -920,17 +884,12 @@ namespace Desktop.Features.Orders
             try
             {
                 System.Diagnostics.Debug.WriteLine("  >> LoadCustomersAsync: Iniciando...");
-                System.Diagnostics.Debug.WriteLine("  >> LoadCustomersAsync: Chamando GetAllAsync()...");
                 var customers = await _customerRepository.GetAllAsync();
                 System.Diagnostics.Debug.WriteLine($"  >> LoadCustomersAsync: Retornados {customers.Count()} clientes");
 
-                System.Diagnostics.Debug.WriteLine("  >> LoadCustomersAsync: Limpando Customers...");
                 Customers.Clear();
 
-                System.Diagnostics.Debug.WriteLine("  >> LoadCustomersAsync: Filtrando e adicionando clientes ativos...");
                 var activeCustomers = customers.Where(c => c.IsActive).ToList();
-                System.Diagnostics.Debug.WriteLine($"  >> LoadCustomersAsync: {activeCustomers.Count} clientes ativos");
-
                 foreach (var customer in activeCustomers)
                 {
                     Customers.Add(new CustomerForOrderViewModel
@@ -949,16 +908,10 @@ namespace Desktop.Features.Orders
                         State = customer.State
                     });
                 }
-                System.Diagnostics.Debug.WriteLine("  >> LoadCustomersAsync: Concluído com sucesso");
             }
             catch (Exception ex)
             {
-                var errorMsg = $"❌ Erro ao carregar clientes: {ex.Message}";
-                System.Diagnostics.Debug.WriteLine($"  !! LoadCustomersAsync ERRO: {ex.GetType().Name}");
-                System.Diagnostics.Debug.WriteLine($"  !! Mensagem: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"  !! StackTrace: {ex.StackTrace}");
-
-                StatusMessage = errorMsg;
+                StatusMessage = $"❌ Erro ao carregar clientes: {ex.Message}";
                 OnPropertyChanged(nameof(HasStatusMessage));
             }
         }
@@ -968,17 +921,12 @@ namespace Desktop.Features.Orders
             try
             {
                 System.Diagnostics.Debug.WriteLine("  >> LoadProductsAsync: Iniciando...");
-                System.Diagnostics.Debug.WriteLine("  >> LoadProductsAsync: Chamando GetAllAsync()...");
                 var products = await _productRepository.GetAllAsync();
                 System.Diagnostics.Debug.WriteLine($"  >> LoadProductsAsync: Retornados {products.Count()} produtos");
 
-                System.Diagnostics.Debug.WriteLine("  >> LoadProductsAsync: Limpando AvailableProducts...");
                 AvailableProducts.Clear();
 
-                System.Diagnostics.Debug.WriteLine("  >> LoadProductsAsync: Filtrando e adicionando produtos ativos...");
                 var activeProducts = products.Where(p => p.IsActive).ToList();
-                System.Diagnostics.Debug.WriteLine($"  >> LoadProductsAsync: {activeProducts.Count} produtos ativos");
-
                 foreach (var product in activeProducts)
                 {
                     AvailableProducts.Add(new ProductForOrderViewModel
@@ -996,16 +944,10 @@ namespace Desktop.Features.Orders
                         QuantityToAdd = 1
                     });
                 }
-                System.Diagnostics.Debug.WriteLine("  >> LoadProductsAsync: Concluído com sucesso");
             }
             catch (Exception ex)
             {
-                var errorMsg = $"❌ Erro ao carregar produtos: {ex.Message}";
-                System.Diagnostics.Debug.WriteLine($"  !! LoadProductsAsync ERRO: {ex.GetType().Name}");
-                System.Diagnostics.Debug.WriteLine($"  !! Mensagem: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"  !! StackTrace: {ex.StackTrace}");
-
-                StatusMessage = errorMsg;
+                StatusMessage = $"❌ Erro ao carregar produtos: {ex.Message}";
                 OnPropertyChanged(nameof(HasStatusMessage));
             }
         }
@@ -1023,7 +965,7 @@ namespace Desktop.Features.Orders
 
         private void FilterOrders()
         {
-            Orders.Clear();
+            FilteredOrders.Clear();
             var search = SearchText?.ToLowerInvariant() ?? "";
 
             foreach (var o in AllOrders)
@@ -1035,7 +977,7 @@ namespace Desktop.Features.Orders
                         continue;
                 }
 
-                Orders.Add(o);
+                FilteredOrders.Add(o);
             }
         }
 
@@ -1359,13 +1301,8 @@ namespace Desktop.Features.Orders
                 
                 if (tracking.Status.Contains("Entregue", StringComparison.OrdinalIgnoreCase))
                 {
-                    var order = await _orderRepository.GetByIdAsync(orderVm.Id);
-                    if (order != null && order.Status != OrderStatus.Completed)
-                    {
-                        order.MarkAsCompleted();
-                        await _orderRepository.UpdateAsync(order);
-                        await LoadOrdersAsync();
-                    }
+                    await _updateOrderStatusUseCase.Execute(orderVm.Id, (int)OrderStatus.Completed);
+                    await LoadOrdersAsync();
                 }
             }
             catch (Exception ex)
@@ -1380,7 +1317,7 @@ namespace Desktop.Features.Orders
             if (orderVm == null) return;
 
             var result = System.Windows.MessageBox.Show(
-                string.Format("Deseja realmente excluir o pedido de {0}?\nEsta ação não pode ser desfeita.", orderVm.CustomerName),
+                $"Deseja realmente excluir o pedido de {orderVm.CustomerName}?\nEsta ação retornará os itens ao estoque e excluirá o registro permanentemente.",
                 "Confirmar Exclusão",
                 System.Windows.MessageBoxButton.YesNo,
                 System.Windows.MessageBoxImage.Warning);
@@ -1389,8 +1326,8 @@ namespace Desktop.Features.Orders
             {
                 try
                 {
-                    await _orderRepository.DeleteAsync(orderVm.Id);
-                    StatusMessage = "✅ Pedido removido com sucesso.";
+                    await _deleteOrderUseCase.Execute(orderVm.Id);
+                    StatusMessage = "✅ Pedido removido e estoque atualizado.";
                     OnPropertyChanged(nameof(HasStatusMessage));
                     await LoadOrdersAsync();
                     
@@ -1402,7 +1339,7 @@ namespace Desktop.Features.Orders
                 }
                 catch (Exception ex)
                 {
-                    StatusMessage = string.Format("❌ Erro ao remover: {0}", ex.Message);
+                    StatusMessage = $"❌ Erro ao remover: {ex.Message}";
                     OnPropertyChanged(nameof(HasStatusMessage));
                 }
             }
