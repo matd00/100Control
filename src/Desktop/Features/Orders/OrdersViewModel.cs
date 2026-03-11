@@ -303,6 +303,16 @@ namespace Desktop.Features.Orders
         private readonly GetOrdersUseCase _getOrdersUseCase;
         private readonly DeleteOrderUseCase _deleteOrderUseCase;
         private readonly UpdateOrderStatusUseCase _updateOrderStatusUseCase;
+        private readonly ISmartSearchService _smartSearchService;
+
+        // Search and Recommendations
+        public ObservableCollection<OrderItemViewModel> RecommendedOrders { get; } = new ObservableCollection<OrderItemViewModel>();
+        private bool _showRecommendations;
+        public bool ShowRecommendations
+        {
+            get => _showRecommendations;
+            set => SetProperty(ref _showRecommendations, value);
+        }
 
         public OrdersViewModel(
             IOrderRepository orderRepository,
@@ -313,7 +323,8 @@ namespace Desktop.Features.Orders
             SuperFreteSettings superFreteSettings,
             GetOrdersUseCase getOrdersUseCase,
             DeleteOrderUseCase deleteOrderUseCase,
-            UpdateOrderStatusUseCase updateOrderStatusUseCase)
+            UpdateOrderStatusUseCase updateOrderStatusUseCase,
+            ISmartSearchService smartSearchService)
         {
             try
             {
@@ -329,6 +340,7 @@ namespace Desktop.Features.Orders
                 _getOrdersUseCase = getOrdersUseCase ?? throw new ArgumentNullException(nameof(getOrdersUseCase));
                 _deleteOrderUseCase = deleteOrderUseCase ?? throw new ArgumentNullException(nameof(deleteOrderUseCase));
                 _updateOrderStatusUseCase = updateOrderStatusUseCase ?? throw new ArgumentNullException(nameof(updateOrderStatusUseCase));
+                _smartSearchService = smartSearchService ?? throw new ArgumentNullException(nameof(smartSearchService));
 
                 System.Diagnostics.Debug.WriteLine("  ✓ Dependências OK");
 
@@ -969,18 +981,37 @@ namespace Desktop.Features.Orders
         private void FilterOrders()
         {
             FilteredOrders.Clear();
-            var search = SearchText?.ToLowerInvariant() ?? "";
+            RecommendedOrders.Clear();
 
-            foreach (var o in AllOrders)
+            if (string.IsNullOrWhiteSpace(SearchText))
             {
-                if (!string.IsNullOrEmpty(search))
-                {
-                    if (!o.CustomerName.ToLowerInvariant().Contains(search) &&
-                        !(o.TrackingCode?.ToLowerInvariant().Contains(search) ?? false))
-                        continue;
-                }
+                foreach (var o in AllOrders) FilteredOrders.Add(o);
+                ShowRecommendations = false;
+                return;
+            }
 
+            // Use Smart Search for Orders
+            var filtered = _smartSearchService.Search(
+                AllOrders,
+                SearchText,
+                o => $"{o.CustomerName} {o.TrackingCode} {o.StatusText}",
+                threshold: 0.25);
+
+            foreach (var o in filtered)
+            {
                 FilteredOrders.Add(o);
+            }
+
+            // Recommendations (Top 5 highly relevant)
+            var recommendations = filtered.Take(5).ToList();
+            if (recommendations.Any() && SearchText.Length > 2)
+            {
+                foreach (var o in recommendations) RecommendedOrders.Add(o);
+                ShowRecommendations = true;
+            }
+            else
+            {
+                ShowRecommendations = false;
             }
         }
 

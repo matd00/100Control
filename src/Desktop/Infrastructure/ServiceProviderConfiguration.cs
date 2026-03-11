@@ -34,6 +34,9 @@ using Integrations.MercadoLivre.Services;
 using Integrations.Shopee.Interfaces;
 using Integrations.Shopee.Services;
 
+using Domain.Interfaces.Services;
+using Application.Services;
+
 namespace Desktop.Infrastructure;
 
 public static class ServiceProviderConfiguration
@@ -108,6 +111,7 @@ public static class ServiceProviderConfiguration
 
             System.Diagnostics.Debug.WriteLine("ServiceProviderConfiguration: Registrando Services...");
             // Services
+            services.AddSingleton<ISmartSearchService, SmartSearchService>();
             services.AddScoped<IMarketplaceSyncService, MarketplaceSyncService>();
             services.AddScoped<IAutomationService, AutomationService>();
 

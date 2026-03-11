@@ -137,9 +137,55 @@
                         <TextBlock Text="{Binding Orders.Count, StringFormat=' ({0})'}" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
                     </StackPanel>
 
-                    <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
-                             Style="{StaticResource ModernTextBox}" Margin="16,0" MaxWidth="180" HorizontalAlignment="Right"
-                             ToolTip="Buscar por Cliente ou Rastreio"/>
+                    <StackPanel Grid.Column="1" HorizontalAlignment="Right" Width="180">
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource ModernTextBox}" Margin="16,0,0,0"
+                                 ToolTip="Buscar por Cliente, Status ou Rastreio"/>
+                        
+                        <!-- Recomendações Inteligentes -->
+                        <Popup IsOpen="{Binding ShowRecommendations}" StaysOpen="False" AllowsTransparency="True" Placement="Bottom">
+                            <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Width="200" Margin="16,4,0,0">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1"/>
+                                </Border.Effect>
+                                <StackPanel Padding="8">
+                                    <TextBlock Text="✨ Sugestões" FontSize="10" FontWeight="SemiBold" Foreground="#6366F1" Margin="4,0,0,6"/>
+                                    <ItemsControl ItemsSource="{Binding RecommendedOrders}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Command="{Binding DataContext.SelectOrderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Padding="8,6" Cursor="Hand">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="border" Background="Transparent" CornerRadius="4">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <StackPanel Grid.Column="0">
+                                                                        <TextBlock Text="{Binding CustomerName}" FontWeight="Medium" Foreground="#1E293B" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                                                        <TextBlock Text="{Binding StatusText}" Foreground="#64748B" FontSize="9"/>
+                                                                    </StackPanel>
+                                                                    <TextBlock Grid.Column="1" Text="{Binding CreatedAtFormatted}" Foreground="#94A3B8" FontSize="9" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                                                </Grid>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="border" Property="Background" Value="#F1F5F9"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </Popup>
+                    </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
                         <Button Content="Limpar Filtro" Command="{Binding ClearSearchCommand}" Style="{StaticResource SecondaryButton}" 

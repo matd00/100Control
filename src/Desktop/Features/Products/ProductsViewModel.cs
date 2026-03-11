@@ -15,6 +15,16 @@ public class ProductsViewModel : ViewModelBase
     private readonly CreateProductUseCase _createProductUseCase;
     private readonly AdjustStockUseCase _adjustStockUseCase;
     private readonly ISuperFreteService _superFreteService;
+    private readonly ISmartSearchService _smartSearchService;
+
+    // Search and Recommendations
+    public ObservableCollection<ProductItemViewModel> RecommendedProducts { get; } = new ObservableCollection<ProductItemViewModel>();
+    private bool _showRecommendations;
+    public bool ShowRecommendations
+    {
+        get => _showRecommendations;
+        set => SetProperty(ref _showRecommendations, value);
+    }
 
     // Product Fields
     private string _name = string.Empty;
@@ -202,12 +212,14 @@ public class ProductsViewModel : ViewModelBase
         IProductRepository productRepository, 
         CreateProductUseCase createProductUseCase,
         AdjustStockUseCase adjustStockUseCase,
-        ISuperFreteService superFreteService)
+        ISuperFreteService superFreteService,
+        ISmartSearchService smartSearchService)
     {
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         _createProductUseCase = createProductUseCase ?? throw new ArgumentNullException(nameof(createProductUseCase));
         _adjustStockUseCase = adjustStockUseCase ?? throw new ArgumentNullException(nameof(adjustStockUseCase));
         _superFreteService = superFreteService ?? throw new ArgumentNullException(nameof(superFreteService));
+        _smartSearchService = smartSearchService ?? throw new ArgumentNullException(nameof(smartSearchService));
 
         CreateProductCommand = new AsyncRelayCommand(CreateProductAsync, () => !IsLoading && !string.IsNullOrWhiteSpace(Name) && Price > 0);
         UpdateProductCommand = new AsyncRelayCommand(UpdateProductAsync, () => !IsLoading && IsEditing);
@@ -530,18 +542,37 @@ public class ProductsViewModel : ViewModelBase
     private void FilterProducts()
     {
         Products.Clear();
-        var search = SearchText?.ToLowerInvariant() ?? "";
+        RecommendedProducts.Clear();
 
-        foreach (var p in AllProducts)
+        if (string.IsNullOrWhiteSpace(SearchText))
         {
-            if (!string.IsNullOrEmpty(search))
-            {
-                if (!p.Name.ToLowerInvariant().Contains(search) &&
-                    !p.SKU.ToLowerInvariant().Contains(search))
-                    continue;
-            }
+            foreach (var p in AllProducts) Products.Add(p);
+            ShowRecommendations = false;
+            return;
+        }
 
+        // Use Smart Search for Products
+        var filtered = _smartSearchService.Search(
+            AllProducts, 
+            SearchText, 
+            p => $"{p.Name} {p.SKU} {p.Category}", 
+            threshold: 0.25);
+
+        foreach (var p in filtered)
+        {
             Products.Add(p);
+        }
+
+        // Recommendations (Top 5 highly relevant)
+        var recommendations = filtered.Take(5).ToList();
+        if (recommendations.Any() && SearchText.Length > 2)
+        {
+            foreach (var p in recommendations) RecommendedProducts.Add(p);
+            ShowRecommendations = true;
+        }
+        else
+        {
+            ShowRecommendations = false;
         }
     }
 }
