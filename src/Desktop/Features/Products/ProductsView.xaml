@@ -101,11 +101,11 @@
                         
                         <!-- Recomendações Inteligentes -->
                         <Popup IsOpen="{Binding ShowRecommendations}" StaysOpen="False" AllowsTransparency="True" Placement="Bottom">
-                            <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Width="334" Margin="16,4,0,0">
+                            <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Width="334" Margin="16,4,0,0" Padding="8">
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1"/>
                                 </Border.Effect>
-                                <StackPanel Padding="8">
+                                <StackPanel>
                                     <TextBlock Text="✨ Sugestões Inteligentes" FontSize="11" FontWeight="SemiBold" Foreground="#6366F1" Margin="4,0,0,6"/>
                                     <ItemsControl ItemsSource="{Binding RecommendedProducts}">
                                         <ItemsControl.ItemTemplate>
