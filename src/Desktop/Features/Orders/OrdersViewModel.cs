@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Input;
 using Desktop.Infrastructure.MVVM;
 using Domain.Entities;
@@ -467,7 +468,7 @@ namespace Desktop.Features.Orders
                 await LoadOrdersAsync();
 
                 // Atualizar o pedido selecionado
-                var updated = Orders.FirstOrDefault(o => o.Id == SelectedOrder.Id);
+                var updated = AllOrders.FirstOrDefault(o => o.Id == SelectedOrder.Id);
                 if (updated != null)
                 {
                     SelectedOrder = updated;
@@ -536,7 +537,7 @@ namespace Desktop.Features.Orders
             // Re-selecionar o pedido atual se existir
             if (SelectedOrder != null && !SelectedOrder.IsNew)
             {
-                var updated = Orders.FirstOrDefault(o => o.Id == SelectedOrder.Id);
+                var updated = AllOrders.FirstOrDefault(o => o.Id == SelectedOrder.Id);
                 if (updated != null)
                 {
                     SelectedOrder = updated;
