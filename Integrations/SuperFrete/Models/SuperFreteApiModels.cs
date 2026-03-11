@@ -339,6 +339,12 @@ public class SuperFretePrint
     public string? Url { get; set; }
 }
 
+public class SuperFreteCheckoutResponse
+{
+    [JsonPropertyName("orders")]
+    public List<SuperFreteShipmentResponse>? Orders { get; set; }
+}
+
 public class SuperFreteTrackingResponse
 {
     [JsonPropertyName("id")]

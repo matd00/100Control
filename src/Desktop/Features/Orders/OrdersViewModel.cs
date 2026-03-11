@@ -207,6 +207,7 @@ namespace Desktop.Features.Orders
         public ShippingQuoteViewModel? CheapestOption => ShippingQuotes.OrderBy(q => q.Price).FirstOrDefault();
         public ObservableCollection<ShippingQuoteViewModel> OtherShippingOptions { get; } = new ObservableCollection<ShippingQuoteViewModel>();
 
+        public ObservableCollection<OrderItemViewModel> FilteredOrders { get; } = new ObservableCollection<OrderItemViewModel>();
         public ObservableCollection<OrderItemViewModel> AllOrders { get; } = new ObservableCollection<OrderItemViewModel>();
         public ObservableCollection<OrderItemViewModel> Orders { get; } = new ObservableCollection<OrderItemViewModel>();
         public ObservableCollection<CustomerForOrderViewModel> Customers { get; } = new ObservableCollection<CustomerForOrderViewModel>();
@@ -215,6 +216,8 @@ namespace Desktop.Features.Orders
         public ObservableCollection<ShippingQuoteViewModel> ShippingQuotes { get; } = new ObservableCollection<ShippingQuoteViewModel>();
 
 
+        public ICommand SyncWithSuperFreteCommand { get; }
+        public ICommand DeleteOrderCommand { get; }
         public ICommand NewOrderCommand { get; }
         public ICommand SelectOrderCommand { get; }
         public ICommand SelectCustomerCommand { get; }
@@ -240,6 +243,7 @@ namespace Desktop.Features.Orders
         public ICommand CloseSuccessCommand { get; }
         public ICommand CopyTrackingCodeCommand { get; }
         public ICommand OpenLabelUrlCommand { get; }
+        public ICommand OpenGeneratedLabelCommand { get; }
         public ICommand CancelShipmentCommand { get; }
         public ICommand PrintLabelCommand { get; }
         public ICommand CheckoutLabelCommand { get; }
@@ -302,48 +306,86 @@ namespace Desktop.Features.Orders
             ISuperFreteService superFreteService,
             SuperFreteSettings superFreteSettings)
         {
-            _orderRepository = orderRepository;
-            _customerRepository = customerRepository;
-            _productRepository = productRepository;
-            _shipmentRepository = shipmentRepository;
-            _superFreteService = superFreteService;
-            _superFreteSettings = superFreteSettings;
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("=== OrdersViewModel: Iniciando construtor ===");
 
-            // Carregar CEP de origem das configurações
-            OriginPostalCode = superFreteSettings.DefaultOriginPostalCode;
+                System.Diagnostics.Debug.WriteLine("OrdersViewModel: Validando dependências...");
+                _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
+                System.Diagnostics.Debug.WriteLine("  ✓ orderRepository OK");
 
-            NewOrderCommand = new RelayCommand(NewOrder);
-            SelectOrderCommand = new RelayCommand<OrderItemViewModel>(SelectOrder);
-            SelectCustomerCommand = new RelayCommand<CustomerForOrderViewModel>(SelectCustomer);
-            AddProductToOrderCommand = new RelayCommand<ProductForOrderViewModel>(AddProductToOrder);
-            RemoveItemCommand = new RelayCommand<OrderLineItemViewModel>(RemoveItem);
-            NextStepCommand = new RelayCommand(NextStep);
-            PreviousStepCommand = new RelayCommand(PreviousStep);
-            GoToStepCommand = new RelayCommand<string>(GoToStep);
-            CalculateShippingCommand = new AsyncRelayCommand(CalculateShippingAsync);
-            SelectShippingCommand = new RelayCommand<ShippingQuoteViewModel>(SelectShipping);
-            SelectCheapestCommand = new RelayCommand(SelectCheapest);
-            RecalculateDimensionsCommand = new RelayCommand(RecalculateDimensions);
-            ToggleDimensionsModeCommand = new RelayCommand(ToggleDimensionsMode);
-            EditDestinationCepCommand = new RelayCommand(EditDestinationCep);
-            SaveDestinationCepCommand = new AsyncRelayCommand(SaveDestinationCepAsync);
-            CancelEditDestinationCepCommand = new RelayCommand(CancelEditDestinationCep);
-            FinalizeOrderCommand = new RelayCommand(ShowConfirmation);
-            ShowConfirmationCommand = new RelayCommand(ShowConfirmation);
-            ConfirmFinalizeCommand = new AsyncRelayCommand(ConfirmFinalizeAsync);
-            CancelFinalizeCommand = new RelayCommand(CancelFinalize);
-            CancelOrderCommand = new AsyncRelayCommand(CancelOrderAsync);
-            EditOrderCommand = new RelayCommand(EditOrder);
-            CloseSuccessCommand = new RelayCommand(CloseSuccessAndReset);
-            CopyTrackingCodeCommand = new RelayCommand(CopyTrackingCode);
-            OpenLabelUrlCommand = new AsyncRelayCommand(OpenLabelUrlAsync);
-            CancelShipmentCommand = new AsyncRelayCommand(CancelShipmentAsync, () => CanCancelShipment);
-            PrintLabelCommand = new AsyncRelayCommand(OpenLabelUrlAsync, () => CanPrintLabel);
-            CheckoutLabelCommand = new AsyncRelayCommand(CheckoutLabelAsync, () => NeedsCheckout);
-            ClearSearchCommand = new RelayCommand(() => SearchText = string.Empty);
-            RefreshOrdersCommand = new AsyncRelayCommand(RefreshOrdersAsync);
+                _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(customerRepository));
+                System.Diagnostics.Debug.WriteLine("  ✓ customerRepository OK");
 
-            _ = LoadDataAsync();
+                _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
+                System.Diagnostics.Debug.WriteLine("  ✓ productRepository OK");
+
+                _shipmentRepository = shipmentRepository ?? throw new ArgumentNullException(nameof(shipmentRepository));
+                System.Diagnostics.Debug.WriteLine("  ✓ shipmentRepository OK");
+
+                _superFreteService = superFreteService ?? throw new ArgumentNullException(nameof(superFreteService));
+                System.Diagnostics.Debug.WriteLine("  ✓ superFreteService OK");
+
+                _superFreteSettings = superFreteSettings ?? throw new ArgumentNullException(nameof(superFreteSettings));
+                System.Diagnostics.Debug.WriteLine("  ✓ superFreteSettings OK");
+
+                System.Diagnostics.Debug.WriteLine("OrdersViewModel: Configurando OriginPostalCode...");
+                // Carregar CEP de origem das configurações
+                OriginPostalCode = superFreteSettings.DefaultOriginPostalCode;
+                System.Diagnostics.Debug.WriteLine($"  ✓ OriginPostalCode = {OriginPostalCode}");
+
+                System.Diagnostics.Debug.WriteLine("OrdersViewModel: Inicializando comandos...");
+                NewOrderCommand = new RelayCommand(NewOrder);
+                SelectOrderCommand = new RelayCommand<OrderItemViewModel>(SelectOrder);
+                SelectCustomerCommand = new RelayCommand<CustomerForOrderViewModel>(SelectCustomer);
+                AddProductToOrderCommand = new RelayCommand<ProductForOrderViewModel>(AddProductToOrder);
+                RemoveItemCommand = new RelayCommand<OrderLineItemViewModel>(RemoveItem);
+                NextStepCommand = new RelayCommand(NextStep);
+                PreviousStepCommand = new RelayCommand(PreviousStep);
+                GoToStepCommand = new RelayCommand<string>(GoToStep);
+                CalculateShippingCommand = new AsyncRelayCommand(CalculateShippingAsync);
+                SelectShippingCommand = new RelayCommand<ShippingQuoteViewModel>(SelectShipping);
+                SelectCheapestCommand = new RelayCommand(SelectCheapest);
+                RecalculateDimensionsCommand = new RelayCommand(RecalculateDimensions);
+                ToggleDimensionsModeCommand = new RelayCommand(ToggleDimensionsMode);
+                EditDestinationCepCommand = new RelayCommand(EditDestinationCep);
+                SaveDestinationCepCommand = new AsyncRelayCommand(SaveDestinationCepAsync);
+                CancelEditDestinationCepCommand = new RelayCommand(CancelEditDestinationCep);
+                FinalizeOrderCommand = new RelayCommand(ShowConfirmation);
+                ShowConfirmationCommand = new RelayCommand(ShowConfirmation);
+                ConfirmFinalizeCommand = new AsyncRelayCommand(ConfirmFinalizeAsync);
+                CancelFinalizeCommand = new RelayCommand(CancelFinalize);
+                CancelOrderCommand = new AsyncRelayCommand(CancelOrderAsync);
+                EditOrderCommand = new RelayCommand(EditOrder);
+                CloseSuccessCommand = new RelayCommand(CloseSuccessAndReset);
+                CopyTrackingCodeCommand = new RelayCommand(CopyTrackingCode);
+                OpenLabelUrlCommand = new AsyncRelayCommand(OpenLabelUrlAsync);
+                OpenGeneratedLabelCommand = new AsyncRelayCommand(OpenLabelUrlAsync);
+                CancelShipmentCommand = new AsyncRelayCommand(CancelShipmentAsync, () => CanCancelShipment);
+                PrintLabelCommand = new AsyncRelayCommand(OpenLabelUrlAsync, () => CanPrintLabel);
+                CheckoutLabelCommand = new AsyncRelayCommand(CheckoutLabelAsync, () => NeedsCheckout);
+                ClearSearchCommand = new RelayCommand(() => SearchText = string.Empty);
+                RefreshOrdersCommand = new AsyncRelayCommand(RefreshOrdersAsync);
+                SyncWithSuperFreteCommand = new AsyncRelayCommand<OrderItemViewModel>(SyncWithSuperFreteAsync, (o) => o != null && !string.IsNullOrEmpty(o.TrackingCode));
+                DeleteOrderCommand = new AsyncRelayCommand<OrderItemViewModel>(DeleteOrderAsync);
+                System.Diagnostics.Debug.WriteLine("  ✓ Comandos inicializados");
+
+                System.Diagnostics.Debug.WriteLine("OrdersViewModel: Iniciando LoadDataAsync...");
+                _ = LoadDataAsync();
+                System.Diagnostics.Debug.WriteLine("=== OrdersViewModel: Construtor finalizado ===");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"!!! ERRO CRÍTICO no OrdersViewModel construtor: {ex.GetType().Name}");
+                System.Diagnostics.Debug.WriteLine($"!!! Mensagem: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"!!! StackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"!!! InnerException: {ex.InnerException.Message}");
+                    System.Diagnostics.Debug.WriteLine($"!!! InnerException StackTrace: {ex.InnerException.StackTrace}");
+                }
+                throw;
+            }
         }
 
         private async Task OpenLabelUrlAsync()
@@ -649,14 +691,26 @@ namespace Desktop.Features.Orders
                 {
                     shipment.AddItem(item.ProductId, item.Quantity);
                 }
+                
+                // Salvar o que temos no momento (ID e Tracking temporário)
                 shipment.GenerateLabel(
                     GeneratedTrackingCode, 
                     SelectedShipping.Price, 
                     superFreteOrderId);
-                shipment.MarkAsShipped();
-                await _shipmentRepository.SaveAsync(shipment);
+                
+                if (!string.IsNullOrEmpty(GeneratedLabelUrl))
+                {
+                    // Se a URL veio no checkout, já salva
+                    // Poderíamos adicionar uma propriedade LabelUrl na entidade Shipment futuramente
+                }
 
-                StatusMessage = "✅ Etiqueta emitida com sucesso!";
+                shipment.MarkAsShipped();
+                
+                System.Diagnostics.Debug.WriteLine($"Salvando Shipment para Pedido {orderId}...");
+                await _shipmentRepository.SaveAsync(shipment);
+                System.Diagnostics.Debug.WriteLine("✓ Shipment salvo com sucesso!");
+
+                StatusMessage = "✅ Pedido e Envio registrados com sucesso!";
                 OnPropertyChanged(nameof(HasStatusMessage));
 
                 await LoadOrdersAsync();
@@ -666,6 +720,7 @@ namespace Desktop.Features.Orders
                 ShowConfirmationDialog = false;
                 StatusMessage = $"Erro ao emitir etiqueta: {ex.Message}";
                 OnPropertyChanged(nameof(HasStatusMessage));
+                System.Diagnostics.Debug.WriteLine($"!!! ERRO em ConfirmFinalizeAsync: {ex.Message}");
             }
             finally
             {
@@ -788,66 +843,170 @@ namespace Desktop.Features.Orders
 
         private async Task LoadDataAsync()
         {
-            await LoadOrdersAsync();
-            await LoadCustomersAsync();
-            await LoadProductsAsync();
+            try
+            {
+                System.Diagnostics.Debug.WriteLine(">>> LoadDataAsync: INICIANDO...");
+
+                System.Diagnostics.Debug.WriteLine(">>> LoadDataAsync: Chamando LoadOrdersAsync...");
+                await LoadOrdersAsync();
+                System.Diagnostics.Debug.WriteLine(">>> LoadDataAsync: LoadOrdersAsync concluído");
+
+                System.Diagnostics.Debug.WriteLine(">>> LoadDataAsync: Chamando LoadCustomersAsync...");
+                await LoadCustomersAsync();
+                System.Diagnostics.Debug.WriteLine(">>> LoadDataAsync: LoadCustomersAsync concluído");
+
+                System.Diagnostics.Debug.WriteLine(">>> LoadDataAsync: Chamando LoadProductsAsync...");
+                await LoadProductsAsync();
+                System.Diagnostics.Debug.WriteLine(">>> LoadDataAsync: LoadProductsAsync concluído");
+
+                System.Diagnostics.Debug.WriteLine(">>> LoadDataAsync: CONCLUÍDO COM SUCESSO");
+            }
+            catch (Exception ex)
+            {
+                var errorMsg = $"❌ Erro ao carregar dados: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"!!! LoadDataAsync ERRO: {ex.GetType().Name}");
+                System.Diagnostics.Debug.WriteLine($"!!! Mensagem: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"!!! StackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"!!! InnerException: {ex.InnerException.Message}");
+                }
+
+                StatusMessage = errorMsg;
+                OnPropertyChanged(nameof(HasStatusMessage));
+            }
         }
 
         private async Task LoadOrdersAsync()
         {
-            var orders = await _orderRepository.GetAllAsync();
-            AllOrders.Clear();
-            foreach (var order in orders.OrderByDescending(o => o.CreatedAt))
+            try
             {
-                AllOrders.Add(await MapToViewModel(order));
+                System.Diagnostics.Debug.WriteLine("  >> LoadOrdersAsync: Iniciando...");
+                System.Diagnostics.Debug.WriteLine("  >> LoadOrdersAsync: Chamando GetAllAsync()...");
+                var orders = await _orderRepository.GetAllAsync();
+                System.Diagnostics.Debug.WriteLine($"  >> LoadOrdersAsync: Retornados {orders.Count()} pedidos");
+
+                System.Diagnostics.Debug.WriteLine("  >> LoadOrdersAsync: Limpando AllOrders...");
+                AllOrders.Clear();
+
+                System.Diagnostics.Debug.WriteLine("  >> LoadOrdersAsync: Mapeando pedidos...");
+                var orderedOrders = orders.OrderByDescending(o => o.CreatedAt).ToList();
+                for (int i = 0; i < orderedOrders.Count; i++)
+                {
+                    var order = orderedOrders[i];
+                    System.Diagnostics.Debug.WriteLine($"  >> LoadOrdersAsync: Mapeando pedido {i + 1}/{orderedOrders.Count} (ID: {order.Id})");
+                    var viewModel = await MapToViewModel(order);
+                    AllOrders.Add(viewModel);
+                }
+
+                System.Diagnostics.Debug.WriteLine("  >> LoadOrdersAsync: Chamando FilterOrders()...");
+                FilterOrders();
+                System.Diagnostics.Debug.WriteLine("  >> LoadOrdersAsync: Concluído com sucesso");
             }
-            FilterOrders();
+            catch (Exception ex)
+            {
+                var errorMsg = $"❌ Erro ao carregar pedidos: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"  !! LoadOrdersAsync ERRO: {ex.GetType().Name}");
+                System.Diagnostics.Debug.WriteLine($"  !! Mensagem: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"  !! StackTrace: {ex.StackTrace}");
+
+                StatusMessage = errorMsg;
+                OnPropertyChanged(nameof(HasStatusMessage));
+            }
         }
 
         private async Task LoadCustomersAsync()
         {
-            var customers = await _customerRepository.GetAllAsync();
-            Customers.Clear();
-            foreach (var customer in customers.Where(c => c.IsActive))
+            try
             {
-                Customers.Add(new CustomerForOrderViewModel
+                System.Diagnostics.Debug.WriteLine("  >> LoadCustomersAsync: Iniciando...");
+                System.Diagnostics.Debug.WriteLine("  >> LoadCustomersAsync: Chamando GetAllAsync()...");
+                var customers = await _customerRepository.GetAllAsync();
+                System.Diagnostics.Debug.WriteLine($"  >> LoadCustomersAsync: Retornados {customers.Count()} clientes");
+
+                System.Diagnostics.Debug.WriteLine("  >> LoadCustomersAsync: Limpando Customers...");
+                Customers.Clear();
+
+                System.Diagnostics.Debug.WriteLine("  >> LoadCustomersAsync: Filtrando e adicionando clientes ativos...");
+                var activeCustomers = customers.Where(c => c.IsActive).ToList();
+                System.Diagnostics.Debug.WriteLine($"  >> LoadCustomersAsync: {activeCustomers.Count} clientes ativos");
+
+                foreach (var customer in activeCustomers)
                 {
-                    Id = customer.Id,
-                    Name = customer.Name,
-                    Document = customer.Document,
-                    Email = customer.Email,
-                    Phone = customer.Phone,
-                    ZipCode = customer.ZipCode,
-                    Address = customer.Address,
-                    Number = customer.Number,
-                    Complement = customer.Complement,
-                    District = customer.District,
-                    City = customer.City,
-                    State = customer.State
-                });
+                    Customers.Add(new CustomerForOrderViewModel
+                    {
+                        Id = customer.Id,
+                        Name = customer.Name,
+                        Document = customer.Document,
+                        Email = customer.Email,
+                        Phone = customer.Phone,
+                        ZipCode = customer.ZipCode,
+                        Address = customer.Address,
+                        Number = customer.Number,
+                        Complement = customer.Complement,
+                        District = customer.District,
+                        City = customer.City,
+                        State = customer.State
+                    });
+                }
+                System.Diagnostics.Debug.WriteLine("  >> LoadCustomersAsync: Concluído com sucesso");
+            }
+            catch (Exception ex)
+            {
+                var errorMsg = $"❌ Erro ao carregar clientes: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"  !! LoadCustomersAsync ERRO: {ex.GetType().Name}");
+                System.Diagnostics.Debug.WriteLine($"  !! Mensagem: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"  !! StackTrace: {ex.StackTrace}");
+
+                StatusMessage = errorMsg;
+                OnPropertyChanged(nameof(HasStatusMessage));
             }
         }
 
         private async Task LoadProductsAsync()
         {
-            var products = await _productRepository.GetAllAsync();
-            AvailableProducts.Clear();
-            foreach (var product in products.Where(p => p.IsActive))
+            try
             {
-                AvailableProducts.Add(new ProductForOrderViewModel
+                System.Diagnostics.Debug.WriteLine("  >> LoadProductsAsync: Iniciando...");
+                System.Diagnostics.Debug.WriteLine("  >> LoadProductsAsync: Chamando GetAllAsync()...");
+                var products = await _productRepository.GetAllAsync();
+                System.Diagnostics.Debug.WriteLine($"  >> LoadProductsAsync: Retornados {products.Count()} produtos");
+
+                System.Diagnostics.Debug.WriteLine("  >> LoadProductsAsync: Limpando AvailableProducts...");
+                AvailableProducts.Clear();
+
+                System.Diagnostics.Debug.WriteLine("  >> LoadProductsAsync: Filtrando e adicionando produtos ativos...");
+                var activeProducts = products.Where(p => p.IsActive).ToList();
+                System.Diagnostics.Debug.WriteLine($"  >> LoadProductsAsync: {activeProducts.Count} produtos ativos");
+
+                foreach (var product in activeProducts)
                 {
-                    Id = product.Id,
-                    Name = product.Name,
-                    SKU = product.SKU,
-                    Price = product.Price,
-                    PriceFormatted = string.Format("R$ {0:N2}", product.Price),
-                    Stock = product.Stock,
-                    Weight = product.Weight,
-                    Width = product.Width,
-                    Height = product.Height,
-                    Length = product.Length,
-                    QuantityToAdd = 1
-                });
+                    AvailableProducts.Add(new ProductForOrderViewModel
+                    {
+                        Id = product.Id,
+                        Name = product.Name,
+                        SKU = product.SKU,
+                        Price = product.Price,
+                        PriceFormatted = string.Format("R$ {0:N2}", product.Price),
+                        Stock = product.Stock,
+                        Weight = product.Weight,
+                        Width = product.Width,
+                        Height = product.Height,
+                        Length = product.Length,
+                        QuantityToAdd = 1
+                    });
+                }
+                System.Diagnostics.Debug.WriteLine("  >> LoadProductsAsync: Concluído com sucesso");
+            }
+            catch (Exception ex)
+            {
+                var errorMsg = $"❌ Erro ao carregar produtos: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"  !! LoadProductsAsync ERRO: {ex.GetType().Name}");
+                System.Diagnostics.Debug.WriteLine($"  !! Mensagem: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"  !! StackTrace: {ex.StackTrace}");
+
+                StatusMessage = errorMsg;
+                OnPropertyChanged(nameof(HasStatusMessage));
             }
         }
 
@@ -913,8 +1072,6 @@ namespace Desktop.Features.Orders
             if (order != null)
             {
                 SelectedOrder = order;
-                // Carregar detalhes do pedido
-                LoadOrderDetails(order);
                 // Se o pedido já foi processado, não vai para o wizard
                 if (order.IsNew || order.Status == OrderStatus.Pending)
                 {
@@ -1183,6 +1340,71 @@ namespace Desktop.Features.Orders
                 case OrderStatus.Completed: return "CONCLUIDO";
                 case OrderStatus.Cancelled: return "CANCELADO";
                 default: return status.ToString();
+            }
+        }
+
+        private async Task SyncWithSuperFreteAsync(OrderItemViewModel? orderVm)
+        {
+            if (orderVm == null || string.IsNullOrEmpty(orderVm.TrackingCode)) return;
+
+            try
+            {
+                StatusMessage = string.Format("Sincronizando pedido {0}...", orderVm.TrackingCode);
+                OnPropertyChanged(nameof(HasStatusMessage));
+
+                var tracking = await _superFreteService.TrackShipmentAsync(orderVm.TrackingCode);
+                
+                StatusMessage = string.Format("✅ Sincronizado! Status SuperFrete: {0}", tracking.Status);
+                OnPropertyChanged(nameof(HasStatusMessage));
+                
+                if (tracking.Status.Contains("Entregue", StringComparison.OrdinalIgnoreCase))
+                {
+                    var order = await _orderRepository.GetByIdAsync(orderVm.Id);
+                    if (order != null && order.Status != OrderStatus.Completed)
+                    {
+                        order.MarkAsCompleted();
+                        await _orderRepository.UpdateAsync(order);
+                        await LoadOrdersAsync();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = string.Format("❌ Erro na sincronização: {0}", ex.Message);
+                OnPropertyChanged(nameof(HasStatusMessage));
+            }
+        }
+
+        private async Task DeleteOrderAsync(OrderItemViewModel? orderVm)
+        {
+            if (orderVm == null) return;
+
+            var result = System.Windows.MessageBox.Show(
+                string.Format("Deseja realmente excluir o pedido de {0}?\nEsta ação não pode ser desfeita.", orderVm.CustomerName),
+                "Confirmar Exclusão",
+                System.Windows.MessageBoxButton.YesNo,
+                System.Windows.MessageBoxImage.Warning);
+
+            if (result == System.Windows.MessageBoxResult.Yes)
+            {
+                try
+                {
+                    await _orderRepository.DeleteAsync(orderVm.Id);
+                    StatusMessage = "✅ Pedido removido com sucesso.";
+                    OnPropertyChanged(nameof(HasStatusMessage));
+                    await LoadOrdersAsync();
+                    
+                    if (SelectedOrder?.Id == orderVm.Id)
+                    {
+                        SelectedOrder = null;
+                        NotifyOrderStateChanged();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = string.Format("❌ Erro ao remover: {0}", ex.Message);
+                    OnPropertyChanged(nameof(HasStatusMessage));
+                }
             }
         }
     }

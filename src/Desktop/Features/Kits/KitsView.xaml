@@ -109,7 +109,7 @@
                                                 </Border>
                                             </StackPanel>
                                         </StackPanel>
-                                        <TextBlock Grid.Column="1" Text="{Binding PriceFormatted}" FontSize="20" FontWeight="Bold" Foreground="#1E293B" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding PriceFormatted, Mode=OneWay}" FontSize="20" FontWeight="Bold" Foreground="#1E293B" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
                                 <DataTemplate.Triggers>

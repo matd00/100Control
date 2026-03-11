@@ -62,6 +62,18 @@ public class Order
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void UpdateCustomer(Guid customerId)
+    {
+        if (Status != OrderStatus.Pending)
+            throw new InvalidOperationException("Cannot update customer of non-pending order");
+
+        if (customerId == Guid.Empty)
+            throw new ArgumentException("Customer ID cannot be empty", nameof(customerId));
+
+        CustomerId = customerId;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     private void RecalculateTotal()
     {
         TotalAmount = Items.Sum(i => i.Subtotal);

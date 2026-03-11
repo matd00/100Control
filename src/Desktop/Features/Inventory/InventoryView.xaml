@@ -108,7 +108,7 @@
                       HorizontalGridLinesBrush="#F1F5F9"
                       IsReadOnly="True">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Data" Binding="{Binding CreatedAtFormatted}" Width="140"/>
+                    <DataGridTextColumn Header="Data" Binding="{Binding CreatedAtFormatted, Mode=OneWay}" Width="140"/>
                     <DataGridTextColumn Header="Produto" Binding="{Binding ProductName}" Width="*"/>
                     <DataGridTemplateColumn Header="Tipo" Width="120">
                         <DataGridTemplateColumn.CellTemplate>

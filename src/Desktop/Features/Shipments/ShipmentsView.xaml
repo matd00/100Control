@@ -36,6 +36,10 @@
             <Setter Property="Background" Value="#3B82F6"/>
         </Style>
 
+        <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#10B981"/>
+        </Style>
+
         <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
             <Setter Property="Background" Value="#EF4444"/>
         </Style>
@@ -119,9 +123,9 @@
                                                 </Border>
                                             </StackPanel>
                                             <TextBlock Text="{Binding TrackingNumber, StringFormat='Rastreio: {0}'}" FontSize="12" Foreground="#64748B" Margin="0,6,0,0"/>
-                                            <TextBlock Text="{Binding DateFormatted}" FontSize="11" Foreground="#94A3B8"/>
+                                            <TextBlock Text="{Binding DateFormatted, Mode=OneWay}" FontSize="11" Foreground="#94A3B8"/>
                                         </StackPanel>
-                                        <TextBlock Grid.Column="1" Text="{Binding CostFormatted}" FontSize="18" FontWeight="Bold" Foreground="#1E293B" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding CostFormatted, Mode=OneWay}" FontSize="18" FontWeight="Bold" Foreground="#1E293B" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -148,7 +152,7 @@
                 <Border Background="#F0F9FF" CornerRadius="8" Padding="12" Visibility="{Binding SelectedShipment, Converter={StaticResource NullToVisibility}}">
                     <StackPanel>
                         <TextBlock Text="Envio Selecionado" FontSize="12" Foreground="#64748B" FontWeight="SemiBold"/>
-                        <TextBlock Text="{Binding SelectedShipment.CostFormatted}" FontSize="18" FontWeight="Bold" Foreground="#1E293B" Margin="0,4,0,12"/>
+                        <TextBlock Text="{Binding SelectedShipment.CostFormatted, Mode=OneWay}" FontSize="18" FontWeight="Bold" Foreground="#1E293B" Margin="0,4,0,12"/>
 
                         <TextBlock Text="Código de Rastreio" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
                         <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding TrackingNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
@@ -157,6 +161,7 @@
                         <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding ShippingCost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
 
                         <Button Content="🏷️ Gerar Etiqueta" Command="{Binding GenerateLabelCommand}" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Stretch" Margin="0,0,0,8"/>
+                        <Button Content="🖨️ Imprimir Etiqueta" Command="{Binding PrintLabelCommand}" Style="{StaticResource SuccessButton}" HorizontalAlignment="Stretch" Margin="0,0,0,8"/>
 
                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                             <Button Content="📤 Enviado" Command="{Binding MarkAsShippedCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>

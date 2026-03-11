@@ -8,6 +8,8 @@
     <UserControl.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
         <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
+        <converters:NullToVisibilityConverter x:Key="NullToVisibility"/>
+        <converters:BoolToLoadingTextConverter x:Key="BoolToLoadingText"/>
         <converters:InverseBoolConverter x:Key="InverseBool"/>
 
         <Style x:Key="CardStyle" TargetType="Border">
@@ -132,15 +134,17 @@
                 </StackPanel>
 
                 <!-- Search box -->
-                <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
-                         Style="{StaticResource ModernTextBox}" Margin="12,0,12,0"
-                         MaxWidth="300" HorizontalAlignment="Right"/>
+                <Grid Grid.Column="1" MaxWidth="300" HorizontalAlignment="Right" Margin="12,0,12,0">
+                    <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource ModernTextBox}" Padding="32,10,12,10"/>
+                    <TextBlock Text="🔍" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10,0,0,0" Foreground="#94A3B8" IsHitTestVisible="False"/>
+                </Grid>
 
                 <!-- Status filter -->
                 <ComboBox Grid.Column="2" SelectedItem="{Binding StatusFilter}" Margin="0,0,12,0" 
                           MinWidth="140" VerticalAlignment="Center" FontSize="13" Padding="8,6">
                     <ComboBox.Items>
-                        <ComboBoxItem Content="Todos os Status" IsSelected="True"/>
+                        <ComboBoxItem Content="Todos os Status"/>
                     </ComboBox.Items>
                 </ComboBox>
 
@@ -163,25 +167,41 @@
                           SelectionMode="Single"
                           SelectedItem="{Binding SelectedOrder}"
                           Background="White"
-                          RowHeight="44"
+                          RowHeight="54"
                           BorderThickness="0"
                           HeadersVisibility="Column"
                           GridLinesVisibility="Horizontal"
                           HorizontalGridLinesBrush="#F1F5F9"
                           IsReadOnly="True">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Data" Binding="{Binding CreatedAtFormatted}" Width="Auto"/>
+                        <DataGridTextColumn Header="Data" Binding="{Binding CreatedAtFormatted, Mode=OneWay}" Width="Auto"/>
                         <DataGridTextColumn Header="Cliente" Binding="{Binding CustomerName}" Width="*"/>
-                        <DataGridTextColumn Header="Fornecedor" Binding="{Binding SupplierName}" Width="*"/>
-                        <DataGridTextColumn Header="Itens" Binding="{Binding ItemsCount}" Width="50"/>
-                        <DataGridTextColumn Header="Venda" Binding="{Binding TotalSalePriceFormatted}" Width="Auto"/>
-                        <DataGridTextColumn Header="Margem" Binding="{Binding MarginFormatted}" Width="Auto"/>
                         <DataGridTemplateColumn Header="Status" Width="130">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Background="{Binding StatusBackgroundColor}" Padding="8,4" CornerRadius="4" HorizontalAlignment="Left">
                                         <TextBlock Text="{Binding StatusText}" Foreground="{Binding StatusColor}" FontWeight="Bold" FontSize="11"/>
                                     </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Venda" Binding="{Binding TotalSalePriceFormatted, Mode=OneWay}" Width="Auto"/>
+                        <DataGridTemplateColumn Header="Ações" Width="80">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <Button Command="{Binding DataContext.SyncWithSuperFreteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}"
+                                                Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Sincronizar Rastreio"
+                                                Visibility="{Binding HasTrackingCode, Converter={StaticResource BoolToVisibility}}">
+                                            <TextBlock Text="🔄" FontSize="14"/>
+                                        </Button>
+                                        <Button Command="{Binding DataContext.DeleteOrderCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}"
+                                                Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Excluir Pedido" Margin="8,0,0,0">
+                                            <TextBlock Text="🗑️" FontSize="14" Foreground="#EF4444"/>
+                                        </Button>
+                                    </StackPanel>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -396,10 +416,10 @@
                                                 <StackPanel Grid.Column="0">
                                                     <TextBlock Text="{Binding Description}" FontSize="12" FontWeight="SemiBold" Foreground="#1E293B" TextWrapping="Wrap"/>
                                                     <TextBlock FontSize="11" Foreground="#64748B">
-                                                        <Run Text="{Binding Quantity}"/>x <Run Text="{Binding UnitSalePriceFormatted}"/>
+                                                        <Run Text="{Binding Quantity, Mode=OneWay}"/>x <Run Text="{Binding UnitSalePriceFormatted, Mode=OneWay}"/>
                                                     </TextBlock>
                                                 </StackPanel>
-                                                <TextBlock Grid.Column="1" Text="{Binding SubtotalSalePriceFormatted}" FontSize="12" FontWeight="Bold" Foreground="#16A34A" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding SubtotalSalePriceFormatted, Mode=OneWay}" FontSize="12" FontWeight="Bold" Foreground="#16A34A" VerticalAlignment="Center"/>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>
@@ -411,15 +431,15 @@
                                 <StackPanel>
                                     <Grid Margin="0,0,0,4">
                                         <TextBlock Text="Preço de Venda" FontSize="12" Foreground="#64748B"/>
-                                        <TextBlock Text="{Binding SelectedOrder.TotalSalePriceFormatted}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                        <TextBlock Text="{Binding SelectedOrder.TotalSalePriceFormatted, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Right"/>
                                     </Grid>
                                     <Grid Margin="0,0,0,4">
                                         <TextBlock Text="Custo da Fábrica" FontSize="12" Foreground="#64748B"/>
-                                        <TextBlock Text="{Binding SelectedOrder.TotalCostFormatted}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Right" Foreground="#EF4444"/>
+                                        <TextBlock Text="{Binding SelectedOrder.TotalCostFormatted, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Right" Foreground="#EF4444"/>
                                     </Grid>
                                     <Grid Margin="0,8,0,0">
                                         <TextBlock Text="Margem Bruta" FontSize="12" FontWeight="Bold" Foreground="#1E293B"/>
-                                        <TextBlock Text="{Binding SelectedOrder.MarginFormatted}" FontSize="14" FontWeight="Bold" HorizontalAlignment="Right" Foreground="#22C55E"/>
+                                        <TextBlock Text="{Binding SelectedOrder.MarginFormatted, Mode=OneWay}" FontSize="14" FontWeight="Bold" HorizontalAlignment="Right" Foreground="#22C55E"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>

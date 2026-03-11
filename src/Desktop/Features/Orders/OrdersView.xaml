@@ -7,6 +7,8 @@
     <UserControl.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
         <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
+        <converters:NullToVisibilityConverter x:Key="NullToVisibility"/>
+        <converters:BoolToLoadingTextConverter x:Key="BoolToLoadingText"/>
         <converters:InverseBoolConverter x:Key="InverseBool"/>
 
         <Style x:Key="CardStyle" TargetType="Border">
@@ -155,7 +157,7 @@
                         Style="{StaticResource SuccessButton}" HorizontalAlignment="Stretch" Margin="0,0,0,16"/>
 
                 <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding Orders}">
+                    <ItemsControl ItemsSource="{Binding FilteredOrders}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border BorderBrush="#F1F5F9" BorderThickness="0,0,0,1" Padding="12,10" Cursor="Hand" 
@@ -175,11 +177,29 @@
                                             <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                                                 <TextBlock Text="{Binding ItemsCount, StringFormat='{}{0} itens'}" FontSize="11" Foreground="#64748B"/>
                                                 <TextBlock Text=" • " FontSize="11" Foreground="#64748B"/>
-                                                <TextBlock Text="{Binding CreatedAtFormatted}" FontSize="11" Foreground="#64748B"/>
+                                                <TextBlock Text="{Binding CreatedAtFormatted, Mode=OneWay}" FontSize="11" Foreground="#64748B"/>
                                             </StackPanel>
                                         </StackPanel>
+                                        
                                         <StackPanel Grid.Column="1" HorizontalAlignment="Right">
-                                            <TextBlock Text="{Binding TotalFormatted}" FontWeight="Bold" Foreground="#22C55E" FontSize="13"/>
+                                            <!-- Ações no topo da linha -->
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                <Button Command="{Binding DataContext.SyncWithSuperFreteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Sincronizar com SuperFrete"
+                                                        Visibility="{Binding HasTracking, Converter={StaticResource BoolToVisibility}}" Margin="0,0,8,0">
+                                                    <TextBlock Text="🔄" FontSize="12"/>
+                                                </Button>
+                                                <Button Command="{Binding DataContext.DeleteOrderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Remover Pedido">
+                                                    <TextBlock Text="🗑️" FontSize="12" Foreground="#EF4444"/>
+                                                </Button>
+                                            </StackPanel>
+
+                                            <!-- Valor e Status -->
+                                            <TextBlock Text="{Binding TotalFormatted, Mode=OneWay}" FontWeight="Bold" Foreground="#22C55E" FontSize="13" HorizontalAlignment="Right" Margin="0,4,0,0"/>
+                                            
                                             <Border Padding="6,2" CornerRadius="4" HorizontalAlignment="Right" Margin="0,4,0,0">
                                                 <Border.Style>
                                                     <Style TargetType="Border">
@@ -252,7 +272,7 @@
                         <Grid Margin="0,0,0,20">
                             <StackPanel>
                                 <TextBlock Text="📋 Detalhes do Pedido" FontSize="20" FontWeight="Bold" Foreground="#1E293B"/>
-                                <TextBlock Text="{Binding SelectedOrder.CreatedAtFormatted, StringFormat='Criado em: {0}'}" 
+                                <TextBlock Text="{Binding SelectedOrder.CreatedAtFormatted, Mode=OneWay, StringFormat='Criado em: {0}'}" 
                                            FontSize="12" Foreground="#64748B" Margin="0,4,0,0"/>
                             </StackPanel>
 
@@ -331,7 +351,7 @@
                                 <StackPanel Grid.Column="0" HorizontalAlignment="Center">
                                     <TextBlock Text="💰" FontSize="20" HorizontalAlignment="Center"/>
                                     <TextBlock Text="TOTAL" FontSize="10" Foreground="#16A34A" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,4,0,0"/>
-                                    <TextBlock Text="{Binding SelectedOrder.TotalFormatted}" FontSize="18" FontWeight="Bold" Foreground="#166534" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding SelectedOrder.TotalFormatted, Mode=OneWay}" FontSize="18" FontWeight="Bold" Foreground="#166534" HorizontalAlignment="Center"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" HorizontalAlignment="Center">
                                     <TextBlock Text="📦" FontSize="20" HorizontalAlignment="Center"/>
@@ -341,7 +361,7 @@
                                 <StackPanel Grid.Column="2" HorizontalAlignment="Center">
                                     <TextBlock Text="🚚" FontSize="20" HorizontalAlignment="Center"/>
                                     <TextBlock Text="FRETE" FontSize="10" Foreground="#16A34A" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,4,0,0"/>
-                                    <TextBlock Text="{Binding SelectedOrder.ShippingCostFormatted}" FontSize="18" FontWeight="Bold" Foreground="#166534" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding SelectedOrder.ShippingCostFormatted, Mode=OneWay}" FontSize="18" FontWeight="Bold" Foreground="#166534" HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -386,7 +406,7 @@
                                 </StackPanel>
 
                                 <!-- Data de envio -->
-                                <TextBlock Text="{Binding SelectedOrder.ShippedAtFormatted, StringFormat='Enviado em: {0}'}" 
+                                <TextBlock Text="{Binding SelectedOrder.ShippedAtFormatted, Mode=OneWay, StringFormat='Enviado em: {0}'}" 
                                            FontSize="11" Foreground="#FFFFFF80" HorizontalAlignment="Center" Margin="0,12,0,0"/>
                             </StackPanel>
                         </Border>
@@ -429,7 +449,7 @@
                                     </Border>
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                         <TextBlock Text="Pedido Criado" FontWeight="SemiBold" Foreground="#1E293B"/>
-                                        <TextBlock Text="{Binding SelectedOrder.CreatedAtFormatted}" FontSize="11" Foreground="#64748B"/>
+                                        <TextBlock Text="{Binding SelectedOrder.CreatedAtFormatted, Mode=OneWay}" FontSize="11" Foreground="#64748B"/>
                                     </StackPanel>
                                 </Grid>
 
@@ -459,7 +479,7 @@
                                     </Border>
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                         <TextBlock Text="Pedido Enviado" FontWeight="SemiBold" Foreground="#1E293B"/>
-                                        <TextBlock Text="{Binding SelectedOrder.ShippedAtFormatted}" FontSize="11" Foreground="#64748B"/>
+                                        <TextBlock Text="{Binding SelectedOrder.ShippedAtFormatted, Mode=OneWay}" FontSize="11" Foreground="#64748B"/>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
@@ -724,7 +744,7 @@
                                                                     <StackPanel Grid.Column="0">
                                                                         <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="#1E293B"/>
                                                                         <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                                                            <TextBlock Text="{Binding PriceFormatted}" FontSize="12" Foreground="#22C55E" FontWeight="SemiBold"/>
+                                                                            <TextBlock Text="{Binding PriceFormatted, Mode=OneWay}" FontSize="12" Foreground="#22C55E" FontWeight="SemiBold"/>
                                                                             <TextBlock Text=" • " FontSize="12" Foreground="#64748B"/>
                                                                             <TextBlock Text="{Binding Stock, StringFormat='Estoque: {0}'}" FontSize="11" Foreground="#64748B"/>
                                                                         </StackPanel>
@@ -766,7 +786,7 @@
                                                                     </TextBlock>
                                                                 </StackPanel>
                                                                 <StackPanel Grid.Column="1" HorizontalAlignment="Right">
-                                                                    <TextBlock Text="{Binding SubtotalFormatted}" FontWeight="Bold" Foreground="#22C55E" FontSize="12"/>
+                                                                    <TextBlock Text="{Binding SubtotalFormatted, Mode=OneWay}" FontWeight="Bold" Foreground="#22C55E" FontSize="12"/>
                                                                     <Button Content="✕" FontSize="10" Padding="4,2" Background="#FEE2E2" Foreground="#DC2626" 
                                                                             BorderThickness="0" Cursor="Hand" HorizontalAlignment="Right"
                                                                             Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
@@ -781,7 +801,7 @@
                                             <Border BorderBrush="#22C55E" BorderThickness="0,2,0,0" Margin="0,12,0,0" Padding="0,12,0,0">
                                                 <Grid>
                                                     <TextBlock Text="TOTAL" FontWeight="Bold" Foreground="#1E293B"/>
-                                                    <TextBlock Text="{Binding OrderTotalFormatted}" FontSize="18" FontWeight="Bold" Foreground="#22C55E" HorizontalAlignment="Right"/>
+                                                    <TextBlock Text="{Binding OrderTotalFormatted, Mode=OneWay}" FontSize="18" FontWeight="Bold" Foreground="#22C55E" HorizontalAlignment="Right"/>
                                                 </Grid>
                                             </Border>
                                         </StackPanel>
@@ -816,7 +836,7 @@
                                         <StackPanel Grid.Column="1">
                                             <TextBlock Text="Produtos" FontSize="11" Foreground="#64748B"/>
                                             <TextBlock Text="{Binding OrderItems.Count, StringFormat='{}{0} itens'}" FontWeight="SemiBold" Foreground="#1E293B"/>
-                                            <TextBlock Text="{Binding OrderTotalFormatted}" FontSize="12" Foreground="#22C55E" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding OrderTotalFormatted, Mode=OneWay}" FontSize="12" Foreground="#22C55E" FontWeight="SemiBold"/>
                                         </StackPanel>
                                     </Grid>
                                 </Border>
@@ -1044,7 +1064,7 @@
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="2" HorizontalAlignment="Right">
-                                                <TextBlock Text="{Binding CheapestOption.PriceFormatted}" FontSize="24" FontWeight="Bold" Foreground="#16A34A"/>
+                                                <TextBlock Text="{Binding CheapestOption.PriceFormatted, Mode=OneWay}" FontSize="24" FontWeight="Bold" Foreground="#16A34A"/>
                                                 <Button Content="Selecionar" Style="{StaticResource SuccessButton}" 
                                                         Padding="16,8" FontSize="12" Margin="0,8,0,0"
                                                         Command="{Binding SelectCheapestCommand}"/>
@@ -1086,7 +1106,7 @@
                                                             </StackPanel>
                                                         </StackPanel>
                                                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <TextBlock Text="{Binding PriceFormatted}" FontSize="16" FontWeight="Bold" 
+                                                            <TextBlock Text="{Binding PriceFormatted, Mode=OneWay}" FontSize="16" FontWeight="Bold" 
                                                                        Foreground="#3B82F6" VerticalAlignment="Center" Margin="0,0,12,0"/>
                                                             <Button Content="Usar" Style="{StaticResource PrimaryButton}" 
                                                                     Padding="12,6" FontSize="11"
@@ -1140,7 +1160,7 @@
                                                     <TextBlock Text="{Binding SelectedShipping.CompanyName}" FontSize="12" Foreground="#64748B"/>
                                                     <TextBlock Text="{Binding SelectedShipping.DeliveryRange}" FontSize="11" Foreground="#94A3B8" Margin="0,4,0,0"/>
                                                 </StackPanel>
-                                                <TextBlock Grid.Column="1" Text="{Binding SelectedShipping.PriceFormatted}" 
+                                                <TextBlock Grid.Column="1" Text="{Binding SelectedShipping.PriceFormatted, Mode=OneWay}" 
                                                            FontSize="18" FontWeight="Bold" Foreground="#22C55E" VerticalAlignment="Center"/>
                                             </Grid>
                                         </Border>
@@ -1155,11 +1175,11 @@
                                                 </Grid.RowDefinitions>
                                                 <Grid Grid.Row="0" Margin="0,0,0,8">
                                                     <TextBlock Text="Subtotal (Produtos)" Foreground="#BBF7D0" FontSize="12"/>
-                                                    <TextBlock Text="{Binding OrderTotalFormatted}" Foreground="#BBF7D0" FontSize="12" HorizontalAlignment="Right"/>
+                                                    <TextBlock Text="{Binding OrderTotalFormatted, Mode=OneWay}" Foreground="#BBF7D0" FontSize="12" HorizontalAlignment="Right"/>
                                                 </Grid>
                                                 <Grid Grid.Row="1" Margin="0,0,0,8">
                                                     <TextBlock Text="Frete" Foreground="#BBF7D0" FontSize="12"/>
-                                                    <TextBlock Text="{Binding SelectedShipping.PriceFormatted}" Foreground="#BBF7D0" FontSize="12" HorizontalAlignment="Right"/>
+                                                    <TextBlock Text="{Binding SelectedShipping.PriceFormatted, Mode=OneWay}" Foreground="#BBF7D0" FontSize="12" HorizontalAlignment="Right"/>
                                                 </Grid>
                                                 <Border Grid.Row="2" BorderBrush="#22C55E" BorderThickness="0,1,0,0" Padding="0,8,0,0">
                                                     <Grid>
@@ -1236,11 +1256,11 @@
                                             </Grid>
                                             <Grid Grid.Row="1" Margin="0,0,0,8">
                                                 <TextBlock Text="Produtos:" Foreground="#64748B"/>
-                                                <TextBlock Text="{Binding OrderTotalFormatted}" FontWeight="SemiBold" Foreground="#1E293B" HorizontalAlignment="Right"/>
+                                                <TextBlock Text="{Binding OrderTotalFormatted, Mode=OneWay}" FontWeight="SemiBold" Foreground="#1E293B" HorizontalAlignment="Right"/>
                                             </Grid>
                                             <Grid Grid.Row="2" Margin="0,0,0,8">
                                                 <TextBlock Text="Frete:" Foreground="#64748B"/>
-                                                <TextBlock Text="{Binding SelectedShipping.PriceFormatted}" FontWeight="SemiBold" Foreground="#EF4444" HorizontalAlignment="Right"/>
+                                                <TextBlock Text="{Binding SelectedShipping.PriceFormatted, Mode=OneWay}" FontWeight="SemiBold" Foreground="#EF4444" HorizontalAlignment="Right"/>
                                             </Grid>
                                             <Border Grid.Row="3" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0" Padding="0,8,0,0">
                                                 <Grid>
@@ -1321,14 +1341,25 @@
                                                        HorizontalAlignment="Center" Margin="0,0,0,8"/>
                                             <TextBlock Text="{Binding GeneratedTrackingCode}" FontSize="28" FontWeight="Bold" 
                                                        Foreground="#166534" HorizontalAlignment="Center" FontFamily="Consolas"/>
-                                            <Button Command="{Binding CopyTrackingCodeCommand}" 
-                                                    Background="#22C55E" Foreground="White" BorderThickness="0" 
-                                                    Padding="16,8" Cursor="Hand" HorizontalAlignment="Center" Margin="0,16,0,0">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="📋" Margin="0,0,8,0"/>
-                                                    <TextBlock Text="Copiar Código"/>
-                                                </StackPanel>
-                                            </Button>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
+                                                <Button Command="{Binding CopyTrackingCodeCommand}" 
+                                                        Background="#22C55E" Foreground="White" BorderThickness="0" 
+                                                        Padding="16,8" Cursor="Hand" Margin="0,0,8,0">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="📋" Margin="0,0,8,0"/>
+                                                        <TextBlock Text="Copiar Código"/>
+                                                    </StackPanel>
+                                                </Button>
+                                                <Button Command="{Binding OpenGeneratedLabelCommand}" 
+                                                        Background="#3B82F6" Foreground="White" BorderThickness="0" 
+                                                        Padding="16,8" Cursor="Hand"
+                                                        Visibility="{Binding HasGeneratedLabel, Converter={StaticResource BoolToVisibility}}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="🖨️" Margin="0,0,8,0"/>
+                                                        <TextBlock Text="Imprimir Etiqueta"/>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
                                         </StackPanel>
                                     </Border>
 
@@ -1345,7 +1376,7 @@
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" HorizontalAlignment="Right">
                                                 <TextBlock Text="💰 Valor" FontSize="11" Foreground="#64748B"/>
-                                                <TextBlock Text="{Binding SelectedShipping.PriceFormatted}" FontWeight="Bold" Foreground="#22C55E"/>
+                                                <TextBlock Text="{Binding SelectedShipping.PriceFormatted, Mode=OneWay}" FontWeight="Bold" Foreground="#22C55E"/>
                                             </StackPanel>
                                         </Grid>
                                     </Border>

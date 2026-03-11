@@ -166,7 +166,7 @@
                                             </Border>
                                         </StackPanel>
                                         <TextBlock Grid.Column="2" Text="{Binding Dimensions}" Foreground="#64748B" VerticalAlignment="Center" FontSize="12"/>
-                                        <TextBlock Grid.Column="3" Text="{Binding PriceFormatted}" FontWeight="Bold" Foreground="#22C55E" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="3" Text="{Binding PriceFormatted, Mode=OneWay}" FontWeight="Bold" Foreground="#22C55E" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
                                 <DataTemplate.Triggers>
@@ -300,7 +300,7 @@
                                 <TextBlock Text="{Binding SelectedProduct.Name}" FontSize="14" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,4,0,0"/>
                                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                     <Border Background="#DCFCE7" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
-                                        <TextBlock Text="{Binding SelectedProduct.WeightFormatted}" FontSize="10" Foreground="#16A34A"/>
+                                        <TextBlock Text="{Binding SelectedProduct.WeightFormatted, Mode=OneWay}" FontSize="10" Foreground="#16A34A"/>
                                     </Border>
                                     <Border Background="#DCFCE7" CornerRadius="4" Padding="6,2">
                                         <TextBlock Text="{Binding SelectedProduct.Dimensions}" FontSize="10" Foreground="#16A34A"/>
@@ -345,7 +345,7 @@
                                                 <TextBlock Text="{Binding CompanyName}" FontSize="11" Foreground="#64748B"/>
                                                 <TextBlock Text="{Binding DeliveryRange}" FontSize="10" Foreground="#94A3B8"/>
                                             </StackPanel>
-                                            <TextBlock Grid.Column="1" Text="{Binding PriceFormatted}" FontSize="16" FontWeight="Bold" Foreground="#22C55E" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding PriceFormatted, Mode=OneWay}" FontSize="16" FontWeight="Bold" Foreground="#22C55E" VerticalAlignment="Center"/>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>

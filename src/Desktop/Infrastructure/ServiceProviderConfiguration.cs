@@ -25,6 +25,7 @@ using Desktop.Features.Inventory;
 using Desktop.Features.Shipments;
 using Integrations.SuperFrete.Extensions;
 using Integrations.SuperFrete.Interfaces;
+using Integrations.SuperFrete.Configuration;
 using Integrations.MercadoLivre.Interfaces;
 using Integrations.MercadoLivre.Services;
 using Integrations.Shopee.Interfaces;
@@ -41,80 +42,135 @@ public static class ServiceProviderConfiguration
 
     public static IServiceProvider ConfigureServices()
     {
-        var services = new ServiceCollection();
-
-        // Configuration with User Secrets
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
-            .Build();
-
-        services.AddSingleton<IConfiguration>(configuration);
-
-        // Ensure directory exists
-        var dbDirectory = Path.GetDirectoryName(DbPath);
-        if (!string.IsNullOrEmpty(dbDirectory) && !Directory.Exists(dbDirectory))
+        try
         {
-            Directory.CreateDirectory(dbDirectory);
+            System.Diagnostics.Debug.WriteLine("=== ServiceProviderConfiguration: Iniciando ===");
+            var services = new ServiceCollection();
+
+            System.Diagnostics.Debug.WriteLine("ServiceProviderConfiguration: Configurando Configuration...");
+            // Configuration with User Secrets
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
+                .Build();
+            System.Diagnostics.Debug.WriteLine($"  Base Path: {AppContext.BaseDirectory}");
+
+            services.AddSingleton<IConfiguration>(configuration);
+
+            System.Diagnostics.Debug.WriteLine("ServiceProviderConfiguration: Configurando banco de dados...");
+            // Ensure directory exists
+            var dbDirectory = Path.GetDirectoryName(DbPath);
+            if (!string.IsNullOrEmpty(dbDirectory) && !Directory.Exists(dbDirectory))
+            {
+                System.Diagnostics.Debug.WriteLine($"  Criando diretório: {dbDirectory}");
+                Directory.CreateDirectory(dbDirectory);
+            }
+            System.Diagnostics.Debug.WriteLine($"  DB Path: {DbPath}");
+
+            // Database Context (SQLite)
+            services.AddDbContext<PaintballManagerDbContext>(options =>
+                options.UseSqlite($"Data Source={DbPath}"));
+
+            System.Diagnostics.Debug.WriteLine("ServiceProviderConfiguration: Registrando repositórios...");
+            // Repositories (Entity Framework)
+            services.AddScoped<IProductRepository, EfProductRepository>();
+            services.AddScoped<ICustomerRepository, EfCustomerRepository>();
+            services.AddScoped<IOrderRepository, EfOrderRepository>();
+            services.AddScoped<ISupplierRepository, EfSupplierRepository>();
+            services.AddScoped<IPurchaseRepository, EfPurchaseRepository>();
+            services.AddScoped<IKitRepository, EfKitRepository>();
+            services.AddScoped<IShipmentRepository, EfShipmentRepository>();
+            services.AddScoped<IPartRepository, EfPartRepository>();
+            services.AddScoped<IInventoryMovementRepository, EfInventoryMovementRepository>();
+            services.AddScoped<IFactoryOrderRepository, EfFactoryOrderRepository>();
+
+            System.Diagnostics.Debug.WriteLine("ServiceProviderConfiguration: Registrando Use Cases...");
+            // Use Cases
+            services.AddTransient<CreateOrderUseCase>();
+            services.AddScoped<UpdateOrderUseCase>(); // Added line as per instruction
+            services.AddTransient<CreateProductUseCase>();
+            services.AddTransient<RegisterCustomerUseCase>();
+            services.AddTransient<RegisterPurchaseUseCase>();
+            services.AddTransient<GenerateShipmentUseCase>();
+            services.AddTransient<UpdateOrderStatusUseCase>();
+
+            // Factory Order Use Cases
+            services.AddTransient<CreateFactoryOrderUseCase>();
+            services.AddTransient<UpdateFactoryOrderStatusUseCase>();
+            services.AddTransient<AddTrackingCodeUseCase>();
+
+            System.Diagnostics.Debug.WriteLine("ServiceProviderConfiguration: Registrando Services...");
+            // Services
+            services.AddScoped<IMarketplaceSyncService, MarketplaceSyncService>();
+            services.AddScoped<IAutomationService, AutomationService>();
+
+            System.Diagnostics.Debug.WriteLine("ServiceProviderConfiguration: Registrando Integration Services...");
+            // Integration Services (placeholder tokens - configure with real values)
+            services.AddScoped<IMercadoLivreService>(sp =>
+                new MercadoLivreService(new HttpClient { BaseAddress = new Uri("https://api.mercadolibre.com") }, ""));
+            services.AddScoped<IShopeeService>(sp =>
+                new ShopeeService(new HttpClient { BaseAddress = new Uri("https://partner.shopeemobile.com") }, "", ""));
+
+            System.Diagnostics.Debug.WriteLine("ServiceProviderConfiguration: Registrando SuperFrete...");
+            // SuperFrete Integration
+            try
+            {
+                var superFreteSection = configuration.GetSection(SuperFreteSettings.SectionName);
+                System.Diagnostics.Debug.WriteLine($"  Seção SuperFrete existe: {superFreteSection.Exists()}");
+                if (superFreteSection.Exists())
+                {
+                    var apiToken = superFreteSection["ApiToken"];
+                    var baseUrl = superFreteSection["BaseUrl"];
+                    var postalCode = superFreteSection["DefaultOriginPostalCode"];
+                    System.Diagnostics.Debug.WriteLine($"  ApiToken: {(string.IsNullOrEmpty(apiToken) ? "VAZIO" : "OK")}");
+                    System.Diagnostics.Debug.WriteLine($"  BaseUrl: {baseUrl}");
+                    System.Diagnostics.Debug.WriteLine($"  DefaultOriginPostalCode: {postalCode}");
+                }
+
+                services.AddSuperFrete(configuration);
+                System.Diagnostics.Debug.WriteLine("  SuperFrete registrado com sucesso");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"  !!! ERRO ao registrar SuperFrete: {ex.Message}");
+                throw;
+            }
+
+            System.Diagnostics.Debug.WriteLine("ServiceProviderConfiguration: Registrando ViewModels...");
+            // ViewModels - All pages with CRUD
+            services.AddTransient<DashboardViewModel>();
+            services.AddTransient<ProductsViewModel>();
+            services.AddTransient<OrdersViewModel>();
+            services.AddTransient<FactoryOrdersViewModel>(sp => new FactoryOrdersViewModel(
+                sp.GetRequiredService<IFactoryOrderRepository>(),
+                sp.GetRequiredService<ICustomerRepository>(),
+                sp.GetRequiredService<CreateFactoryOrderUseCase>(),
+                sp.GetRequiredService<UpdateFactoryOrderStatusUseCase>(),
+                sp.GetRequiredService<AddTrackingCodeUseCase>(),
+                sp.GetRequiredService<ISuperFreteService>()
+            ));
+            services.AddTransient<OrdersLayoutViewModel>();
+            services.AddTransient<CustomersViewModel>();
+            services.AddTransient<SuppliersViewModel>();
+            services.AddTransient<PurchasesViewModel>();
+            services.AddTransient<KitsViewModel>();
+            services.AddTransient<InventoryViewModel>();
+            services.AddTransient<ShipmentsViewModel>();
+
+            System.Diagnostics.Debug.WriteLine("ServiceProviderConfiguration: Construindo ServiceProvider...");
+            var serviceProvider = services.BuildServiceProvider();
+            System.Diagnostics.Debug.WriteLine("=== ServiceProviderConfiguration: Concluído com sucesso ===");
+
+            return serviceProvider;
         }
-
-        // Database Context (SQLite)
-        services.AddDbContext<PaintballManagerDbContext>(options =>
-            options.UseSqlite($"Data Source={DbPath}"));
-
-        // Repositories (Entity Framework)
-        services.AddScoped<IProductRepository, EfProductRepository>();
-        services.AddScoped<ICustomerRepository, EfCustomerRepository>();
-        services.AddScoped<IOrderRepository, EfOrderRepository>();
-        services.AddScoped<ISupplierRepository, EfSupplierRepository>();
-        services.AddScoped<IPurchaseRepository, EfPurchaseRepository>();
-        services.AddScoped<IKitRepository, EfKitRepository>();
-        services.AddScoped<IShipmentRepository, EfShipmentRepository>();
-        services.AddScoped<IPartRepository, EfPartRepository>();
-        services.AddScoped<IInventoryMovementRepository, EfInventoryMovementRepository>();
-        services.AddScoped<IFactoryOrderRepository, EfFactoryOrderRepository>();
-
-        // Use Cases
-        services.AddTransient<CreateOrderUseCase>();
-        services.AddTransient<CreateProductUseCase>();
-        services.AddTransient<RegisterCustomerUseCase>();
-        services.AddTransient<RegisterPurchaseUseCase>();
-        services.AddTransient<GenerateShipmentUseCase>();
-        services.AddTransient<UpdateOrderStatusUseCase>();
-
-        // Factory Order Use Cases
-        services.AddTransient<CreateFactoryOrderUseCase>();
-        services.AddTransient<UpdateFactoryOrderStatusUseCase>();
-        services.AddTransient<AddTrackingCodeUseCase>();
-
-        // Services
-        services.AddScoped<IMarketplaceSyncService, MarketplaceSyncService>();
-        services.AddScoped<IAutomationService, AutomationService>();
-
-        // Integration Services (placeholder tokens - configure with real values)
-        services.AddScoped<IMercadoLivreService>(sp =>
-            new MercadoLivreService(new HttpClient { BaseAddress = new Uri("https://api.mercadolibre.com") }, ""));
-        services.AddScoped<IShopeeService>(sp =>
-            new ShopeeService(new HttpClient { BaseAddress = new Uri("https://partner.shopeemobile.com") }, "", ""));
-
-        // SuperFrete Integration
-        services.AddSuperFrete(configuration);
-
-        // ViewModels - All pages with CRUD
-        services.AddTransient<DashboardViewModel>();
-        services.AddTransient<ProductsViewModel>();
-        services.AddTransient<OrdersViewModel>();
-        services.AddTransient<FactoryOrdersViewModel>();
-        services.AddTransient<OrdersLayoutViewModel>();
-        services.AddTransient<CustomersViewModel>();
-        services.AddTransient<SuppliersViewModel>();
-        services.AddTransient<PurchasesViewModel>();
-        services.AddTransient<KitsViewModel>();
-        services.AddTransient<InventoryViewModel>();
-        services.AddTransient<ShipmentsViewModel>();
-
-        return services.BuildServiceProvider();
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"!!! ERRO CRÍTICO em ServiceProviderConfiguration: {ex.GetType().Name}");
+            System.Diagnostics.Debug.WriteLine($"!!! Mensagem: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"!!! StackTrace: {ex.StackTrace}");
+            throw;
+        }
     }
 
     public static void InitializeDatabase(IServiceProvider serviceProvider)

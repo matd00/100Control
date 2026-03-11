@@ -4,6 +4,7 @@ using Application.UseCases.FactoryOrders;
 using Desktop.Infrastructure.MVVM;
 using Domain.Entities;
 using Domain.Interfaces.Repositories;
+using Integrations.SuperFrete.Interfaces;
 
 namespace Desktop.Features.Orders;
 
@@ -185,6 +186,8 @@ public class FactoryOrdersViewModel : ViewModelBase
     public ICommand MarkDeliveredCommand { get; }
     public ICommand CancelOrderCommand { get; }
     public ICommand AddTrackingCodeCommand { get; }
+    public ICommand SyncWithSuperFreteCommand { get; }
+    public ICommand DeleteOrderCommand { get; }
     public ICommand ClearSearchCommand { get; }
     public ICommand ClearStatusFilterCommand { get; }
     public ICommand SelectCustomerCommand { get; }
@@ -194,13 +197,15 @@ public class FactoryOrdersViewModel : ViewModelBase
         ICustomerRepository customerRepository,
         CreateFactoryOrderUseCase createUseCase,
         UpdateFactoryOrderStatusUseCase updateStatusUseCase,
-        AddTrackingCodeUseCase addTrackingUseCase)
+        AddTrackingCodeUseCase addTrackingUseCase,
+        ISuperFreteService superFreteService)
     {
         _repository = repository;
         _customerRepository = customerRepository;
         _createUseCase = createUseCase;
         _updateStatusUseCase = updateStatusUseCase;
         _addTrackingUseCase = addTrackingUseCase;
+        _superFreteService = superFreteService;
 
         RefreshOrdersCommand = new AsyncRelayCommand(LoadOrdersAsync);
         SelectOrderCommand = new RelayCommand<FactoryOrderViewModel>(SelectOrder);
@@ -214,11 +219,64 @@ public class FactoryOrdersViewModel : ViewModelBase
         MarkDeliveredCommand = new AsyncRelayCommand(MarkDeliveredAsync);
         CancelOrderCommand = new AsyncRelayCommand(CancelOrderAsync);
         AddTrackingCodeCommand = new AsyncRelayCommand(AddTrackingCodeAsync);
+        SyncWithSuperFreteCommand = new AsyncRelayCommand<FactoryOrderViewModel>(SyncWithSuperFreteAsync, (o) => o != null && !string.IsNullOrEmpty(o.TrackingCode));
+        DeleteOrderCommand = new AsyncRelayCommand<FactoryOrderViewModel>(DeleteOrderAsync);
         ClearSearchCommand = new RelayCommand(() => SearchText = string.Empty);
         ClearStatusFilterCommand = new RelayCommand(() => StatusFilter = null);
         SelectCustomerCommand = new RelayCommand<CustomerForFactoryOrderViewModel>(c => SelectedCustomer = c);
 
         _ = LoadDataAsync();
+    }
+
+    private readonly ISuperFreteService _superFreteService;
+
+    private async Task SyncWithSuperFreteAsync(FactoryOrderViewModel? orderVm)
+    {
+        if (orderVm == null || string.IsNullOrEmpty(orderVm.TrackingCode)) return;
+
+        try
+        {
+            StatusMessage = $"Sincronizando rastreio {orderVm.TrackingCode}...";
+            var tracking = await _superFreteService.TrackShipmentAsync(orderVm.TrackingCode);
+            
+            StatusMessage = $"✅ Status SuperFrete: {tracking.Status}";
+            
+            if (tracking.Status.Contains("Entregue", StringComparison.OrdinalIgnoreCase))
+            {
+                await _updateStatusUseCase.Execute(orderVm.Id, FactoryOrderStatus.Entregue);
+                await LoadOrdersAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"❌ Erro ao sincronizar: {ex.Message}";
+        }
+    }
+
+    private async Task DeleteOrderAsync(FactoryOrderViewModel? orderVm)
+    {
+        if (orderVm == null) return;
+
+        var result = System.Windows.MessageBox.Show(
+            $"Deseja excluir o pedido fábrica de {orderVm.CustomerName}?\nEsta ação removerá o registro permanentemente.",
+            "Confirmar Exclusão",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Warning);
+
+        if (result == System.Windows.MessageBoxResult.Yes)
+        {
+            try
+            {
+                await _repository.DeleteAsync(orderVm.Id);
+                StatusMessage = "✅ Pedido removido.";
+                await LoadOrdersAsync();
+                if (SelectedOrder?.Id == orderVm.Id) SelectedOrder = null;
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"❌ Erro ao remover: {ex.Message}";
+            }
+        }
     }
 
     private async Task LoadDataAsync()

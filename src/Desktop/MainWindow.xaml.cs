@@ -45,13 +45,56 @@ public partial class MainWindow : Window
         where TView : UserControl, new()
         where TViewModel : class
     {
-        HideAllContent();
-        PageTitle.Text = title;
-        PageSubtitle.Text = subtitle;
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"=== LOADVIEW: Carregando {typeof(TView).Name} com {typeof(TViewModel).Name} ===");
 
-        var viewModel = App.ServiceProvider.GetRequiredService<TViewModel>();
-        var view = new TView { DataContext = viewModel };
-        DynamicContent.Children.Add(view);
+            System.Diagnostics.Debug.WriteLine("LOADVIEW: Escondendo conteúdo anterior...");
+            HideAllContent();
+
+            System.Diagnostics.Debug.WriteLine($"LOADVIEW: Configurando título: {title}");
+            PageTitle.Text = title;
+            PageSubtitle.Text = subtitle;
+
+            System.Diagnostics.Debug.WriteLine($"LOADVIEW: Resolvendo ViewModel {typeof(TViewModel).Name}...");
+            var viewModel = App.ServiceProvider.GetRequiredService<TViewModel>();
+            System.Diagnostics.Debug.WriteLine($"LOADVIEW: ViewModel {typeof(TViewModel).Name} resolvido com sucesso");
+
+            System.Diagnostics.Debug.WriteLine($"LOADVIEW: Criando View {typeof(TView).Name}...");
+            var view = new TView { DataContext = viewModel };
+            System.Diagnostics.Debug.WriteLine($"LOADVIEW: View {typeof(TView).Name} criada");
+
+            System.Diagnostics.Debug.WriteLine("LOADVIEW: Adicionando ao DynamicContent...");
+            DynamicContent.Children.Add(view);
+            System.Diagnostics.Debug.WriteLine($"=== LOADVIEW: {typeof(TView).Name} carregado com sucesso ===");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"!!! LOADVIEW ERRO ao carregar {typeof(TView).Name}: {ex.GetType().Name}");
+            System.Diagnostics.Debug.WriteLine($"!!! Mensagem: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"!!! StackTrace: {ex.StackTrace}");
+            if (ex.InnerException != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"!!! InnerException: {ex.InnerException.Message}");
+                System.Diagnostics.Debug.WriteLine($"!!! InnerException StackTrace: {ex.InnerException.StackTrace}");
+            }
+
+            var errorMessage = $"Erro ao carregar {title}:\n\n{ex.Message}";
+
+            if (ex.InnerException != null)
+            {
+                errorMessage += $"\n\nInner Exception:\n{ex.InnerException.Message}";
+
+                if (ex.InnerException.InnerException != null)
+                {
+                    errorMessage += $"\n\nInner Inner Exception:\n{ex.InnerException.InnerException.Message}";
+                }
+            }
+
+            errorMessage += $"\n\nStackTrace:\n{ex.StackTrace}";
+
+            MessageBox.Show(errorMessage, "Erro Detalhado", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     private void Dashboard_Click(object sender, RoutedEventArgs e)
@@ -68,8 +111,35 @@ public partial class MainWindow : Window
 
     private void Orders_Click(object sender, RoutedEventArgs e)
     {
-        SetActiveButton(BtnOrders);
-        LoadView<OrdersLayoutView, OrdersLayoutViewModel>("Pedidos", "Criar e gerenciar pedidos");
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("");
+            System.Diagnostics.Debug.WriteLine("╔════════════════════════════════════════════════════════════╗");
+            System.Diagnostics.Debug.WriteLine("║  CLIQUE NO MENU PEDIDOS - INICIANDO CARREGAMENTO           ║");
+            System.Diagnostics.Debug.WriteLine("╚════════════════════════════════════════════════════════════╝");
+            System.Diagnostics.Debug.WriteLine("");
+
+            SetActiveButton(BtnOrders);
+            LoadView<OrdersLayoutView, OrdersLayoutViewModel>("Pedidos", "Criar e gerenciar pedidos");
+
+            System.Diagnostics.Debug.WriteLine("");
+            System.Diagnostics.Debug.WriteLine("╔════════════════════════════════════════════════════════════╗");
+            System.Diagnostics.Debug.WriteLine("║  PEDIDOS CARREGADO COM SUCESSO                             ║");
+            System.Diagnostics.Debug.WriteLine("╚════════════════════════════════════════════════════════════╝");
+            System.Diagnostics.Debug.WriteLine("");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine("");
+            System.Diagnostics.Debug.WriteLine("╔════════════════════════════════════════════════════════════╗");
+            System.Diagnostics.Debug.WriteLine("║  ERRO CRÍTICO AO CARREGAR PEDIDOS                          ║");
+            System.Diagnostics.Debug.WriteLine("╚════════════════════════════════════════════════════════════╝");
+            System.Diagnostics.Debug.WriteLine($"Tipo: {ex.GetType().Name}");
+            System.Diagnostics.Debug.WriteLine($"Mensagem: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
+            System.Diagnostics.Debug.WriteLine("");
+            throw;
+        }
     }
 
     private void Customers_Click(object sender, RoutedEventArgs e)

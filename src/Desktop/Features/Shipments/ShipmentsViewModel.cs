@@ -13,6 +13,7 @@ public class ShipmentsViewModel : ViewModelBase
     private readonly IShipmentRepository _shipmentRepository;
     private readonly IOrderRepository _orderRepository;
     private readonly IProductRepository _productRepository;
+    private readonly ICustomerRepository _customerRepository;
     private readonly GenerateShipmentUseCase _generateShipmentUseCase;
     private readonly ISuperFreteService _superFreteService;
 
@@ -87,17 +88,20 @@ public class ShipmentsViewModel : ViewModelBase
     public ICommand TrackShipmentCommand { get; }
     public ICommand RefreshCommand { get; }
     public ICommand SelectShipmentCommand { get; }
+    public ICommand PrintLabelCommand { get; }
 
     public ShipmentsViewModel(
         IShipmentRepository shipmentRepository,
         IOrderRepository orderRepository,
         IProductRepository productRepository,
+        ICustomerRepository customerRepository,
         GenerateShipmentUseCase generateShipmentUseCase,
         ISuperFreteService superFreteService)
     {
         _shipmentRepository = shipmentRepository ?? throw new ArgumentNullException(nameof(shipmentRepository));
         _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
+        _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(customerRepository));
         _generateShipmentUseCase = generateShipmentUseCase ?? throw new ArgumentNullException(nameof(generateShipmentUseCase));
         _superFreteService = superFreteService ?? throw new ArgumentNullException(nameof(superFreteService));
 
@@ -109,6 +113,7 @@ public class ShipmentsViewModel : ViewModelBase
         TrackShipmentCommand = new AsyncRelayCommand(TrackShipmentAsync, () => !IsLoading && SelectedShipment != null);
         RefreshCommand = new AsyncRelayCommand(LoadDataAsync);
         SelectShipmentCommand = new RelayCommand<ShipmentItemViewModel>(SelectShipment);
+        PrintLabelCommand = new AsyncRelayCommand(PrintLabelAsync, () => !IsLoading && SelectedShipment != null && (!string.IsNullOrEmpty(SelectedShipment.LabelUrl) || !string.IsNullOrEmpty(SelectedShipment.SuperFreteOrderId)));
 
         _ = LoadDataAsync();
     }
@@ -120,6 +125,50 @@ public class ShipmentsViewModel : ViewModelBase
             SelectedShipment = shipment;
             TrackingNumber = shipment.TrackingNumber;
             ShippingCost = shipment.ShippingCost;
+        }
+    }
+
+    private async Task PrintLabelAsync()
+    {
+        if (SelectedShipment == null) return;
+        
+        try
+        {
+            IsLoading = true;
+            StatusMessage = "Buscando etiqueta...";
+
+            string? url = SelectedShipment.LabelUrl;
+
+            if (string.IsNullOrEmpty(url) && !string.IsNullOrEmpty(SelectedShipment.SuperFreteOrderId))
+            {
+                url = await _superFreteService.GetLabelUrlAsync(SelectedShipment.SuperFreteOrderId);
+                if (!string.IsNullOrEmpty(url))
+                {
+                    SelectedShipment.LabelUrl = url;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(url))
+            {
+                StatusMessage = "Abrindo etiqueta no navegador...";
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = url,
+                    UseShellExecute = true
+                });
+            }
+            else
+            {
+                StatusMessage = "⚠️ Etiqueta não encontrada no SuperFrete.";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"❌ Erro ao buscar etiqueta: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
         }
     }
 
@@ -178,14 +227,75 @@ public class ShipmentsViewModel : ViewModelBase
                 return;
             }
 
-            // Generate label with SuperFrete or manual
-            if (string.IsNullOrWhiteSpace(TrackingNumber))
+            if (shipment.Provider == ShipmentProvider.SuperFrete)
             {
-                // Auto-generate tracking number
-                TrackingNumber = $"BR{Guid.NewGuid().ToString()[..8].ToUpper()}";
+                // Fetch full order to get customer and items
+                var order = await _orderRepository.GetByIdAsync(shipment.OrderId);
+                if (order == null) throw new Exception("Pedido associado não encontrado.");
+
+                var customer = await _customerRepository.GetByIdAsync(order.CustomerId);
+                if (customer == null) throw new Exception("Cliente associado não encontrado.");
+
+                // Prepare products
+                var products = new List<ShipmentProduct>();
+                decimal totalWeight = 0;
+                
+                foreach (var item in order.Items)
+                {
+                    var product = await _productRepository.GetByIdAsync(item.ProductId);
+                    products.Add(new ShipmentProduct
+                    {
+                        Name = product?.Name ?? "Produto",
+                        Quantity = item.Quantity,
+                        UnitPrice = item.UnitPrice
+                    });
+                    if (product != null) totalWeight += product.Weight * item.Quantity;
+                }
+
+                if (totalWeight < 0.3m) totalWeight = 0.3m;
+
+                var labelRequest = new ShipmentLabelRequest
+                {
+                    Weight = totalWeight,
+                    Width = 11, // Caixa mínima
+                    Height = 2,
+                    Length = 16,
+                    ServiceId = 1, // SEDEX padrão, ou poderia ser selecionado
+                    ServiceName = "SEDEX",
+                    ShippingPrice = ShippingCost,
+                    ReceiverName = customer.Name,
+                    ReceiverDocument = customer.Document,
+                    ReceiverPhone = customer.Phone,
+                    ReceiverEmail = customer.Email,
+                    ReceiverAddress = customer.Address,
+                    ReceiverNumber = customer.Number,
+                    ReceiverComplement = customer.Complement,
+                    ReceiverDistrict = customer.District,
+                    ReceiverCity = customer.City,
+                    ReceiverState = customer.State,
+                    ReceiverZipCode = customer.ZipCode,
+                    Products = products
+                };
+
+                StatusMessage = "Gerando carrinho no SuperFrete...";
+                var result = await _superFreteService.GenerateLabelAsync(labelRequest);
+                
+                StatusMessage = "Pagando etiqueta...";
+                var checkoutResult = await _superFreteService.CheckoutAsync(result.OrderId);
+
+                TrackingNumber = checkoutResult.TrackingCode ?? result.TrackingCode ?? result.OrderId;
+                shipment.GenerateLabel(TrackingNumber, ShippingCost, result.OrderId);
+            }
+            else
+            {
+                // Manual provider logic
+                if (string.IsNullOrWhiteSpace(TrackingNumber))
+                {
+                    TrackingNumber = $"BR{Guid.NewGuid().ToString()[..8].ToUpper()}";
+                }
+                shipment.GenerateLabel(TrackingNumber, ShippingCost);
             }
 
-            shipment.GenerateLabel(TrackingNumber, ShippingCost);
             await _shipmentRepository.UpdateAsync(shipment);
 
             StatusMessage = $"✅ Etiqueta gerada! Código: {TrackingNumber}";
@@ -342,7 +452,9 @@ public class ShipmentsViewModel : ViewModelBase
                     ItemCount = shipment.Items.Count,
                     CreatedAt = shipment.CreatedAt,
                     ShippedAt = shipment.ShippedAt,
-                    DeliveredAt = shipment.DeliveredAt
+                    DeliveredAt = shipment.DeliveredAt,
+                    SuperFreteOrderId = shipment.SuperFreteOrderId,
+                    LabelUrl = string.Empty // Will be fetched when printing if not stored
                 });
             }
 
@@ -375,11 +487,19 @@ public class ShipmentsViewModel : ViewModelBase
 
 public class ShipmentItemViewModel : ViewModelBase
 {
+    private string? _labelUrl;
+
     public Guid Id { get; set; }
     public Guid OrderId { get; set; }
     public ShipmentProvider Provider { get; set; }
     public ShipmentStatus Status { get; set; }
     public string TrackingNumber { get; set; } = string.Empty;
+    public string SuperFreteOrderId { get; set; } = string.Empty;
+    public string? LabelUrl
+    {
+        get => _labelUrl;
+        set => SetProperty(ref _labelUrl, value);
+    }
     public decimal ShippingCost { get; set; }
     public int ItemCount { get; set; }
     public DateTime CreatedAt { get; set; }
