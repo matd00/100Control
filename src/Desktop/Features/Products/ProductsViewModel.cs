@@ -39,7 +39,21 @@ public class ProductsViewModel : ViewModelBase
     private bool _isEditing;
     private Guid _editingProductId;
 
+    private string _searchText = string.Empty;
+
     #region Properties
+
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (SetProperty(ref _searchText, value))
+            {
+                FilterProducts();
+            }
+        }
+    }
 
     public string Name
     {
@@ -143,6 +157,7 @@ public class ProductsViewModel : ViewModelBase
 
     #endregion
 
+    public ObservableCollection<ProductItemViewModel> AllProducts { get; } = new();
     public ObservableCollection<ProductItemViewModel> Products { get; } = new();
     public ObservableCollection<FreightQuoteViewModel> FreightQuotes { get; } = new();
 
@@ -152,6 +167,7 @@ public class ProductsViewModel : ViewModelBase
     public ICommand UpdateProductCommand { get; }
     public ICommand DeleteProductCommand { get; }
     public ICommand ClearFormCommand { get; }
+    public ICommand ClearSearchCommand { get; }
     public ICommand RefreshCommand { get; }
     public ICommand CalculateFreightCommand { get; }
     public ICommand UpdateDimensionsCommand { get; }
@@ -172,6 +188,7 @@ public class ProductsViewModel : ViewModelBase
         UpdateProductCommand = new AsyncRelayCommand(UpdateProductAsync, () => !IsLoading && IsEditing);
         DeleteProductCommand = new AsyncRelayCommand(DeleteProductAsync, () => !IsLoading && IsEditing);
         ClearFormCommand = new RelayCommand(ClearForm);
+        ClearSearchCommand = new RelayCommand(() => SearchText = string.Empty);
         RefreshCommand = new AsyncRelayCommand(LoadProductsAsync);
         CalculateFreightCommand = new AsyncRelayCommand(CalculateFreightAsync, () => !IsCalculatingFreight && SelectedProduct != null && !string.IsNullOrWhiteSpace(DestinationCep));
         UpdateDimensionsCommand = new AsyncRelayCommand(UpdateProductDimensionsAsync, () => SelectedProduct != null);
@@ -409,10 +426,10 @@ public class ProductsViewModel : ViewModelBase
             IsLoading = true;
             var products = await _productRepository.GetAllAsync();
 
-            Products.Clear();
+            AllProducts.Clear();
             foreach (var product in products.OrderByDescending(p => p.CreatedAt))
             {
-                Products.Add(new ProductItemViewModel
+                AllProducts.Add(new ProductItemViewModel
                 {
                     Id = product.Id,
                     SKU = product.SKU,
@@ -428,6 +445,7 @@ public class ProductsViewModel : ViewModelBase
                     IsActive = product.IsActive
                 });
             }
+            FilterProducts();
         }
         catch (Exception ex)
         {
@@ -452,6 +470,24 @@ public class ProductsViewModel : ViewModelBase
         IsEditing = false;
         SelectedProduct = null;
         _editingProductId = Guid.Empty;
+    }
+
+    private void FilterProducts()
+    {
+        Products.Clear();
+        var search = SearchText?.ToLowerInvariant() ?? "";
+
+        foreach (var p in AllProducts)
+        {
+            if (!string.IsNullOrEmpty(search))
+            {
+                if (!p.Name.ToLowerInvariant().Contains(search) &&
+                    !p.SKU.ToLowerInvariant().Contains(search))
+                    continue;
+            }
+
+            Products.Add(p);
+        }
     }
 }
 
