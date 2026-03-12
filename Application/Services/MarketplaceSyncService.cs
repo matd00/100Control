@@ -63,7 +63,7 @@ public class MarketplaceSyncService : IMarketplaceSyncService
             {
                 // Find product by external ID
                 // For now, create a placeholder
-                var product = new Product(item.Title, string.Empty, item.Price, item.Price);
+                var product = new Product(item.Title, "Geral", string.Empty, item.Price, item.Price);
                 await _productRepository.SaveAsync(product);
 
                 order.AddItem(product.Id, item.Quantity, item.Price);
@@ -95,7 +95,7 @@ public class MarketplaceSyncService : IMarketplaceSyncService
             var order = new Order(customer.Id, OrderSource.Shopee);
             foreach (var item in shopeeOrder.Items)
             {
-                var product = new Product(item.ProductName, string.Empty, item.Price, item.Price);
+                var product = new Product(item.ProductName, "Geral", string.Empty, item.Price, item.Price);
                 await _productRepository.SaveAsync(product);
                 order.AddItem(product.Id, item.Quantity, item.Price);
             }
