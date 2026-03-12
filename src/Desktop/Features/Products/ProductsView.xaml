@@ -351,7 +351,7 @@
                             </StackPanel>
                             <StackPanel Grid.Column="1">
                                 <TextBlock Text="Motivo / Notas" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
-                                <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding AdjustmentNotes, UpdateSourceTrigger=PropertyChanged}" MaxLength="100" PlaceholderText="Opcional..."/>
+                                <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding AdjustmentNotes, UpdateSourceTrigger=PropertyChanged}" MaxLength="100"/>
                             </StackPanel>
                         </Grid>
 
