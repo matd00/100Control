@@ -55,8 +55,21 @@ public class ProductsViewModel : ViewModelBase
     private Guid _editingProductId;
 
     private string _searchText = string.Empty;
+    private string _categoryFilter = "Geral";
 
     #region Properties
+
+    public string CategoryFilter
+    {
+        get => _categoryFilter;
+        set
+        {
+            if (SetProperty(ref _categoryFilter, value))
+            {
+                FilterProducts();
+            }
+        }
+    }
 
     public string SearchText
     {
@@ -208,6 +221,8 @@ public class ProductsViewModel : ViewModelBase
     public ICommand AdjustStockCommand { get; }
     public ICommand AddStockCommand { get; }
     public ICommand RemoveStockCommand { get; }
+    public ICommand EditStockCommand { get; }
+    public ICommand UpdateStockCommand { get; }
 
     #endregion
 
@@ -224,11 +239,11 @@ public class ProductsViewModel : ViewModelBase
         _superFreteService = superFreteService ?? throw new ArgumentNullException(nameof(superFreteService));
         _smartSearchService = smartSearchService ?? throw new ArgumentNullException(nameof(smartSearchService));
 
-        CreateProductCommand = new AsyncRelayCommand(CreateProductAsync, () => !IsLoading && !string.IsNullOrWhiteSpace(Name) && Price > 0);
+        CreateProductCommand = new AsyncRelayCommand(CreateProductAsync, () => !IsLoading && !string.IsNullOrWhiteSpace(Name) && Price > 0 && !string.IsNullOrWhiteSpace(Category));
         UpdateProductCommand = new AsyncRelayCommand(UpdateProductAsync, () => !IsLoading && IsEditing);
         DeleteProductCommand = new AsyncRelayCommand(DeleteProductAsync, () => !IsLoading && IsEditing);
         ClearFormCommand = new RelayCommand(ClearForm);
-        ClearSearchCommand = new RelayCommand(() => SearchText = string.Empty);
+        ClearSearchCommand = new RelayCommand(() => { SearchText = string.Empty; CategoryFilter = "Geral"; });
         RefreshCommand = new AsyncRelayCommand(LoadProductsAsync);
         CalculateFreightCommand = new AsyncRelayCommand(CalculateFreightAsync, () => !IsCalculatingFreight && SelectedProduct != null && !string.IsNullOrWhiteSpace(DestinationCep));
         UpdateDimensionsCommand = new AsyncRelayCommand(UpdateProductDimensionsAsync, () => SelectedProduct != null);
@@ -236,6 +251,8 @@ public class ProductsViewModel : ViewModelBase
         AdjustStockCommand = new AsyncRelayCommand(AdjustStockAsync, () => SelectedProduct != null && StockAdjustment != 0);
         AddStockCommand = new AsyncRelayCommand(AddStockAsync, () => SelectedProduct != null && StockAdjustment > 0);
         RemoveStockCommand = new AsyncRelayCommand(RemoveStockAsync, () => SelectedProduct != null && StockAdjustment > 0);
+        EditStockCommand = new RelayCommand<ProductItemViewModel>(p => { if (p != null) p.IsEditingStock = true; });
+        UpdateStockCommand = new AsyncRelayCommand<ProductItemViewModel>(UpdateStockDirectlyAsync);
 
         _ = LoadProductsAsync();
     }
@@ -558,39 +575,70 @@ public class ProductsViewModel : ViewModelBase
         _editingProductId = Guid.Empty;
     }
 
+    private async Task UpdateStockDirectlyAsync(ProductItemViewModel? pvm)
+    {
+        if (pvm == null) return;
+
+        try
+        {
+            var product = await _productRepository.GetByIdAsync(pvm.Id);
+            if (product == null) return;
+
+            int diff = pvm.Stock - product.Stock;
+            if (diff == 0)
+            {
+                pvm.IsEditingStock = false;
+                return;
+            }
+
+            await _adjustStockUseCase.Execute(product.Id, diff, "Edição direta na lista");
+            pvm.IsEditingStock = false;
+            StatusMessage = $"✅ Estoque de {product.Name} atualizado.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"❌ Erro ao atualizar estoque: {ex.Message}";
+            await LoadProductsAsync(); // Revert to DB state
+        }
+    }
+
     private void FilterProducts()
     {
         Products.Clear();
         RecommendedProducts.Clear();
 
-        if (string.IsNullOrWhiteSpace(SearchText))
+        var query = AllProducts.AsEnumerable();
+
+        // 1. Filter by Category (if not "Geral")
+        if (!string.IsNullOrEmpty(CategoryFilter) && CategoryFilter != "Geral")
         {
-            foreach (var p in AllProducts) Products.Add(p);
-            ShowRecommendations = false;
-            return;
+            query = query.Where(p => p.Category == CategoryFilter);
         }
 
-        // Use Smart Search for Products
-        var filtered = _smartSearchService.Search(
-            AllProducts, 
-            SearchText, 
-            p => $"{p.Name} {p.SKU} {p.Category}", 
-            threshold: 0.25);
-
-        foreach (var p in filtered)
+        // 2. Filter by Search Text
+        if (!string.IsNullOrWhiteSpace(SearchText))
         {
-            Products.Add(p);
-        }
+            // Use Smart Search for text filtering
+            var results = _smartSearchService.Search(
+                query,
+                SearchText,
+                p => $"{p.Name} {p.SKU} {p.Category}",
+                threshold: 0.25);
 
-        // Recommendations (Top 5 highly relevant)
-        var recommendations = filtered.Take(5).ToList();
-        if (recommendations.Any() && SearchText.Length > 2)
-        {
-            foreach (var p in recommendations) RecommendedProducts.Add(p);
-            ShowRecommendations = true;
+            foreach (var p in results) Products.Add(p);
+
+            // Recommendations
+            var recs = results.Take(5).ToList();
+            if (recs.Any() && SearchText.Length > 2)
+            {
+                foreach (var r in recs) RecommendedProducts.Add(r);
+                ShowRecommendations = true;
+            }
+            else ShowRecommendations = false;
         }
         else
         {
+            foreach (var p in query) Products.Add(p);
             ShowRecommendations = false;
         }
     }
@@ -598,12 +646,27 @@ public class ProductsViewModel : ViewModelBase
 
 public class ProductItemViewModel : ViewModelBase
 {
+    private int _stock;
+    private bool _isEditingStock;
+
     public Guid Id { get; set; }
-    public string SKU { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
-    public int Stock { get; set; }
+    public string SKU { get; set; } = string.Empty;
+
+    public int Stock
+    {
+        get => _stock;
+        set => SetProperty(ref _stock, value);
+    }
+
+    public bool IsEditingStock
+    {
+        get => _isEditingStock;
+        set => SetProperty(ref _isEditingStock, value);
+    }
+
     public decimal Cost { get; set; }
     public decimal Price { get; set; }
     public decimal Weight { get; set; }

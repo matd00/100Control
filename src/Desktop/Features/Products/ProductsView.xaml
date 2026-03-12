@@ -94,15 +94,37 @@
                         <TextBlock Text="{Binding Products.Count, StringFormat=' ({0})'}" FontSize="14" Foreground="#64748B" VerticalAlignment="Center" Margin="4,2,0,0"/>
                     </StackPanel>
 
-                    <Grid Grid.Column="1" HorizontalAlignment="Right" Width="350">
-                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+                    <Grid Grid.Column="1" HorizontalAlignment="Right">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="200"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ComboBox Grid.Column="0" SelectedValue="{Binding CategoryFilter, UpdateSourceTrigger=PropertyChanged}" 
+                                  SelectedValuePath="Content" Margin="0,0,8,0"
+                                  HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                                  Height="32" Padding="8,0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1">
+                            <ComboBoxItem Content="Geral" IsSelected="True"/>
+                            <ComboBoxItem Content="Kits de Peças" />
+                            <ComboBoxItem Content="Cilindros de CO2" />
+                            <ComboBoxItem Content="Válvulas de CO2" />
+                            <ComboBoxItem Content="Cilindros de HPA" />
+                            <ComboBoxItem Content="Válvulas de HPA" />
+                            <ComboBoxItem Content="Loaders" />
+                            <ComboBoxItem Content="Placas" />
+                            <ComboBoxItem Content="Cilindro e Válvula de HPA" />
+                            <ComboBoxItem Content="Cilindro e Válvula de CO2" />
+                            <ComboBoxItem Content="Bolinhas (Dragon)" />
+                            <ComboBoxItem Content="Bolinhas (Machine)" />
+                        </ComboBox>
+
+                        <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
                                  Style="{StaticResource ModernTextBox}" 
-                                 Margin="16,0,0,0"
                                  VerticalAlignment="Center"
                                  ToolTip="Buscar por Nome, SKU ou Categoria"/>
                         
                         <!-- Recomendações Inteligentes -->
-                        <Popup IsOpen="{Binding ShowRecommendations}" StaysOpen="False" AllowsTransparency="True" Placement="Bottom">
+                        <Popup IsOpen="{Binding ShowRecommendations}" StaysOpen="False" AllowsTransparency="True" Placement="Bottom" Grid.Column="1">
                             <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Width="334" Margin="16,4,0,0" Padding="8">
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1"/>
@@ -195,8 +217,9 @@
                                                 <TextBlock Text="{Binding SKU, StringFormat='SKU: {0}'}" FontSize="11" Foreground="#94A3B8" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </StackPanel>
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Stock}" FontWeight="SemiBold">
+                                        <Grid Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Stock}" FontWeight="SemiBold" 
+                                                       Visibility="{Binding IsEditingStock, Converter={StaticResource InverseBoolToVisibility}}">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Foreground" Value="#1E293B"/>
@@ -207,12 +230,30 @@
                                                         </Style.Triggers>
                                                     </Style>
                                                 </TextBlock.Style>
+                                                <TextBlock.InputBindings>
+                                                    <MouseBinding MouseAction="LeftDoubleClick" 
+                                                                  Command="{Binding DataContext.EditStockCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" 
+                                                                  CommandParameter="{Binding}"/>
+                                                </TextBlock.InputBindings>
                                             </TextBlock>
-                                            <Border Background="#FEE2E2" CornerRadius="4" Padding="4,2" Margin="6,0,0,0"
+                                            
+                                            <TextBox Text="{Binding Stock, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                     Visibility="{Binding IsEditingStock, Converter={StaticResource BoolToVisibility}}"
+                                                     FontSize="12" Padding="4,2" HorizontalAlignment="Left" Width="50">
+                                                <TextBox.InputBindings>
+                                                    <KeyBinding Key="Enter" 
+                                                                Command="{Binding DataContext.UpdateStockCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" 
+                                                                CommandParameter="{Binding}"/>
+                                                    <KeyBinding Key="Escape" 
+                                                                Command="{Binding DataContext.RefreshCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                                </TextBox.InputBindings>
+                                            </TextBox>
+
+                                            <Border Background="#FEE2E2" CornerRadius="4" Padding="4,2" HorizontalAlignment="Right" Margin="0,0,10,0"
                                                     Visibility="{Binding IsLowStock, Converter={StaticResource BoolToVisibility}}">
                                                 <TextBlock Text="!" FontSize="9" Foreground="#DC2626" FontWeight="Bold"/>
                                             </Border>
-                                        </StackPanel>
+                                        </Grid>
                                         <TextBlock Grid.Column="2" Text="{Binding Dimensions}" Foreground="#64748B" VerticalAlignment="Center" FontSize="12"/>
                                         <TextBlock Grid.Column="3" Text="{Binding PriceFormatted, Mode=OneWay}" FontWeight="Bold" Foreground="#22C55E" VerticalAlignment="Center"/>
                                     </Grid>

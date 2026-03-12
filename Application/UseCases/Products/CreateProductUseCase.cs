@@ -27,15 +27,11 @@ public class CreateProductUseCase
 
             var product = new Product(
                 command.Name,
+                command.Category,
                 command.Description,
                 command.Cost > 0 ? command.Cost : 0.01m,
                 command.Price
             );
-
-            if (!string.IsNullOrWhiteSpace(command.Category))
-            {
-                product.UpdateDetails(command.Name, command.Description, command.Category);
-            }
 
             if (command.Weight > 0)
             {

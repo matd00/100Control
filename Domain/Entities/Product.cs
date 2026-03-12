@@ -24,11 +24,14 @@ public class Product
     // EF Core constructor
     private Product() { }
 
-    public Product(string name, string description, decimal cost, decimal price)
+    public Product(string name, string category, string description, decimal cost, decimal price)
     {
         // Security: Input validation
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Product name cannot be empty", nameof(name));
+        
+        if (string.IsNullOrWhiteSpace(category))
+            throw new ArgumentException("Category is required", nameof(category));
 
         if (name.Length > 200)
             throw new ArgumentException("Product name cannot exceed 200 characters", nameof(name));
@@ -39,14 +42,11 @@ public class Product
         if (price <= 0)
             throw new ArgumentException("Price must be greater than 0", nameof(price));
 
-        if (price < cost)
-            throw new ArgumentException("Selling price cannot be less than cost", nameof(price));
-
         Id = Guid.NewGuid();
         Name = name.Trim();
+        Category = category.Trim();
         Description = description?.Trim() ?? string.Empty;
         SKU = GenerateSKU(name);
-        Category = "Geral"; // Default category for existing products
         Cost = cost;
         Price = price;
         Stock = 0;
@@ -59,6 +59,22 @@ public class Product
 
         IsActive = true;
         CreatedAt = DateTime.UtcNow;
+    }
+
+    public void Update(string name, string category, string description, decimal cost, decimal price)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Name is required", nameof(name));
+
+        if (string.IsNullOrWhiteSpace(category))
+            throw new ArgumentException("Category is required", nameof(category));
+
+        Name = name.Trim();
+        Category = category.Trim();
+        Description = description?.Trim() ?? string.Empty;
+        Cost = cost;
+        Price = price;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     private static string GenerateSKU(string name)

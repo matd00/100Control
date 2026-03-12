@@ -139,8 +139,7 @@
                     <StackPanel Grid.Row="1">
                         <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
                                  Style="{StaticResource ModernTextBox}" 
-                                 ToolTip="Buscar por Cliente, Status ou Rastreio"
-                                 PlaceholderText="Buscar pedidos..."/>
+                                 ToolTip="Buscar por Cliente, Status ou Rastreio"/>
                         
                         <Grid Margin="0,8,0,0">
                             <Grid.ColumnDefinitions>
