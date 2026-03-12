@@ -4,6 +4,7 @@ using Application.UseCases.FactoryOrders;
 using Desktop.Infrastructure.MVVM;
 using Domain.Entities;
 using Domain.Interfaces.Repositories;
+using Domain.Services;
 using Integrations.SuperFrete.Interfaces;
 
 namespace Desktop.Features.Orders;
