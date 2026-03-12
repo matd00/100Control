@@ -198,7 +198,8 @@ public class FactoryOrdersViewModel : ViewModelBase
         CreateFactoryOrderUseCase createUseCase,
         UpdateFactoryOrderStatusUseCase updateStatusUseCase,
         AddTrackingCodeUseCase addTrackingUseCase,
-        ISuperFreteService superFreteService)
+        ISuperFreteService superFreteService,
+        ISmartSearchService smartSearchService)
     {
         _repository = repository;
         _customerRepository = customerRepository;
@@ -206,6 +207,7 @@ public class FactoryOrdersViewModel : ViewModelBase
         _updateStatusUseCase = updateStatusUseCase;
         _addTrackingUseCase = addTrackingUseCase;
         _superFreteService = superFreteService;
+        _smartSearchService = smartSearchService;
 
         RefreshOrdersCommand = new AsyncRelayCommand(LoadOrdersAsync);
         SelectOrderCommand = new RelayCommand<FactoryOrderViewModel>(SelectOrder);
@@ -229,6 +231,7 @@ public class FactoryOrdersViewModel : ViewModelBase
     }
 
     private readonly ISuperFreteService _superFreteService;
+    private readonly ISmartSearchService _smartSearchService;
 
     private async Task SyncWithSuperFreteAsync(FactoryOrderViewModel? orderVm)
     {
@@ -329,16 +332,21 @@ public class FactoryOrdersViewModel : ViewModelBase
     private void FilterCustomers()
     {
         FilteredCustomers.Clear();
-        var search = CustomerSearchText?.ToLowerInvariant() ?? "";
-        foreach (var c in AllCustomers)
+        if (string.IsNullOrWhiteSpace(CustomerSearchText))
         {
-            if (string.IsNullOrEmpty(search) ||
-                c.Name.ToLowerInvariant().Contains(search) ||
-                c.Phone.ToLowerInvariant().Contains(search) ||
-                c.Email.ToLowerInvariant().Contains(search))
-            {
-                FilteredCustomers.Add(c);
-            }
+            foreach (var c in AllCustomers) FilteredCustomers.Add(c);
+            return;
+        }
+
+        var filtered = _smartSearchService.Search(
+            AllCustomers,
+            CustomerSearchText,
+            c => $"{c.Name} {c.Email} {c.Phone} {c.Document} {c.City}",
+            threshold: 0.25);
+
+        foreach (var c in filtered)
+        {
+            FilteredCustomers.Add(c);
         }
     }
 
@@ -372,22 +380,26 @@ public class FactoryOrdersViewModel : ViewModelBase
     private void ApplyFilters()
     {
         Orders.Clear();
-        var search = SearchText?.ToLowerInvariant() ?? "";
+        var search = SearchText?.Trim() ?? "";
 
-        foreach (var o in AllOrders)
+        var filtered = AllOrders.AsEnumerable();
+
+        if (StatusFilter.HasValue)
         {
-            // Status filter
-            if (StatusFilter.HasValue && o.Status != StatusFilter.Value) continue;
+            filtered = filtered.Where(o => o.Status == StatusFilter.Value);
+        }
 
-            // Text search
-            if (!string.IsNullOrEmpty(search))
-            {
-                if (!o.CustomerName.ToLowerInvariant().Contains(search) &&
-                    !o.SupplierName.ToLowerInvariant().Contains(search) &&
-                    !(o.TrackingCode?.ToLowerInvariant().Contains(search) ?? false))
-                    continue;
-            }
+        if (!string.IsNullOrEmpty(search))
+        {
+            filtered = _smartSearchService.Search(
+                filtered,
+                search,
+                o => $"{o.CustomerName} {o.SupplierName} {o.TrackingCode} {o.OrderNumber} {o.Status}",
+                threshold: 0.25);
+        }
 
+        foreach (var o in filtered)
+        {
             Orders.Add(o);
         }
     }

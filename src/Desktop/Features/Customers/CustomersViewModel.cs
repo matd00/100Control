@@ -11,6 +11,7 @@ public class CustomersViewModel : ViewModelBase
 {
     private readonly ICustomerRepository _customerRepository;
     private readonly RegisterCustomerUseCase _registerCustomerUseCase;
+    private readonly ISmartSearchService _smartSearchService;
 
     private string _name = string.Empty;
     private string _email = string.Empty;
@@ -27,8 +28,21 @@ public class CustomersViewModel : ViewModelBase
     private string _statusMessage = string.Empty;
     private bool _isLoading;
     private bool _isEditing;
+    private string _searchText = string.Empty;
 
     #region Properties
+
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (SetProperty(ref _searchText, value))
+            {
+                FilterCustomers();
+            }
+        }
+    }
 
     public string Name
     {
@@ -128,6 +142,7 @@ public class CustomersViewModel : ViewModelBase
 
     #endregion
 
+    public ObservableCollection<CustomerItemViewModel> AllCustomers { get; } = new();
     public ObservableCollection<CustomerItemViewModel> Customers { get; } = new();
 
     public ICommand CreateCustomerCommand { get; }
@@ -135,21 +150,46 @@ public class CustomersViewModel : ViewModelBase
     public ICommand DeleteCustomerCommand { get; }
     public ICommand RefreshCommand { get; }
     public ICommand ClearFormCommand { get; }
+    public ICommand ClearSearchCommand { get; }
     public ICommand SelectCustomerCommand { get; }
 
-    public CustomersViewModel(ICustomerRepository customerRepository, RegisterCustomerUseCase registerCustomerUseCase)
+    public CustomersViewModel(ICustomerRepository customerRepository, RegisterCustomerUseCase registerCustomerUseCase, ISmartSearchService smartSearchService)
     {
         _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(customerRepository));
         _registerCustomerUseCase = registerCustomerUseCase ?? throw new ArgumentNullException(nameof(registerCustomerUseCase));
+        _smartSearchService = smartSearchService ?? throw new ArgumentNullException(nameof(smartSearchService));
 
         CreateCustomerCommand = new AsyncRelayCommand(CreateCustomerAsync, () => !IsLoading && !IsEditing && CanCreate());
         UpdateCustomerCommand = new AsyncRelayCommand(UpdateCustomerAsync, () => !IsLoading && IsEditing && SelectedCustomer != null);
         DeleteCustomerCommand = new AsyncRelayCommand(DeleteCustomerAsync, () => !IsLoading && SelectedCustomer != null);
         RefreshCommand = new AsyncRelayCommand(LoadCustomersAsync);
         ClearFormCommand = new RelayCommand(ClearForm);
+        ClearSearchCommand = new RelayCommand(() => SearchText = string.Empty);
         SelectCustomerCommand = new RelayCommand<CustomerItemViewModel>(SelectCustomer);
 
         _ = LoadCustomersAsync();
+    }
+
+    private void FilterCustomers()
+    {
+        Customers.Clear();
+
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            foreach (var c in AllCustomers) Customers.Add(c);
+            return;
+        }
+
+        var filtered = _smartSearchService.Search(
+            AllCustomers,
+            SearchText,
+            c => $"{c.Name} {c.Email} {c.Phone} {c.Document} {c.City}",
+            threshold: 0.25);
+
+        foreach (var c in filtered)
+        {
+            Customers.Add(c);
+        }
     }
 
     private bool CanCreate() => !string.IsNullOrWhiteSpace(Name) && !string.IsNullOrWhiteSpace(Email);
@@ -288,10 +328,10 @@ public class CustomersViewModel : ViewModelBase
             IsLoading = true;
             var customers = await _customerRepository.GetAllAsync();
 
-            Customers.Clear();
+            AllCustomers.Clear();
             foreach (var customer in customers.OrderByDescending(c => c.CreatedAt))
             {
-                Customers.Add(new CustomerItemViewModel
+                AllCustomers.Add(new CustomerItemViewModel
                 {
                     Id = customer.Id,
                     Name = customer.Name,
@@ -308,6 +348,7 @@ public class CustomersViewModel : ViewModelBase
                     IsActive = customer.IsActive
                 });
             }
+            FilterCustomers();
         }
         catch (Exception ex)
         {

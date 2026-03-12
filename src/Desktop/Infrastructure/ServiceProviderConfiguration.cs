@@ -141,7 +141,8 @@ public static class ServiceProviderConfiguration
                 sp.GetRequiredService<CreateFactoryOrderUseCase>(),
                 sp.GetRequiredService<UpdateFactoryOrderStatusUseCase>(),
                 sp.GetRequiredService<AddTrackingCodeUseCase>(),
-                sp.GetRequiredService<ISuperFreteService>()
+                sp.GetRequiredService<ISuperFreteService>(),
+                sp.GetRequiredService<ISmartSearchService>()
             ));
             services.AddTransient<OrdersLayoutViewModel>();
             services.AddTransient<CustomersViewModel>();

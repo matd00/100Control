@@ -10,6 +10,7 @@ public class KitsViewModel : ViewModelBase
 {
     private readonly IKitRepository _kitRepository;
     private readonly IProductRepository _productRepository;
+    private readonly ISmartSearchService _smartSearchService;
 
     private string _name = string.Empty;
     private string _description = string.Empty;
@@ -20,8 +21,21 @@ public class KitsViewModel : ViewModelBase
     private string _statusMessage = string.Empty;
     private bool _isLoading;
     private bool _isEditing;
+    private string _searchText = string.Empty;
 
     #region Properties
+
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (SetProperty(ref _searchText, value))
+            {
+                FilterKits();
+            }
+        }
+    }
 
     public string Name
     {
@@ -85,6 +99,7 @@ public class KitsViewModel : ViewModelBase
 
     #endregion
 
+    public ObservableCollection<KitItemViewModel> AllKits { get; } = new();
     public ObservableCollection<KitItemViewModel> Kits { get; } = new();
     public ObservableCollection<ProductItemViewModel> AvailableProducts { get; } = new();
 
@@ -95,12 +110,14 @@ public class KitsViewModel : ViewModelBase
     public ICommand RemoveProductFromKitCommand { get; }
     public ICommand RefreshCommand { get; }
     public ICommand ClearFormCommand { get; }
+    public ICommand ClearSearchCommand { get; }
     public ICommand SelectKitCommand { get; }
 
-    public KitsViewModel(IKitRepository kitRepository, IProductRepository productRepository)
+    public KitsViewModel(IKitRepository kitRepository, IProductRepository productRepository, ISmartSearchService smartSearchService)
     {
         _kitRepository = kitRepository ?? throw new ArgumentNullException(nameof(kitRepository));
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
+        _smartSearchService = smartSearchService ?? throw new ArgumentNullException(nameof(smartSearchService));
 
         CreateKitCommand = new AsyncRelayCommand(CreateKitAsync, () => !IsLoading && !IsEditing && CanCreate());
         UpdateKitCommand = new AsyncRelayCommand(UpdateKitAsync, () => !IsLoading && IsEditing && SelectedKit != null);
@@ -109,9 +126,32 @@ public class KitsViewModel : ViewModelBase
         RemoveProductFromKitCommand = new AsyncRelayCommand<Guid>(RemoveProductFromKitAsync);
         RefreshCommand = new AsyncRelayCommand(LoadDataAsync);
         ClearFormCommand = new RelayCommand(ClearForm);
+        ClearSearchCommand = new RelayCommand(() => SearchText = string.Empty);
         SelectKitCommand = new RelayCommand<KitItemViewModel>(SelectKit);
 
         _ = LoadDataAsync();
+    }
+
+    private void FilterKits()
+    {
+        Kits.Clear();
+
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            foreach (var k in AllKits) Kits.Add(k);
+            return;
+        }
+
+        var filtered = _smartSearchService.Search(
+            AllKits,
+            SearchText,
+            k => $"{k.Name} {k.Description}",
+            threshold: 0.25);
+
+        foreach (var k in filtered)
+        {
+            Kits.Add(k);
+        }
     }
 
     private bool CanCreate() => !string.IsNullOrWhiteSpace(Name) && Price > 0;
@@ -292,10 +332,10 @@ public class KitsViewModel : ViewModelBase
             
             // Load kits
             var kits = await _kitRepository.GetAllAsync();
-            Kits.Clear();
+            AllKits.Clear();
             foreach (var kit in kits.OrderByDescending(k => k.CreatedAt))
             {
-                Kits.Add(new KitItemViewModel
+                AllKits.Add(new KitItemViewModel
                 {
                     Id = kit.Id,
                     Name = kit.Name,
@@ -310,6 +350,7 @@ public class KitsViewModel : ViewModelBase
                     IsActive = kit.IsActive
                 });
             }
+            FilterKits();
 
             // Load available products
             var products = await _productRepository.GetActiveAsync();

@@ -9,6 +9,7 @@ namespace Desktop.Features.Suppliers;
 public class SuppliersViewModel : ViewModelBase
 {
     private readonly ISupplierRepository _supplierRepository;
+    private readonly ISmartSearchService _smartSearchService;
 
     private string _name = string.Empty;
     private string _contactName = string.Empty;
@@ -23,8 +24,21 @@ public class SuppliersViewModel : ViewModelBase
     private string _statusMessage = string.Empty;
     private bool _isLoading;
     private bool _isEditing;
+    private string _searchText = string.Empty;
 
     #region Properties
+
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (SetProperty(ref _searchText, value))
+            {
+                FilterSuppliers();
+            }
+        }
+    }
 
     public string Name
     {
@@ -112,6 +126,7 @@ public class SuppliersViewModel : ViewModelBase
 
     #endregion
 
+    public ObservableCollection<SupplierItemViewModel> AllSuppliers { get; } = new();
     public ObservableCollection<SupplierItemViewModel> Suppliers { get; } = new();
 
     public ICommand CreateSupplierCommand { get; }
@@ -119,20 +134,45 @@ public class SuppliersViewModel : ViewModelBase
     public ICommand DeleteSupplierCommand { get; }
     public ICommand RefreshCommand { get; }
     public ICommand ClearFormCommand { get; }
+    public ICommand ClearSearchCommand { get; }
     public ICommand SelectSupplierCommand { get; }
 
-    public SuppliersViewModel(ISupplierRepository supplierRepository)
+    public SuppliersViewModel(ISupplierRepository supplierRepository, ISmartSearchService smartSearchService)
     {
         _supplierRepository = supplierRepository ?? throw new ArgumentNullException(nameof(supplierRepository));
+        _smartSearchService = smartSearchService ?? throw new ArgumentNullException(nameof(smartSearchService));
 
         CreateSupplierCommand = new AsyncRelayCommand(CreateSupplierAsync, () => !IsLoading && !IsEditing && CanCreate());
         UpdateSupplierCommand = new AsyncRelayCommand(UpdateSupplierAsync, () => !IsLoading && IsEditing && SelectedSupplier != null);
         DeleteSupplierCommand = new AsyncRelayCommand(DeleteSupplierAsync, () => !IsLoading && SelectedSupplier != null);
         RefreshCommand = new AsyncRelayCommand(LoadSuppliersAsync);
         ClearFormCommand = new RelayCommand(ClearForm);
+        ClearSearchCommand = new RelayCommand(() => SearchText = string.Empty);
         SelectSupplierCommand = new RelayCommand<SupplierItemViewModel>(SelectSupplier);
 
         _ = LoadSuppliersAsync();
+    }
+
+    private void FilterSuppliers()
+    {
+        Suppliers.Clear();
+
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            foreach (var s in AllSuppliers) Suppliers.Add(s);
+            return;
+        }
+
+        var filtered = _smartSearchService.Search(
+            AllSuppliers,
+            SearchText,
+            s => $"{s.Name} {s.ContactName} {s.Email} {s.Phone} {s.Document} {s.City}",
+            threshold: 0.25);
+
+        foreach (var s in filtered)
+        {
+            Suppliers.Add(s);
+        }
     }
 
     private bool CanCreate() => !string.IsNullOrWhiteSpace(Name) && !string.IsNullOrWhiteSpace(Email);
@@ -249,10 +289,10 @@ public class SuppliersViewModel : ViewModelBase
             IsLoading = true;
             var suppliers = await _supplierRepository.GetAllAsync();
 
-            Suppliers.Clear();
+            AllSuppliers.Clear();
             foreach (var supplier in suppliers.OrderByDescending(s => s.CreatedAt))
             {
-                Suppliers.Add(new SupplierItemViewModel
+                AllSuppliers.Add(new SupplierItemViewModel
                 {
                     Id = supplier.Id,
                     Name = supplier.Name,
@@ -267,6 +307,7 @@ public class SuppliersViewModel : ViewModelBase
                     IsActive = supplier.IsActive
                 });
             }
+            FilterSuppliers();
         }
         catch (Exception ex)
         {
