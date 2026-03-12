@@ -206,11 +206,13 @@ public class ProductsViewModel : ViewModelBase
     public ICommand UpdateDimensionsCommand { get; }
     public ICommand SelectProductCommand { get; }
     public ICommand AdjustStockCommand { get; }
+    public ICommand AddStockCommand { get; }
+    public ICommand RemoveStockCommand { get; }
 
     #endregion
 
     public ProductsViewModel(
-        IProductRepository productRepository, 
+        IProductRepository productRepository,
         CreateProductUseCase createProductUseCase,
         AdjustStockUseCase adjustStockUseCase,
         ISuperFreteService superFreteService,
@@ -232,12 +234,28 @@ public class ProductsViewModel : ViewModelBase
         UpdateDimensionsCommand = new AsyncRelayCommand(UpdateProductDimensionsAsync, () => SelectedProduct != null);
         SelectProductCommand = new RelayCommand<ProductItemViewModel>(SelectProduct);
         AdjustStockCommand = new AsyncRelayCommand(AdjustStockAsync, () => SelectedProduct != null && StockAdjustment != 0);
+        AddStockCommand = new AsyncRelayCommand(AddStockAsync, () => SelectedProduct != null && StockAdjustment > 0);
+        RemoveStockCommand = new AsyncRelayCommand(RemoveStockAsync, () => SelectedProduct != null && StockAdjustment > 0);
 
         _ = LoadProductsAsync();
     }
 
-    private async Task AdjustStockAsync()
+    private async Task AddStockAsync()
     {
+        if (SelectedProduct == null || StockAdjustment <= 0) return;
+        AdjustmentNotes = string.IsNullOrWhiteSpace(AdjustmentNotes) ? "Entrada de estoque" : AdjustmentNotes;
+        await AdjustStockAsync();
+    }
+
+    private async Task RemoveStockAsync()
+    {
+        if (SelectedProduct == null || StockAdjustment <= 0) return;
+        StockAdjustment = -StockAdjustment; // Invert for removal
+        AdjustmentNotes = string.IsNullOrWhiteSpace(AdjustmentNotes) ? "Saída de estoque" : AdjustmentNotes;
+        await AdjustStockAsync();
+    }
+
+    private async Task AdjustStockAsync()    {
         if (SelectedProduct == null || StockAdjustment == 0) return;
 
         try

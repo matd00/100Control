@@ -342,21 +342,32 @@
                         
                         <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="2*"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                                <TextBlock Text="Qtd (+ ou -)" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
+                                <TextBlock Text="Quantidade" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
                                 <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding StockAdjustment, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1">
                                 <TextBlock Text="Motivo / Notas" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
-                                <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding AdjustmentNotes, UpdateSourceTrigger=PropertyChanged}" MaxLength="100"/>
+                                <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding AdjustmentNotes, UpdateSourceTrigger=PropertyChanged}" MaxLength="100" PlaceholderText="Opcional..."/>
                             </StackPanel>
                         </Grid>
 
-                        <Button Content="Confirmar Ajuste" Command="{Binding AdjustStockCommand}" Style="{StaticResource PrimaryButton}" 
-                                HorizontalAlignment="Stretch" Background="#6366F1"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" Content="➕ Adicionar" Command="{Binding AddStockCommand}" Style="{StaticResource SuccessButton}" 
+                                    Margin="0,0,4,0"/>
+                            <Button Grid.Column="1" Content="➖ Remover" Command="{Binding RemoveStockCommand}" Style="{StaticResource DangerButton}" 
+                                    Margin="4,0,0,0"/>
+                        </Grid>
+                        
+                        <Button Content="⚙️ Ajuste Manual (Livre)" Command="{Binding AdjustStockCommand}" Style="{StaticResource SecondaryButton}" 
+                                HorizontalAlignment="Stretch" Margin="0,8,0,0" FontSize="11" Padding="8,4"/>
                     </StackPanel>
                 </Border>
 
