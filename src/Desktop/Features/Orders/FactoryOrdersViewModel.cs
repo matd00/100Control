@@ -342,7 +342,7 @@ public class FactoryOrdersViewModel : ViewModelBase
         var filtered = _smartSearchService.Search(
             AllCustomers,
             CustomerSearchText,
-            c => $"{c.Name} {c.Email} {c.Phone} {c.Document} {c.City}",
+            c => $"{c.Name} {c.Email} {c.Phone} {c.Document}",
             threshold: 0.25);
 
         foreach (var c in filtered)
@@ -395,7 +395,7 @@ public class FactoryOrdersViewModel : ViewModelBase
             filtered = _smartSearchService.Search(
                 filtered,
                 search,
-                o => $"{o.CustomerName} {o.SupplierName} {o.TrackingCode} {o.OrderNumber} {o.Status}",
+                o => $"{o.CustomerName} {o.SupplierName} {o.TrackingCode} {o.StatusText}",
                 threshold: 0.25);
         }
 
