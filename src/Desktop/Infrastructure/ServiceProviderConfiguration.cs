@@ -88,7 +88,12 @@ public static class ServiceProviderConfiguration
 
             System.Diagnostics.Debug.WriteLine("ServiceProviderConfiguration: Registrando Use Cases...");
             // Use Cases
-            services.AddTransient<CreateOrderUseCase>();
+            services.AddTransient<CreateOrderUseCase>(sp => new CreateOrderUseCase(
+                sp.GetRequiredService<IOrderRepository>(),
+                sp.GetRequiredService<ICustomerRepository>(),
+                sp.GetRequiredService<IProductRepository>(),
+                sp.GetRequiredService<IInventoryMovementRepository>()
+            ));
             services.AddScoped<UpdateOrderUseCase>();
             services.AddTransient<GetOrdersUseCase>();
             services.AddTransient<DeleteOrderUseCase>();

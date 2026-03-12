@@ -36,6 +36,19 @@ namespace Desktop.Features.Orders
         private string _shippingRuleApplied = string.Empty;
         private bool _isManualDimensionsMode;
         private string _originPostalCode = string.Empty;
+        private string _categoryFilter = "Todas Categorias";
+
+        public string CategoryFilter
+        {
+            get => _categoryFilter;
+            set
+            {
+                if (SetProperty(ref _categoryFilter, value))
+                {
+                    FilterOrders();
+                }
+            }
+        }
 
         public int CurrentStep
         {
@@ -984,34 +997,45 @@ namespace Desktop.Features.Orders
             FilteredOrders.Clear();
             RecommendedOrders.Clear();
 
-            if (string.IsNullOrWhiteSpace(SearchText))
+            var query = AllOrders.AsEnumerable();
+
+            // 1. Filter by Category
+            if (!string.IsNullOrEmpty(CategoryFilter) && CategoryFilter != "Todas Categorias")
             {
-                foreach (var o in AllOrders) FilteredOrders.Add(o);
-                ShowRecommendations = false;
-                return;
+                query = query.Where(o => o.Category == CategoryFilter);
             }
 
-            // Use Smart Search for Orders
-            var filtered = _smartSearchService.Search(
-                AllOrders,
-                SearchText,
-                o => $"{o.CustomerName} {o.TrackingCode} {o.StatusText}",
-                threshold: 0.25);
-
-            foreach (var o in filtered)
+            // 2. Filter by Search Text
+            if (!string.IsNullOrWhiteSpace(SearchText))
             {
-                FilteredOrders.Add(o);
-            }
+                // Use Smart Search for text filtering on the already category-filtered list
+                var searchResults = _smartSearchService.Search(
+                    query,
+                    SearchText,
+                    o => $"{o.CustomerName} {o.TrackingCode} {o.StatusText}",
+                    threshold: 0.25);
 
-            // Recommendations (Top 5 highly relevant)
-            var recommendations = filtered.Take(5).ToList();
-            if (recommendations.Any() && SearchText.Length > 2)
-            {
-                foreach (var o in recommendations) RecommendedOrders.Add(o);
-                ShowRecommendations = true;
+                foreach (var o in searchResults)
+                {
+                    FilteredOrders.Add(o);
+                }
+
+                // Recommendations
+                var recommendations = searchResults.Take(5).ToList();
+                if (recommendations.Any() && SearchText.Length > 2)
+                {
+                    foreach (var o in recommendations) RecommendedOrders.Add(o);
+                    ShowRecommendations = true;
+                }
+                else
+                {
+                    ShowRecommendations = false;
+                }
             }
             else
             {
+                // Just category filter
+                foreach (var o in query) FilteredOrders.Add(o);
                 ShowRecommendations = false;
             }
         }
@@ -1020,6 +1044,16 @@ namespace Desktop.Features.Orders
         {
             var customer = await _customerRepository.GetByIdAsync(order.CustomerId);
             var shipment = await _shipmentRepository.GetByOrderIdAsync(order.Id);
+
+            string category = "Geral";
+            if (order.Items.Any())
+            {
+                var firstProduct = await _productRepository.GetByIdAsync(order.Items.First().ProductId);
+                if (firstProduct != null && !string.IsNullOrEmpty(firstProduct.Category))
+                {
+                    category = firstProduct.Category;
+                }
+            }
 
             return new OrderItemViewModel
             {
@@ -1036,6 +1070,7 @@ namespace Desktop.Features.Orders
                 ItemsCount = order.Items.Count,
                 CreatedAt = order.CreatedAt,
                 CreatedAtFormatted = order.CreatedAt.ToString("dd/MM HH:mm"),
+                Category = category,
                 // Informações de envio
                 TrackingCode = shipment?.TrackingNumber,
                 SuperFreteOrderId = shipment?.SuperFreteOrderId ?? "",
@@ -1397,6 +1432,7 @@ namespace Desktop.Features.Orders
         public DateTime CreatedAt { get; set; }
         public string CreatedAtFormatted { get; set; } = string.Empty;
         public bool IsNew { get; set; }
+        public string Category { get; set; } = "Geral";
 
         // Informações de envio
         public string? TrackingCode { get; set; }

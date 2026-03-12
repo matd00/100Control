@@ -126,30 +126,62 @@
                 </Grid.RowDefinitions>
 
                 <Grid Grid.Row="0" Margin="0,0,0,16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
                     
-                    <StackPanel Grid.Column="0" Orientation="Horizontal">
-                        <TextBlock Text="🛒 Pedidos" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B"/>
-                        <TextBlock Text="{Binding Orders.Count, StringFormat=' ({0})'}" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+                        <TextBlock Text="🛒 Pedidos" FontSize="20" FontWeight="Bold" Foreground="#1E293B"/>
+                        <TextBlock Text="{Binding FilteredOrders.Count, StringFormat=' ({0})'}" FontSize="14" Foreground="#64748B" VerticalAlignment="Center" Margin="4,2,0,0"/>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" HorizontalAlignment="Right" Width="180">
+                    <StackPanel Grid.Row="1">
                         <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
-                                 Style="{StaticResource ModernTextBox}" Margin="16,0,0,0"
-                                 ToolTip="Buscar por Cliente, Status ou Rastreio"/>
+                                 Style="{StaticResource ModernTextBox}" 
+                                 ToolTip="Buscar por Cliente, Status ou Rastreio"
+                                 PlaceholderText="Buscar pedidos..."/>
                         
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <ComboBox SelectedValue="{Binding CategoryFilter, UpdateSourceTrigger=PropertyChanged}" 
+                                      SelectedValuePath="Content"
+                                      HorizontalAlignment="Stretch"
+                                      Height="32" Padding="8,0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1">
+                                <ComboBoxItem Content="Todas Categorias" IsSelected="True"/>
+                                <ComboBoxItem Content="Kits de Peças" />
+                                <ComboBoxItem Content="Cilindros de CO2" />
+                                <ComboBoxItem Content="Válvulas de CO2" />
+                                <ComboBoxItem Content="Cilindros de HPA" />
+                                <ComboBoxItem Content="Válvulas de HPA" />
+                                <ComboBoxItem Content="Loaders" />
+                                <ComboBoxItem Content="Placas" />
+                                <ComboBoxItem Content="Cilindro e Válvula de HPA" />
+                                <ComboBoxItem Content="Cilindro e Válvula de CO2" />
+                                <ComboBoxItem Content="Bolinhas (Dragon)" />
+                                <ComboBoxItem Content="Bolinhas (Machine)" />
+                                <ComboBoxItem Content="Geral" />
+                            </ComboBox>
+
+                            <Button Grid.Column="1" Command="{Binding RefreshOrdersCommand}" 
+                                    Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                    ToolTip="Atualizar" Margin="8,0,0,0">
+                                <TextBlock Text="🔄" FontSize="14"/>
+                            </Button>
+                        </Grid>
+
                         <!-- Recomendações Inteligentes -->
                         <Popup IsOpen="{Binding ShowRecommendations}" StaysOpen="False" AllowsTransparency="True" Placement="Bottom">
-                            <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Width="200" Margin="16,4,0,0" Padding="8">
+                            <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Width="280" Margin="0,4,0,0" Padding="8">
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1"/>
                                 </Border.Effect>
                                 <StackPanel>
-                                    <TextBlock Text="✨ Sugestões" FontSize="10" FontWeight="SemiBold" Foreground="#6366F1" Margin="4,0,0,6"/>
+                                    <TextBlock Text="✨ Sugestões Inteligentes" FontSize="10" FontWeight="SemiBold" Foreground="#6366F1" Margin="4,0,0,6"/>
                                     <ItemsControl ItemsSource="{Binding RecommendedOrders}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
@@ -185,17 +217,6 @@
                                 </StackPanel>
                             </Border>
                         </Popup>
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Content="Limpar Filtro" Command="{Binding ClearSearchCommand}" Style="{StaticResource SecondaryButton}" 
-                                Visibility="{Binding SearchText, Converter={StaticResource NullToVisibility}}" Padding="8,4" Margin="0,0,8,0" 
-                                FontSize="11"/>
-                        <Button Command="{Binding RefreshOrdersCommand}" 
-                                Background="Transparent" BorderThickness="0" Cursor="Hand"
-                                ToolTip="Atualizar lista de pedidos" Padding="8,4" VerticalAlignment="Center">
-                            <TextBlock Text="🔄" FontSize="16"/>
-                        </Button>
                     </StackPanel>
                 </Grid>
 

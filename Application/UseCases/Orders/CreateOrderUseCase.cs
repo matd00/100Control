@@ -8,15 +8,18 @@ public class CreateOrderUseCase
     private readonly IOrderRepository _orderRepository;
     private readonly ICustomerRepository _customerRepository;
     private readonly IProductRepository _productRepository;
+    private readonly IInventoryMovementRepository _inventoryMovementRepository;
 
     public CreateOrderUseCase(
         IOrderRepository orderRepository,
         ICustomerRepository customerRepository,
-        IProductRepository productRepository)
+        IProductRepository productRepository,
+        IInventoryMovementRepository inventoryMovementRepository)
     {
         _orderRepository = orderRepository;
         _customerRepository = customerRepository;
         _productRepository = productRepository;
+        _inventoryMovementRepository = inventoryMovementRepository;
     }
 
     public async Task Execute(CreateOrderCommand command)
@@ -41,7 +44,7 @@ public class CreateOrderUseCase
             if (!customer.IsActive)
                 throw new InvalidOperationException("Customer account is inactive");
 
-            var order = new Order(command.CustomerId, command.Source);
+            var order = new Order(command.CustomerId, command.Source, command.IsDropshipping);
 
             // Add items with validation and stock check
             foreach (var item in command.Items)
@@ -56,10 +59,29 @@ public class CreateOrderUseCase
                 if (!product.IsActive)
                     throw new InvalidOperationException($"Product '{product.Name}' is no longer available");
 
-                // SECURITY FIX: Check stock availability
-                if (product.Stock < item.Quantity)
-                    throw new InvalidOperationException(
-                        $"Insufficient stock for '{product.Name}'. Available: {product.Stock}, Requested: {item.Quantity}");
+                // Stock management: only for non-dropshipping orders
+                if (!command.IsDropshipping)
+                {
+                    // SECURITY FIX: Check stock availability
+                    if (product.Stock < item.Quantity)
+                        throw new InvalidOperationException(
+                            $"Insufficient stock for '{product.Name}'. Available: {product.Stock}, Requested: {item.Quantity}");
+
+                    // Decrease stock
+                    product.DecreaseStock(item.Quantity);
+                    
+                    // Log inventory movement
+                    var movement = new InventoryMovement(
+                        product.Id,
+                        InventoryMovementType.Sale,
+                        item.Quantity,
+                        order.Id.ToString(),
+                        $"Venda (Pedido {order.Id}) para {customer.Name}"
+                    );
+
+                    await _productRepository.UpdateAsync(product);
+                    await _inventoryMovementRepository.SaveAsync(movement);
+                }
 
                 order.AddItem(item.ProductId, item.Quantity, product.Price);
             }
@@ -90,6 +112,7 @@ public class CreateOrderCommand
 {
     public Guid CustomerId { get; set; }
     public OrderSource Source { get; set; }
+    public bool IsDropshipping { get; set; }
     public List<CreateOrderItemCommand> Items { get; set; } = new();
 }
 

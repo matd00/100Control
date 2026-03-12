@@ -14,6 +14,7 @@ public class Order
     public Guid Id { get; private set; }
     public Guid CustomerId { get; private set; }
     public OrderSource Source { get; private set; }
+    public bool IsDropshipping { get; private set; }
     public List<OrderItem> Items { get; private set; } = new();
     public decimal TotalAmount { get; private set; }
     public OrderStatus Status { get; private set; }
@@ -23,11 +24,12 @@ public class Order
     // EF Core constructor
     private Order() { }
 
-    public Order(Guid customerId, OrderSource source = OrderSource.Direct)
+    public Order(Guid customerId, OrderSource source = OrderSource.Direct, bool isDropshipping = false)
     {
         Id = Guid.NewGuid();
         CustomerId = customerId;
         Source = source;
+        IsDropshipping = isDropshipping;
         Status = OrderStatus.Pending;
         CreatedAt = DateTime.UtcNow;
     }

@@ -89,14 +89,16 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     
-                    <StackPanel Grid.Column="0" Orientation="Horizontal">
-                        <TextBlock Text="📦 Produtos" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B"/>
-                        <TextBlock Text="{Binding Products.Count, StringFormat=' ({0})'}" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="📦 Produtos" FontSize="20" FontWeight="Bold" Foreground="#1E293B"/>
+                        <TextBlock Text="{Binding Products.Count, StringFormat=' ({0})'}" FontSize="14" Foreground="#64748B" VerticalAlignment="Center" Margin="4,2,0,0"/>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" HorizontalAlignment="Right" Width="350">
+                    <Grid Grid.Column="1" HorizontalAlignment="Right" Width="350">
                         <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
-                                 Style="{StaticResource ModernTextBox}" Margin="16,0,0,0"
+                                 Style="{StaticResource ModernTextBox}" 
+                                 Margin="16,0,0,0"
+                                 VerticalAlignment="Center"
                                  ToolTip="Buscar por Nome, SKU ou Categoria"/>
                         
                         <!-- Recomendações Inteligentes -->
@@ -142,7 +144,7 @@
                                 </StackPanel>
                             </Border>
                         </Popup>
-                    </StackPanel>
+                    </Grid>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
                         <Button Content="Limpar Filtro" Command="{Binding ClearSearchCommand}" Style="{StaticResource SecondaryButton}" 
@@ -266,6 +268,8 @@
                             <ComboBoxItem Content="Placas" />
                             <ComboBoxItem Content="Cilindro e Válvula de HPA" />
                             <ComboBoxItem Content="Cilindro e Válvula de CO2" />
+                            <ComboBoxItem Content="Bolinhas (Dragon)" />
+                            <ComboBoxItem Content="Bolinhas (Machine)" />
                             <ComboBoxItem Content="Geral" />
                         </ComboBox>
 
