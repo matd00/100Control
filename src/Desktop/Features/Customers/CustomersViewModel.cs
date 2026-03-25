@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Desktop.Infrastructure.MVVM;
 using Domain.Entities;
+using Domain.Interfaces;
 using Domain.Interfaces.Repositories;
 using Domain.Services;
 using Application.UseCases.Customers;
@@ -13,6 +14,7 @@ public class CustomersViewModel : ViewModelBase
     private readonly ICustomerRepository _customerRepository;
     private readonly RegisterCustomerUseCase _registerCustomerUseCase;
     private readonly ISmartSearchService _smartSearchService;
+    private readonly IUnitOfWork _unitOfWork;
 
     private string _name = string.Empty;
     private string _email = string.Empty;
@@ -154,11 +156,12 @@ public class CustomersViewModel : ViewModelBase
     public ICommand ClearSearchCommand { get; }
     public ICommand SelectCustomerCommand { get; }
 
-    public CustomersViewModel(ICustomerRepository customerRepository, RegisterCustomerUseCase registerCustomerUseCase, ISmartSearchService smartSearchService)
+    public CustomersViewModel(ICustomerRepository customerRepository, RegisterCustomerUseCase registerCustomerUseCase, ISmartSearchService smartSearchService, IUnitOfWork unitOfWork)
     {
         _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(customerRepository));
         _registerCustomerUseCase = registerCustomerUseCase ?? throw new ArgumentNullException(nameof(registerCustomerUseCase));
         _smartSearchService = smartSearchService ?? throw new ArgumentNullException(nameof(smartSearchService));
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
 
         CreateCustomerCommand = new AsyncRelayCommand(CreateCustomerAsync, () => !IsLoading && !IsEditing && CanCreate());
         UpdateCustomerCommand = new AsyncRelayCommand(UpdateCustomerAsync, () => !IsLoading && IsEditing && SelectedCustomer != null);
@@ -243,9 +246,9 @@ public class CustomersViewModel : ViewModelBase
 
             var result = await _registerCustomerUseCase.Execute(command);
 
-            if (!result.Success)
+            if (result.IsFailure)
             {
-                StatusMessage = $"❌ Erro: {result.ErrorMessage}";
+                StatusMessage = $"❌ Erro: {result.Error}";
                 return;
             }
 
@@ -282,6 +285,7 @@ public class CustomersViewModel : ViewModelBase
             customer.UpdateContactInfo(Name, Email, Phone);
             customer.UpdateFullAddress(Address, Number, Complement, District, City, State, ZipCode);
             await _customerRepository.UpdateAsync(customer);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Cliente atualizado com sucesso!";
             ClearForm();
@@ -307,6 +311,7 @@ public class CustomersViewModel : ViewModelBase
             StatusMessage = "Removendo cliente...";
 
             await _customerRepository.DeleteAsync(SelectedCustomer.Id);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Cliente removido com sucesso!";
             ClearForm();

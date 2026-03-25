@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Desktop.Infrastructure.MVVM;
 using Domain.Entities;
+using Domain.Interfaces;
 using Domain.Interfaces.Repositories;
 using Domain.Services;
 
@@ -11,6 +12,7 @@ public class SuppliersViewModel : ViewModelBase
 {
     private readonly ISupplierRepository _supplierRepository;
     private readonly ISmartSearchService _smartSearchService;
+    private readonly IUnitOfWork _unitOfWork;
 
     private string _name = string.Empty;
     private string _contactName = string.Empty;
@@ -138,10 +140,11 @@ public class SuppliersViewModel : ViewModelBase
     public ICommand ClearSearchCommand { get; }
     public ICommand SelectSupplierCommand { get; }
 
-    public SuppliersViewModel(ISupplierRepository supplierRepository, ISmartSearchService smartSearchService)
+    public SuppliersViewModel(ISupplierRepository supplierRepository, ISmartSearchService smartSearchService, IUnitOfWork unitOfWork)
     {
         _supplierRepository = supplierRepository ?? throw new ArgumentNullException(nameof(supplierRepository));
         _smartSearchService = smartSearchService ?? throw new ArgumentNullException(nameof(smartSearchService));
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
 
         CreateSupplierCommand = new AsyncRelayCommand(CreateSupplierAsync, () => !IsLoading && !IsEditing && CanCreate());
         UpdateSupplierCommand = new AsyncRelayCommand(UpdateSupplierAsync, () => !IsLoading && IsEditing && SelectedSupplier != null);
@@ -209,6 +212,7 @@ public class SuppliersViewModel : ViewModelBase
 
             var supplier = new Supplier(Name, ContactName, Email, Phone, Document);
             await _supplierRepository.SaveAsync(supplier);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Fornecedor criado com sucesso!";
             ClearForm();
@@ -243,6 +247,7 @@ public class SuppliersViewModel : ViewModelBase
             supplier.UpdateContact(Email, Phone, ContactName);
             supplier.UpdateAddress(Address, City, State, ZipCode);
             await _supplierRepository.UpdateAsync(supplier);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Fornecedor atualizado com sucesso!";
             ClearForm();
@@ -268,6 +273,7 @@ public class SuppliersViewModel : ViewModelBase
             StatusMessage = "Removendo fornecedor...";
 
             await _supplierRepository.DeleteAsync(SelectedSupplier.Id);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Fornecedor removido com sucesso!";
             ClearForm();

@@ -21,6 +21,7 @@ namespace Desktop.Features.Orders
         private readonly IShipmentRepository _shipmentRepository;
         private readonly ISuperFreteService _superFreteService;
         private readonly SuperFreteSettings _superFreteSettings;
+        private readonly IUnitOfWork _unitOfWork;
 
         private int _currentStep = 1;
         private OrderItemViewModel? _selectedOrder;
@@ -338,7 +339,8 @@ namespace Desktop.Features.Orders
             GetOrdersUseCase getOrdersUseCase,
             DeleteOrderUseCase deleteOrderUseCase,
             UpdateOrderStatusUseCase updateOrderStatusUseCase,
-            ISmartSearchService smartSearchService)
+            ISmartSearchService smartSearchService,
+            IUnitOfWork unitOfWork)
         {
             try
             {
@@ -355,6 +357,7 @@ namespace Desktop.Features.Orders
                 _deleteOrderUseCase = deleteOrderUseCase ?? throw new ArgumentNullException(nameof(deleteOrderUseCase));
                 _updateOrderStatusUseCase = updateOrderStatusUseCase ?? throw new ArgumentNullException(nameof(updateOrderStatusUseCase));
                 _smartSearchService = smartSearchService ?? throw new ArgumentNullException(nameof(smartSearchService));
+                _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
 
                 System.Diagnostics.Debug.WriteLine("  ✓ Dependências OK");
 
@@ -681,6 +684,7 @@ namespace Desktop.Features.Orders
                         order.AddItem(item.ProductId, item.Quantity, item.UnitPrice);
                     }
                     await _orderRepository.SaveAsync(order);
+                    await _unitOfWork.SaveChangesAsync();
                     await _updateOrderStatusUseCase.Execute(order.Id, (int)OrderStatus.Shipped);
                     orderId = order.Id;
                 }

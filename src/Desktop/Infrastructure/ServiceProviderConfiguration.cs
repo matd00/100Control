@@ -73,6 +73,9 @@ public static class ServiceProviderConfiguration
             services.AddDbContext<PaintballManagerDbContext>(options =>
                 options.UseSqlite($"Data Source={DbPath}"));
 
+            // Unit of Work
+            services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<PaintballManagerDbContext>());
+
             System.Diagnostics.Debug.WriteLine("ServiceProviderConfiguration: Registrando repositórios...");
             // Repositories (Entity Framework)
             services.AddScoped<IProductRepository, EfProductRepository>();
@@ -88,13 +91,8 @@ public static class ServiceProviderConfiguration
 
             System.Diagnostics.Debug.WriteLine("ServiceProviderConfiguration: Registrando Use Cases...");
             // Use Cases
-            services.AddTransient<CreateOrderUseCase>(sp => new CreateOrderUseCase(
-                sp.GetRequiredService<IOrderRepository>(),
-                sp.GetRequiredService<ICustomerRepository>(),
-                sp.GetRequiredService<IProductRepository>(),
-                sp.GetRequiredService<IInventoryMovementRepository>()
-            ));
-            services.AddScoped<UpdateOrderUseCase>();
+            services.AddTransient<CreateOrderUseCase>();
+            services.AddTransient<UpdateOrderUseCase>();
             services.AddTransient<GetOrdersUseCase>();
             services.AddTransient<DeleteOrderUseCase>();
             services.AddTransient<CreateProductUseCase>();
@@ -140,15 +138,7 @@ public static class ServiceProviderConfiguration
             services.AddTransient<DashboardViewModel>();
             services.AddTransient<ProductsViewModel>();
             services.AddTransient<OrdersViewModel>();
-            services.AddTransient<FactoryOrdersViewModel>(sp => new FactoryOrdersViewModel(
-                sp.GetRequiredService<IFactoryOrderRepository>(),
-                sp.GetRequiredService<ICustomerRepository>(),
-                sp.GetRequiredService<CreateFactoryOrderUseCase>(),
-                sp.GetRequiredService<UpdateFactoryOrderStatusUseCase>(),
-                sp.GetRequiredService<AddTrackingCodeUseCase>(),
-                sp.GetRequiredService<ISuperFreteService>(),
-                sp.GetRequiredService<ISmartSearchService>()
-            ));
+            services.AddTransient<FactoryOrdersViewModel>();
             services.AddTransient<OrdersLayoutViewModel>();
             services.AddTransient<CustomersViewModel>();
             services.AddTransient<SuppliersViewModel>();

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Desktop.Infrastructure.MVVM;
 using Domain.Entities;
+using Domain.Interfaces;
 using Domain.Interfaces.Repositories;
 using Application.UseCases.Purchases;
 
@@ -13,6 +14,7 @@ public class PurchasesViewModel : ViewModelBase
     private readonly ISupplierRepository _supplierRepository;
     private readonly IProductRepository _productRepository;
     private readonly RegisterPurchaseUseCase _registerPurchaseUseCase;
+    private readonly IUnitOfWork _unitOfWork;
 
     private SupplierItemViewModel? _selectedSupplier;
     private PurchaseType _purchaseType = PurchaseType.FactoryPurchase;
@@ -96,12 +98,14 @@ public class PurchasesViewModel : ViewModelBase
         IPurchaseRepository purchaseRepository,
         ISupplierRepository supplierRepository,
         IProductRepository productRepository,
-        RegisterPurchaseUseCase registerPurchaseUseCase)
+        RegisterPurchaseUseCase registerPurchaseUseCase,
+        IUnitOfWork unitOfWork)
     {
         _purchaseRepository = purchaseRepository ?? throw new ArgumentNullException(nameof(purchaseRepository));
         _supplierRepository = supplierRepository ?? throw new ArgumentNullException(nameof(supplierRepository));
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         _registerPurchaseUseCase = registerPurchaseUseCase ?? throw new ArgumentNullException(nameof(registerPurchaseUseCase));
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
 
         CreatePurchaseCommand = new AsyncRelayCommand(CreatePurchaseAsync, () => !IsLoading && SelectedSupplier != null);
         AddItemToPurchaseCommand = new AsyncRelayCommand(AddItemToPurchaseAsync, () => !IsLoading && SelectedPurchase != null && SelectedProduct != null);
@@ -133,6 +137,7 @@ public class PurchasesViewModel : ViewModelBase
 
             var purchase = new Purchase(SelectedSupplier.Id, PurchaseType);
             await _purchaseRepository.SaveAsync(purchase);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Compra criada com sucesso! Adicione itens.";
             await LoadDataAsync();
@@ -168,6 +173,7 @@ public class PurchasesViewModel : ViewModelBase
 
             purchase.AddItem(SelectedProduct.Id, Quantity, Cost);
             await _purchaseRepository.UpdateAsync(purchase);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Item adicionado!";
             Quantity = 1;
@@ -205,6 +211,7 @@ public class PurchasesViewModel : ViewModelBase
 
             purchase.MarkAsReceived(DateTime.UtcNow);
             await _purchaseRepository.UpdateAsync(purchase);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Compra marcada como recebida!";
             await LoadDataAsync();
@@ -237,6 +244,7 @@ public class PurchasesViewModel : ViewModelBase
 
             purchase.Cancel();
             await _purchaseRepository.UpdateAsync(purchase);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Compra cancelada!";
             await LoadDataAsync();
@@ -261,6 +269,7 @@ public class PurchasesViewModel : ViewModelBase
             StatusMessage = "Removendo compra...";
 
             await _purchaseRepository.DeleteAsync(SelectedPurchase.Id);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Compra removida!";
             SelectedPurchase = null;

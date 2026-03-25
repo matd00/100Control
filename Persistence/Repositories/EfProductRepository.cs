@@ -40,13 +40,11 @@ public class EfProductRepository : IProductRepository
         {
             _context.Entry(existing).CurrentValues.SetValues(product);
         }
-        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(Product product)
     {
         _context.Products.Update(product);
-        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(Guid id)
@@ -55,7 +53,6 @@ public class EfProductRepository : IProductRepository
         if (product != null)
         {
             _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
         }
     }
 }

@@ -1,29 +1,33 @@
 using Domain.Entities;
 using Domain.Interfaces.Repositories;
+using Domain.Interfaces;
+using Domain.Common;
 
 namespace Application.UseCases.Products;
 
 public class CreateProductUseCase
 {
     private readonly IProductRepository _productRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CreateProductUseCase(IProductRepository productRepository)
+    public CreateProductUseCase(IProductRepository productRepository, IUnitOfWork unitOfWork)
     {
         _productRepository = productRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<CreateProductResult> Execute(CreateProductCommand command)
+    public async Task<Result<Guid>> Execute(CreateProductCommand command)
     {
         try
         {
             if (command == null)
-                return CreateProductResult.Failure("Command cannot be null");
+                return Result<Guid>.Failure("Command cannot be null");
 
             if (string.IsNullOrWhiteSpace(command.Name))
-                return CreateProductResult.Failure("Product name is required");
+                return Result<Guid>.Failure("Product name is required");
 
             if (command.Cost < 0 || command.Price <= 0)
-                return CreateProductResult.Failure("Cost and Price must be valid");
+                return Result<Guid>.Failure("Cost and Price must be valid");
 
             var product = new Product(
                 command.Name,
@@ -44,28 +48,19 @@ public class CreateProductUseCase
             }
 
             await _productRepository.SaveAsync(product);
+            await _unitOfWork.SaveChangesAsync();
 
-            return CreateProductResult.SuccessResult(product.Id);
+            return Result<Guid>.Success(product.Id);
         }
         catch (ArgumentException ex)
         {
-            return CreateProductResult.Failure(ex.Message);
+            return Result<Guid>.Failure(ex.Message);
         }
         catch (Exception)
         {
-            return CreateProductResult.Failure("An error occurred while creating the product.");
+            return Result<Guid>.Failure("An error occurred while creating the product.");
         }
     }
-}
-
-public class CreateProductResult
-{
-    public bool Success { get; private set; }
-    public string ErrorMessage { get; private set; } = string.Empty;
-    public Guid ProductId { get; private set; }
-
-    public static CreateProductResult SuccessResult(Guid productId) => new() { Success = true, ProductId = productId };
-    public static CreateProductResult Failure(string error) => new() { Success = false, ErrorMessage = error };
 }
 
 public class CreateProductCommand

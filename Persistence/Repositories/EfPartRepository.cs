@@ -45,13 +45,11 @@ public class EfPartRepository : IPartRepository
         {
             _context.Entry(existing).CurrentValues.SetValues(part);
         }
-        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(Part part)
     {
         _context.Parts.Update(part);
-        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(Guid id)
@@ -60,7 +58,6 @@ public class EfPartRepository : IPartRepository
         if (part != null)
         {
             _context.Parts.Remove(part);
-            await _context.SaveChangesAsync();
         }
     }
 }

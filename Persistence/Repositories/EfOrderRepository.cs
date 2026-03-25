@@ -55,13 +55,11 @@ public class EfOrderRepository : IOrderRepository
         {
             _context.Entry(existing).CurrentValues.SetValues(order);
         }
-        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(Order order)
     {
         _context.Orders.Update(order);
-        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(Guid id)
@@ -70,7 +68,6 @@ public class EfOrderRepository : IOrderRepository
         if (order != null)
         {
             _context.Orders.Remove(order);
-            await _context.SaveChangesAsync();
         }
     }
 }

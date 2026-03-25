@@ -47,13 +47,11 @@ public class EfKitRepository : IKitRepository
         {
             _context.Entry(existing).CurrentValues.SetValues(kit);
         }
-        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(Kit kit)
     {
         _context.Kits.Update(kit);
-        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(Guid id)
@@ -62,7 +60,6 @@ public class EfKitRepository : IKitRepository
         if (kit != null)
         {
             _context.Kits.Remove(kit);
-            await _context.SaveChangesAsync();
         }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Desktop.Infrastructure.MVVM;
 using Domain.Entities;
+using Domain.Interfaces;
 using Domain.Interfaces.Repositories;
 using Application.UseCases.Shipments;
 using Integrations.SuperFrete.Interfaces;
@@ -16,6 +17,7 @@ public class ShipmentsViewModel : ViewModelBase
     private readonly ICustomerRepository _customerRepository;
     private readonly GenerateShipmentUseCase _generateShipmentUseCase;
     private readonly ISuperFreteService _superFreteService;
+    private readonly IUnitOfWork _unitOfWork;
 
     private OrderForShipmentViewModel? _selectedOrder;
     private ShipmentProvider _selectedProvider = ShipmentProvider.SuperFrete;
@@ -96,7 +98,8 @@ public class ShipmentsViewModel : ViewModelBase
         IProductRepository productRepository,
         ICustomerRepository customerRepository,
         GenerateShipmentUseCase generateShipmentUseCase,
-        ISuperFreteService superFreteService)
+        ISuperFreteService superFreteService,
+        IUnitOfWork unitOfWork)
     {
         _shipmentRepository = shipmentRepository ?? throw new ArgumentNullException(nameof(shipmentRepository));
         _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
@@ -104,6 +107,7 @@ public class ShipmentsViewModel : ViewModelBase
         _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(customerRepository));
         _generateShipmentUseCase = generateShipmentUseCase ?? throw new ArgumentNullException(nameof(generateShipmentUseCase));
         _superFreteService = superFreteService ?? throw new ArgumentNullException(nameof(superFreteService));
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
 
         CreateShipmentCommand = new AsyncRelayCommand(CreateShipmentAsync, () => !IsLoading && SelectedOrder != null);
         GenerateLabelCommand = new AsyncRelayCommand(GenerateLabelAsync, () => !IsLoading && SelectedShipment != null);
@@ -194,6 +198,7 @@ public class ShipmentsViewModel : ViewModelBase
             }
 
             await _shipmentRepository.SaveAsync(shipment);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Envio criado! Gere a etiqueta.";
             await LoadDataAsync();
@@ -297,6 +302,7 @@ public class ShipmentsViewModel : ViewModelBase
             }
 
             await _shipmentRepository.UpdateAsync(shipment);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = $"✅ Etiqueta gerada! Código: {TrackingNumber}";
             await LoadDataAsync();
@@ -329,6 +335,7 @@ public class ShipmentsViewModel : ViewModelBase
 
             shipment.MarkAsShipped();
             await _shipmentRepository.UpdateAsync(shipment);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Envio marcado como enviado!";
             await LoadDataAsync();
@@ -361,6 +368,7 @@ public class ShipmentsViewModel : ViewModelBase
 
             shipment.MarkAsDelivered();
             await _shipmentRepository.UpdateAsync(shipment);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Envio marcado como entregue!";
             await LoadDataAsync();
@@ -393,6 +401,7 @@ public class ShipmentsViewModel : ViewModelBase
 
             shipment.Cancel();
             await _shipmentRepository.UpdateAsync(shipment);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Envio cancelado!";
             await LoadDataAsync();

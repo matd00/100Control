@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Desktop.Infrastructure.MVVM;
 using Domain.Entities;
+using Domain.Interfaces;
 using Domain.Interfaces.Repositories;
 using Domain.Services;
 
@@ -12,6 +13,7 @@ public class KitsViewModel : ViewModelBase
     private readonly IKitRepository _kitRepository;
     private readonly IProductRepository _productRepository;
     private readonly ISmartSearchService _smartSearchService;
+    private readonly IUnitOfWork _unitOfWork;
 
     private string _name = string.Empty;
     private string _description = string.Empty;
@@ -114,11 +116,12 @@ public class KitsViewModel : ViewModelBase
     public ICommand ClearSearchCommand { get; }
     public ICommand SelectKitCommand { get; }
 
-    public KitsViewModel(IKitRepository kitRepository, IProductRepository productRepository, ISmartSearchService smartSearchService)
+    public KitsViewModel(IKitRepository kitRepository, IProductRepository productRepository, ISmartSearchService smartSearchService, IUnitOfWork unitOfWork)
     {
         _kitRepository = kitRepository ?? throw new ArgumentNullException(nameof(kitRepository));
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         _smartSearchService = smartSearchService ?? throw new ArgumentNullException(nameof(smartSearchService));
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
 
         CreateKitCommand = new AsyncRelayCommand(CreateKitAsync, () => !IsLoading && !IsEditing && CanCreate());
         UpdateKitCommand = new AsyncRelayCommand(UpdateKitAsync, () => !IsLoading && IsEditing && SelectedKit != null);
@@ -182,6 +185,7 @@ public class KitsViewModel : ViewModelBase
 
             var kit = new Kit(Name, Description, Price);
             await _kitRepository.SaveAsync(kit);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Kit criado com sucesso!";
             ClearForm();
@@ -215,6 +219,7 @@ public class KitsViewModel : ViewModelBase
 
             // Note: Kit entity needs UpdateInfo method - using repository update for now
             await _kitRepository.UpdateAsync(kit);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Kit atualizado com sucesso!";
             ClearForm();
@@ -240,6 +245,7 @@ public class KitsViewModel : ViewModelBase
             StatusMessage = "Removendo kit...";
 
             await _kitRepository.DeleteAsync(SelectedKit.Id);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Kit removido com sucesso!";
             ClearForm();
@@ -273,6 +279,7 @@ public class KitsViewModel : ViewModelBase
 
             kit.AddItem(SelectedProduct.Id, ProductQuantity);
             await _kitRepository.UpdateAsync(kit);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Produto adicionado ao kit!";
             await LoadDataAsync();
@@ -308,6 +315,7 @@ public class KitsViewModel : ViewModelBase
 
             kit.RemoveItem(productId);
             await _kitRepository.UpdateAsync(kit);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Produto removido do kit!";
             await LoadDataAsync();

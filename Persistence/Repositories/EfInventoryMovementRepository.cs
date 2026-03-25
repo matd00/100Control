@@ -38,6 +38,5 @@ public class EfInventoryMovementRepository : IInventoryMovementRepository
     public async Task SaveAsync(InventoryMovement movement)
     {
         _context.InventoryMovements.Add(movement);
-        await _context.SaveChangesAsync();
     }
 }

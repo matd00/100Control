@@ -1,5 +1,7 @@
 using Domain.Entities;
 using Domain.Interfaces.Repositories;
+using Domain.Interfaces;
+using Domain.Common;
 
 namespace Application.UseCases.Purchases;
 
@@ -9,56 +11,58 @@ public class RegisterPurchaseUseCase
     private readonly ISupplierRepository _supplierRepository;
     private readonly IProductRepository _productRepository;
     private readonly IInventoryMovementRepository _inventoryMovementRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public RegisterPurchaseUseCase(
         IPurchaseRepository purchaseRepository,
         ISupplierRepository supplierRepository,
         IProductRepository productRepository,
-        IInventoryMovementRepository inventoryMovementRepository)
+        IInventoryMovementRepository inventoryMovementRepository,
+        IUnitOfWork unitOfWork)
     {
         _purchaseRepository = purchaseRepository;
         _supplierRepository = supplierRepository;
         _productRepository = productRepository;
         _inventoryMovementRepository = inventoryMovementRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task Execute(RegisterPurchaseCommand command)
+    public async Task<Result> Execute(RegisterPurchaseCommand command)
     {
         try
         {
-            // Security: Input validation
             if (command == null)
-                throw new ArgumentNullException(nameof(command));
+                return Result.Failure("Command cannot be null");
 
             if (command.SupplierId == Guid.Empty)
-                throw new ArgumentException("Supplier ID is required");
+                return Result.Failure("Supplier ID is required");
 
             if (command.Items == null || command.Items.Count == 0)
-                throw new ArgumentException("Purchase must contain at least one item");
+                return Result.Failure("Purchase must contain at least one item");
 
             var supplier = await _supplierRepository.GetByIdAsync(command.SupplierId);
             if (supplier == null)
-                throw new InvalidOperationException("Supplier not found");
+                return Result.Failure("Supplier not found");
 
             if (!supplier.IsActive)
-                throw new InvalidOperationException("Supplier is inactive");
+                return Result.Failure("Supplier is inactive");
 
             var purchase = new Purchase(command.SupplierId, command.Type);
 
             foreach (var item in command.Items)
             {
                 if (item.ProductId == Guid.Empty)
-                    throw new ArgumentException("Product ID cannot be empty");
+                    return Result.Failure("Product ID cannot be empty");
 
                 if (item.Quantity <= 0 || item.Quantity > 1000000)
-                    throw new ArgumentException("Invalid quantity");
+                    return Result.Failure("Invalid quantity");
 
                 if (item.Cost <= 0)
-                    throw new ArgumentException("Cost must be greater than 0");
+                    return Result.Failure("Cost must be greater than 0");
 
                 var product = await _productRepository.GetByIdAsync(item.ProductId);
                 if (product == null)
-                    throw new InvalidOperationException($"Product not found");
+                    return Result.Failure($"Product not found");
 
                 // Add purchase item
                 purchase.AddItem(item.ProductId, item.Quantity, item.Cost);
@@ -79,24 +83,17 @@ public class RegisterPurchaseUseCase
                 await _inventoryMovementRepository.SaveAsync(movement);
             }
 
-            // Limit items per purchase
             if (purchase.Items.Count > 500)
-                throw new InvalidOperationException("Purchase cannot contain more than 500 items");
+                return Result.Failure("Purchase cannot contain more than 500 items");
 
             await _purchaseRepository.SaveAsync(purchase);
+            await _unitOfWork.SaveChangesAsync();
+            
+            return Result.Success();
         }
-        catch (ArgumentException)
+        catch (Exception)
         {
-            throw;
-        }
-        catch (InvalidOperationException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            // Security: Don't expose internal exception details
-            throw new InvalidOperationException("An error occurred while registering the purchase. Please try again later.");
+            return Result.Failure("An error occurred while registering the purchase. Please try again later.");
         }
     }
 }

@@ -1,9 +1,10 @@
 using Domain.Entities;
+using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Context;
 
-public class PaintballManagerDbContext : DbContext
+public class PaintballManagerDbContext : DbContext, IUnitOfWork
 {
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Order> Orders => Set<Order>();

@@ -54,13 +54,11 @@ public class EfShipmentRepository : IShipmentRepository
         {
             _context.Entry(existing).CurrentValues.SetValues(shipment);
         }
-        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(Shipment shipment)
     {
         _context.Shipments.Update(shipment);
-        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(Guid id)
@@ -69,7 +67,6 @@ public class EfShipmentRepository : IShipmentRepository
         if (shipment != null)
         {
             _context.Shipments.Remove(shipment);
-            await _context.SaveChangesAsync();
         }
     }
 }

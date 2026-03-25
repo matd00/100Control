@@ -1,40 +1,44 @@
 using Domain.Entities;
 using Domain.Interfaces.Repositories;
+using Domain.Interfaces;
+using Domain.Common;
 
 namespace Application.UseCases.Customers;
 
 public class RegisterCustomerUseCase
 {
     private readonly ICustomerRepository _customerRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public RegisterCustomerUseCase(ICustomerRepository customerRepository)
+    public RegisterCustomerUseCase(ICustomerRepository customerRepository, IUnitOfWork unitOfWork)
     {
         _customerRepository = customerRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<RegisterCustomerResult> Execute(RegisterCustomerCommand command)
+    public async Task<Result<Guid>> Execute(RegisterCustomerCommand command)
     {
         try
         {
             if (command == null)
-                return RegisterCustomerResult.Failure("Command cannot be null");
+                return Result<Guid>.Failure("Command cannot be null");
 
             if (string.IsNullOrWhiteSpace(command.Name))
-                return RegisterCustomerResult.Failure("Nome do cliente é obrigatório");
+                return Result<Guid>.Failure("Nome do cliente é obrigatório");
 
             // Validar nome completo (nome + sobrenome) - necessário para gerar etiqueta de frete
             var nameParts = command.Name.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (nameParts.Length < 2)
-                return RegisterCustomerResult.Failure("Informe o nome completo (nome e sobrenome). Exemplo: 'João Silva'");
+                return Result<Guid>.Failure("Informe o nome completo (nome e sobrenome). Exemplo: 'João Silva'");
 
             if (string.IsNullOrWhiteSpace(command.Email))
-                return RegisterCustomerResult.Failure("Email é obrigatório");
+                return Result<Guid>.Failure("Email é obrigatório");
 
             if (string.IsNullOrWhiteSpace(command.Phone))
-                return RegisterCustomerResult.Failure("Telefone é obrigatório");
+                return Result<Guid>.Failure("Telefone é obrigatório");
 
             if (string.IsNullOrWhiteSpace(command.Document))
-                return RegisterCustomerResult.Failure("CPF/CNPJ é obrigatório");
+                return Result<Guid>.Failure("CPF/CNPJ é obrigatório");
 
             var customer = new Customer(
                 command.Name,
@@ -57,28 +61,19 @@ public class RegisterCustomerUseCase
             }
 
             await _customerRepository.SaveAsync(customer);
+            await _unitOfWork.SaveChangesAsync();
 
-            return RegisterCustomerResult.SuccessResult(customer.Id);
+            return Result<Guid>.Success(customer.Id);
         }
         catch (ArgumentException ex)
         {
-            return RegisterCustomerResult.Failure(ex.Message);
+            return Result<Guid>.Failure(ex.Message);
         }
         catch (Exception)
         {
-            return RegisterCustomerResult.Failure("An error occurred while registering the customer.");
+            return Result<Guid>.Failure("An error occurred while registering the customer.");
         }
     }
-}
-
-public class RegisterCustomerResult
-{
-    public bool Success { get; private set; }
-    public string ErrorMessage { get; private set; } = string.Empty;
-    public Guid CustomerId { get; private set; }
-
-    public static RegisterCustomerResult SuccessResult(Guid customerId) => new() { Success = true, CustomerId = customerId };
-    public static RegisterCustomerResult Failure(string error) => new() { Success = false, ErrorMessage = error };
 }
 
 public class RegisterCustomerCommand

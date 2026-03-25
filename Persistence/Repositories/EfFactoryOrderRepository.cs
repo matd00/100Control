@@ -39,13 +39,11 @@ public class EfFactoryOrderRepository : IFactoryOrderRepository
     public async Task AddAsync(FactoryOrder order)
     {
         _context.FactoryOrders.Add(order);
-        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(FactoryOrder order)
     {
         _context.FactoryOrders.Update(order);
-        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(Guid id)
@@ -54,7 +52,6 @@ public class EfFactoryOrderRepository : IFactoryOrderRepository
         if (order != null)
         {
             _context.FactoryOrders.Remove(order);
-            await _context.SaveChangesAsync();
         }
     }
 }

@@ -47,13 +47,11 @@ public class EfPurchaseRepository : IPurchaseRepository
         {
             _context.Entry(existing).CurrentValues.SetValues(purchase);
         }
-        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(Purchase purchase)
     {
         _context.Purchases.Update(purchase);
-        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(Guid id)
@@ -62,7 +60,6 @@ public class EfPurchaseRepository : IPurchaseRepository
         if (purchase != null)
         {
             _context.Purchases.Remove(purchase);
-            await _context.SaveChangesAsync();
         }
     }
 }

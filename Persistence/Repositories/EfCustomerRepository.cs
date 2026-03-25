@@ -45,13 +45,11 @@ public class EfCustomerRepository : ICustomerRepository
         {
             _context.Entry(existing).CurrentValues.SetValues(customer);
         }
-        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(Customer customer)
     {
         _context.Customers.Update(customer);
-        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(Guid id)
@@ -60,7 +58,6 @@ public class EfCustomerRepository : ICustomerRepository
         if (customer != null)
         {
             _context.Customers.Remove(customer);
-            await _context.SaveChangesAsync();
         }
     }
 }

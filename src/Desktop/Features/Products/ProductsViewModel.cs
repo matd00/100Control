@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Desktop.Infrastructure.MVVM;
 using Domain.Entities;
+using Domain.Interfaces;
 using Domain.Interfaces.Repositories;
 using Domain.Services;
 using Application.UseCases.Products;
@@ -17,6 +18,7 @@ public class ProductsViewModel : ViewModelBase
     private readonly AdjustStockUseCase _adjustStockUseCase;
     private readonly ISuperFreteService _superFreteService;
     private readonly ISmartSearchService _smartSearchService;
+    private readonly IUnitOfWork _unitOfWork;
 
     // Search and Recommendations
     public ObservableCollection<ProductItemViewModel> RecommendedProducts { get; } = new ObservableCollection<ProductItemViewModel>();
@@ -231,13 +233,15 @@ public class ProductsViewModel : ViewModelBase
         CreateProductUseCase createProductUseCase,
         AdjustStockUseCase adjustStockUseCase,
         ISuperFreteService superFreteService,
-        ISmartSearchService smartSearchService)
+        ISmartSearchService smartSearchService,
+        IUnitOfWork unitOfWork)
     {
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         _createProductUseCase = createProductUseCase ?? throw new ArgumentNullException(nameof(createProductUseCase));
         _adjustStockUseCase = adjustStockUseCase ?? throw new ArgumentNullException(nameof(adjustStockUseCase));
         _superFreteService = superFreteService ?? throw new ArgumentNullException(nameof(superFreteService));
         _smartSearchService = smartSearchService ?? throw new ArgumentNullException(nameof(smartSearchService));
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
 
         CreateProductCommand = new AsyncRelayCommand(CreateProductAsync, () => !IsLoading && !string.IsNullOrWhiteSpace(Name) && Price > 0 && !string.IsNullOrWhiteSpace(Category));
         UpdateProductCommand = new AsyncRelayCommand(UpdateProductAsync, () => !IsLoading && IsEditing);
@@ -280,7 +284,13 @@ public class ProductsViewModel : ViewModelBase
             IsLoading = true;
             StatusMessage = $"Ajustando estoque de {SelectedProduct.Name}...";
 
-            await _adjustStockUseCase.Execute(SelectedProduct.Id, StockAdjustment, AdjustmentNotes);
+            var result = await _adjustStockUseCase.Execute(SelectedProduct.Id, StockAdjustment, AdjustmentNotes);
+
+            if (result.IsFailure)
+            {
+                StatusMessage = $"❌ Erro ao ajustar estoque: {result.Error}";
+                return;
+            }
 
             StatusMessage = "✅ Estoque ajustado com sucesso!";
             StockAdjustment = 0;
@@ -342,9 +352,9 @@ public class ProductsViewModel : ViewModelBase
 
             var result = await _createProductUseCase.Execute(command);
 
-            if (!result.Success)
+            if (result.IsFailure)
             {
-                StatusMessage = $"❌ Erro: {result.ErrorMessage}";
+                StatusMessage = $"❌ Erro: {result.Error}";
                 return;
             }
 
@@ -385,6 +395,7 @@ public class ProductsViewModel : ViewModelBase
             product.UpdateShippingDimensions(Weight, Width, Height, Length);
 
             await _productRepository.UpdateAsync(product);
+            await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Produto atualizado com sucesso!";
             ClearForm();

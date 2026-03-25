@@ -40,13 +40,11 @@ public class EfSupplierRepository : ISupplierRepository
         {
             _context.Entry(existing).CurrentValues.SetValues(supplier);
         }
-        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(Supplier supplier)
     {
         _context.Suppliers.Update(supplier);
-        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(Guid id)
@@ -55,7 +53,6 @@ public class EfSupplierRepository : ISupplierRepository
         if (supplier != null)
         {
             _context.Suppliers.Remove(supplier);
-            await _context.SaveChangesAsync();
         }
     }
 }

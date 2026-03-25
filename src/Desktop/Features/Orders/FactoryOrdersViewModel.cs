@@ -16,6 +16,7 @@ public class FactoryOrdersViewModel : ViewModelBase
     private readonly CreateFactoryOrderUseCase _createUseCase;
     private readonly UpdateFactoryOrderStatusUseCase _updateStatusUseCase;
     private readonly AddTrackingCodeUseCase _addTrackingUseCase;
+    private readonly IUnitOfWork _unitOfWork;
 
     private FactoryOrderViewModel? _selectedOrder;
     private string _statusMessage = string.Empty;
@@ -200,7 +201,8 @@ public class FactoryOrdersViewModel : ViewModelBase
         UpdateFactoryOrderStatusUseCase updateStatusUseCase,
         AddTrackingCodeUseCase addTrackingUseCase,
         ISuperFreteService superFreteService,
-        ISmartSearchService smartSearchService)
+        ISmartSearchService smartSearchService,
+        IUnitOfWork unitOfWork)
     {
         _repository = repository;
         _customerRepository = customerRepository;
@@ -209,6 +211,7 @@ public class FactoryOrdersViewModel : ViewModelBase
         _addTrackingUseCase = addTrackingUseCase;
         _superFreteService = superFreteService;
         _smartSearchService = smartSearchService;
+        _unitOfWork = unitOfWork;
 
         RefreshOrdersCommand = new AsyncRelayCommand(LoadOrdersAsync);
         SelectOrderCommand = new RelayCommand<FactoryOrderViewModel>(SelectOrder);
@@ -247,8 +250,15 @@ public class FactoryOrdersViewModel : ViewModelBase
             
             if (tracking.Status.Contains("Entregue", StringComparison.OrdinalIgnoreCase))
             {
-                await _updateStatusUseCase.Execute(orderVm.Id, FactoryOrderStatus.Entregue);
-                await LoadOrdersAsync();
+                var result = await _updateStatusUseCase.Execute(orderVm.Id, FactoryOrderStatus.Entregue);
+                if (result.IsSuccess)
+                {
+                    await LoadOrdersAsync();
+                }
+                else
+                {
+                    StatusMessage = $"❌ Erro ao atualizar status: {result.Error}";
+                }
             }
         }
         catch (Exception ex)
@@ -272,6 +282,7 @@ public class FactoryOrdersViewModel : ViewModelBase
             try
             {
                 await _repository.DeleteAsync(orderVm.Id);
+                await _unitOfWork.SaveChangesAsync();
                 StatusMessage = "✅ Pedido removido.";
                 await LoadOrdersAsync();
                 if (SelectedOrder?.Id == orderVm.Id) SelectedOrder = null;
@@ -490,7 +501,12 @@ public class FactoryOrdersViewModel : ViewModelBase
                     }).ToList()
                 };
 
-                await _createUseCase.Execute(command);
+                var result = await _createUseCase.Execute(command);
+                if (result.IsFailure)
+                {
+                    StatusMessage = $"❌ Erro ao salvar: {result.Error}";
+                    return;
+                }
             }
 
             StatusMessage = "Pedido salvo com sucesso!";
@@ -510,9 +526,16 @@ public class FactoryOrdersViewModel : ViewModelBase
         if (SelectedOrder == null || SelectedOrder.IsNew) return;
         try
         {
-            await _updateStatusUseCase.Execute(SelectedOrder.Id, FactoryOrderStatus.Confirmado);
-            StatusMessage = "✅ Pedido confirmado!";
-            await LoadOrdersAsync();
+            var result = await _updateStatusUseCase.Execute(SelectedOrder.Id, FactoryOrderStatus.Confirmado);
+            if (result.IsSuccess)
+            {
+                StatusMessage = "✅ Pedido confirmado!";
+                await LoadOrdersAsync();
+            }
+            else
+            {
+                StatusMessage = $"❌ Erro: {result.Error}";
+            }
         }
         catch (Exception ex)
         {
@@ -530,10 +553,17 @@ public class FactoryOrdersViewModel : ViewModelBase
         }
         try
         {
-            await _addTrackingUseCase.Execute(SelectedOrder.Id, TrackingCodeInput.Trim());
-            StatusMessage = "📦 Pedido marcado como enviado pela fábrica!";
-            TrackingCodeInput = string.Empty;
-            await LoadOrdersAsync();
+            var result = await _addTrackingUseCase.Execute(SelectedOrder.Id, TrackingCodeInput.Trim());
+            if (result.IsSuccess)
+            {
+                StatusMessage = "📦 Pedido marcado como enviado pela fábrica!";
+                TrackingCodeInput = string.Empty;
+                await LoadOrdersAsync();
+            }
+            else
+            {
+                StatusMessage = $"❌ Erro: {result.Error}";
+            }
         }
         catch (Exception ex)
         {
@@ -546,9 +576,16 @@ public class FactoryOrdersViewModel : ViewModelBase
         if (SelectedOrder == null || SelectedOrder.IsNew) return;
         try
         {
-            await _updateStatusUseCase.Execute(SelectedOrder.Id, FactoryOrderStatus.Entregue);
-            StatusMessage = "✅ Pedido entregue!";
-            await LoadOrdersAsync();
+            var result = await _updateStatusUseCase.Execute(SelectedOrder.Id, FactoryOrderStatus.Entregue);
+            if (result.IsSuccess)
+            {
+                StatusMessage = "✅ Pedido entregue!";
+                await LoadOrdersAsync();
+            }
+            else
+            {
+                StatusMessage = $"❌ Erro: {result.Error}";
+            }
         }
         catch (Exception ex)
         {
@@ -561,9 +598,16 @@ public class FactoryOrdersViewModel : ViewModelBase
         if (SelectedOrder == null || SelectedOrder.IsNew) return;
         try
         {
-            await _updateStatusUseCase.Execute(SelectedOrder.Id, FactoryOrderStatus.Cancelado);
-            StatusMessage = "Pedido cancelado.";
-            await LoadOrdersAsync();
+            var result = await _updateStatusUseCase.Execute(SelectedOrder.Id, FactoryOrderStatus.Cancelado);
+            if (result.IsSuccess)
+            {
+                StatusMessage = "Pedido cancelado.";
+                await LoadOrdersAsync();
+            }
+            else
+            {
+                StatusMessage = $"❌ Erro: {result.Error}";
+            }
         }
         catch (Exception ex)
         {
@@ -581,10 +625,17 @@ public class FactoryOrdersViewModel : ViewModelBase
         }
         try
         {
-            await _addTrackingUseCase.Execute(SelectedOrder.Id, TrackingCodeInput.Trim());
-            StatusMessage = "Rastreio atualizado com sucesso!";
-            TrackingCodeInput = string.Empty;
-            await LoadOrdersAsync();
+            var result = await _addTrackingUseCase.Execute(SelectedOrder.Id, TrackingCodeInput.Trim());
+            if (result.IsSuccess)
+            {
+                StatusMessage = "Rastreio atualizado com sucesso!";
+                TrackingCodeInput = string.Empty;
+                await LoadOrdersAsync();
+            }
+            else
+            {
+                StatusMessage = $"❌ Erro: {result.Error}";
+            }
         }
         catch (Exception ex)
         {
