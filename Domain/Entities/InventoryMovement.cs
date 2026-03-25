@@ -1,3 +1,5 @@
+using Domain.Common;
+
 namespace Domain.Entities;
 
 public enum InventoryMovementType
@@ -9,9 +11,8 @@ public enum InventoryMovementType
     Return = 5
 }
 
-public class InventoryMovement
+public class InventoryMovement : Entity
 {
-    public Guid Id { get; private set; }
     public Guid ProductId { get; private set; }
     public InventoryMovementType Type { get; private set; }
     public int Quantity { get; private set; }

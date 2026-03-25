@@ -1,8 +1,10 @@
+using Domain.Common;
+using Domain.Events;
+
 namespace Domain.Entities;
 
-public class Product
+public class Product : Entity
 {
-    public Guid Id { get; private set; }
     public string Name { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
     public string SKU { get; private set; } = string.Empty;
@@ -118,6 +120,8 @@ public class Product
 
         Stock -= quantity;
         UpdatedAt = DateTime.UtcNow;
+
+        AddDomainEvent(new ProductStockDecreasedEvent(Id, quantity, Stock));
     }
 
     public void IncreaseStock(int quantity)

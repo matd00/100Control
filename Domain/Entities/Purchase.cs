@@ -1,3 +1,5 @@
+using Domain.Common;
+
 namespace Domain.Entities;
 
 public enum PurchaseType
@@ -6,9 +8,8 @@ public enum PurchaseType
     UsedPurchase = 2
 }
 
-public class Purchase
+public class Purchase : Entity
 {
-    public Guid Id { get; private set; }
     public Guid SupplierId { get; private set; }
     public PurchaseType Type { get; private set; }
     public List<PurchaseItem> Items { get; private set; } = new();

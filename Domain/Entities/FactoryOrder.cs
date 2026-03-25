@@ -1,3 +1,5 @@
+using Domain.Common;
+
 namespace Domain.Entities;
 
 public enum FactoryOrderStatus
@@ -9,9 +11,8 @@ public enum FactoryOrderStatus
     Cancelado = 5
 }
 
-public class FactoryOrder
+public class FactoryOrder : Entity
 {
-    public Guid Id { get; private set; }
     public string CustomerName { get; private set; }
     public string CustomerContact { get; private set; }
     public string DeliveryAddress { get; private set; }

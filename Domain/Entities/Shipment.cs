@@ -1,3 +1,5 @@
+using Domain.Common;
+
 namespace Domain.Entities;
 
 public enum ShipmentProvider
@@ -16,9 +18,8 @@ public enum ShipmentStatus
     Cancelled = 5
 }
 
-public class Shipment
+public class Shipment : Entity
 {
-    public Guid Id { get; private set; }
     public Guid OrderId { get; private set; }
     public ShipmentProvider Provider { get; private set; }
     public ShipmentStatus Status { get; private set; }

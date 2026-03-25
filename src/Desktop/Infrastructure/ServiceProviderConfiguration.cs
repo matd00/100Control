@@ -76,6 +76,9 @@ public static class ServiceProviderConfiguration
             // Unit of Work
             services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<PaintballManagerDbContext>());
 
+            // Domain Events
+            services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+
             System.Diagnostics.Debug.WriteLine("ServiceProviderConfiguration: Registrando repositórios...");
             // Repositories (Entity Framework)
             services.AddScoped<IProductRepository, EfProductRepository>();

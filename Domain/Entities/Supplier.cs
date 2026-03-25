@@ -1,8 +1,9 @@
+using Domain.Common;
+
 namespace Domain.Entities;
 
-public class Supplier
+public class Supplier : Entity
 {
-    public Guid Id { get; private set; }
     public string Name { get; private set; } = string.Empty;
     public string ContactName { get; private set; } = string.Empty;
     public string Email { get; private set; } = string.Empty;

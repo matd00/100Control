@@ -1,5 +1,6 @@
 using Domain.Entities;
 using Domain.Interfaces;
+using Domain.Common;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Context;
@@ -22,9 +23,37 @@ public class PaintballManagerDbContext : DbContext, IUnitOfWork
     public DbSet<FactoryOrder> FactoryOrders => Set<FactoryOrder>();
     public DbSet<FactoryOrderItem> FactoryOrderItems => Set<FactoryOrderItem>();
 
-    public PaintballManagerDbContext(DbContextOptions<PaintballManagerDbContext> options)
+    private readonly IDomainEventDispatcher? _dispatcher;
+
+    public PaintballManagerDbContext(DbContextOptions<PaintballManagerDbContext> options, IDomainEventDispatcher? dispatcher = null)
         : base(options)
     {
+        _dispatcher = dispatcher;
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        var domainEntities = ChangeTracker.Entries<Entity>()
+            .Where(x => x.Entity.DomainEvents.Any())
+            .ToList();
+
+        var domainEvents = domainEntities
+            .SelectMany(x => x.Entity.DomainEvents)
+            .ToList();
+
+        var result = await base.SaveChangesAsync(cancellationToken);
+
+        if (_dispatcher != null)
+        {
+            await _dispatcher.DispatchEventsAsync(domainEvents);
+        }
+
+        foreach (var entity in domainEntities)
+        {
+            entity.Entity.ClearDomainEvents();
+        }
+
+        return result;
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

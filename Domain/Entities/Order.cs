@@ -1,3 +1,6 @@
+using Domain.Common;
+using Domain.Events;
+
 namespace Domain.Entities;
 
 public enum OrderSource
@@ -9,9 +12,8 @@ public enum OrderSource
     Direct = 5
 }
 
-public class Order
+public class Order : Entity
 {
-    public Guid Id { get; private set; }
     public Guid CustomerId { get; private set; }
     public OrderSource Source { get; private set; }
     public bool IsDropshipping { get; private set; }
@@ -32,6 +34,8 @@ public class Order
         IsDropshipping = isDropshipping;
         Status = OrderStatus.Pending;
         CreatedAt = DateTime.UtcNow;
+
+        AddDomainEvent(new OrderCreatedEvent(Id, CustomerId));
     }
 
     public void AddItem(Guid productId, int quantity, decimal price)
