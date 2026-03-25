@@ -23,7 +23,7 @@ public class Customer : Entity
 
     public Customer(string name, string email, string phone, string document)
     {
-        // Security: Input validation
+        
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Customer name cannot be empty", nameof(name));
 

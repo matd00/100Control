@@ -58,14 +58,14 @@ public class CustomersController : ControllerBase
 
             var result = await _registerCustomerUseCase.Execute(command);
 
-            if (!result.Success)
-                return BadRequest(new { error = result.ErrorMessage });
+            if (!result.IsSuccess)
+                return BadRequest(new { error = result.Error });
 
-            var customer = await _customerRepository.GetByIdAsync(result.CustomerId);
+            var customer = await _customerRepository.GetByIdAsync(result.Value);
             if (customer == null)
                 return BadRequest(new { error = "Customer created but not found" });
 
-            return CreatedAtAction(nameof(GetById), new { id = result.CustomerId }, new CustomerDto(customer));
+            return CreatedAtAction(nameof(GetById), new { id = result.Value }, new CustomerDto(customer));
         }
         catch (Exception ex)
         {

@@ -1,26 +1,23 @@
 using Domain.Common;
 using Domain.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
+using MediatR;
 
 namespace Application.Services;
 
 public class DomainEventDispatcher : IDomainEventDispatcher
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IMediator _mediator;
 
-    public DomainEventDispatcher(IServiceProvider serviceProvider)
+    public DomainEventDispatcher(IMediator mediator)
     {
-        _serviceProvider = serviceProvider;
+        _mediator = mediator;
     }
 
     public async Task DispatchEventsAsync(IEnumerable<IDomainEvent> domainEvents)
     {
         foreach (var domainEvent in domainEvents)
         {
-            // For now, we'll just log or use DI to find handlers if we had them.
-            // When we add MediatR, this will just be _mediator.Publish(domainEvent).
-            System.Diagnostics.Debug.WriteLine($"Dispatching Domain Event: {domainEvent.GetType().Name} occurred at {domainEvent.OccurredOn}");
+            await _mediator.Publish(domainEvent);
         }
-        await Task.CompletedTask;
     }
 }

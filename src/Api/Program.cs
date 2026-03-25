@@ -1,13 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using Persistence.Context;
 using Persistence.Repositories;
+using Domain.Interfaces;
 using Domain.Interfaces.Repositories;
 using Application.UseCases.Products;
 using Application.UseCases.Orders;
 using Application.UseCases.Customers;
 using Application.UseCases.Purchases;
 using Application.UseCases.Shipments;
+using Application.Services;
 using Integrations.SuperFrete.Extensions;
+using Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +29,12 @@ if (!string.IsNullOrEmpty(dbDirectory) && !Directory.Exists(dbDirectory))
 builder.Services.AddDbContext<PaintballManagerDbContext>(options =>
     options.UseSqlite($"Data Source={dbPath}"));
 
+// Unit of Work
+builder.Services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<PaintballManagerDbContext>());
+
+// Domain Events
+builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+
 // Repositories
 builder.Services.AddScoped<IProductRepository, EfProductRepository>();
 builder.Services.AddScoped<ICustomerRepository, EfCustomerRepository>();
@@ -37,9 +46,11 @@ builder.Services.AddScoped<IShipmentRepository, EfShipmentRepository>();
 builder.Services.AddScoped<IPartRepository, EfPartRepository>();
 builder.Services.AddScoped<IInventoryMovementRepository, EfInventoryMovementRepository>();
 
+// Application Services (MediatR, Validators, etc.)
+builder.Services.AddApplication();
+
 // Use Cases
 builder.Services.AddTransient<CreateProductUseCase>();
-builder.Services.AddTransient<CreateOrderUseCase>();
 builder.Services.AddTransient<UpdateOrderStatusUseCase>();
 builder.Services.AddTransient<RegisterCustomerUseCase>();
 builder.Services.AddTransient<RegisterPurchaseUseCase>();

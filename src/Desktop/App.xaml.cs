@@ -1,5 +1,6 @@
 using Desktop.Infrastructure;
-using System.Diagnostics;
+using Serilog;
+using System.Windows.Threading;
 
 namespace Desktop;
 
@@ -11,38 +12,51 @@ public partial class App : System.Windows.Application
     {
         base.OnStartup(e);
 
+        // Setup global exception handling
+        this.DispatcherUnhandledException += App_DispatcherUnhandledException;
+        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
         try
         {
-            Debug.WriteLine("=== APP STARTUP: Iniciando aplicação ===");
-
             // Configure services and database
-            Debug.WriteLine("APP STARTUP: Configurando serviços...");
             ServiceProvider = ServiceProviderConfiguration.ConfigureServices();
-            Debug.WriteLine("APP STARTUP: Serviços configurados com sucesso");
+            Log.Information("APP STARTUP: Serviços configurados com sucesso");
 
             // Initialize database (create if not exists)
-            Debug.WriteLine("APP STARTUP: Inicializando banco de dados...");
+            Log.Information("APP STARTUP: Inicializando banco de dados...");
             ServiceProviderConfiguration.InitializeDatabase(ServiceProvider);
-            Debug.WriteLine("APP STARTUP: Banco de dados inicializado");
+            Log.Information("APP STARTUP: Banco de dados inicializado");
 
-            Debug.WriteLine("APP STARTUP: Criando MainWindow...");
+            Log.Information("APP STARTUP: Criando MainWindow...");
             var mainWindow = new MainWindow();
-            Debug.WriteLine("APP STARTUP: MainWindow criada, exibindo...");
+            Log.Information("APP STARTUP: MainWindow criada, exibindo...");
             mainWindow.Show();
-            Debug.WriteLine("=== APP STARTUP: Aplicação iniciada com sucesso ===");
+            Log.Information("=== APP STARTUP: Aplicação iniciada com sucesso ===");
         }
         catch (System.Exception ex)
         {
-            Debug.WriteLine($"!!! APP STARTUP ERRO CRÍTICO: {ex.GetType().Name}");
-            Debug.WriteLine($"!!! Mensagem: {ex.Message}");
-            Debug.WriteLine($"!!! StackTrace: {ex.StackTrace}");
-            if (ex.InnerException != null)
-            {
-                Debug.WriteLine($"!!! InnerException: {ex.InnerException.Message}");
-                Debug.WriteLine($"!!! InnerException StackTrace: {ex.InnerException.StackTrace}");
-            }
+            Log.Fatal(ex, "!!! APP STARTUP ERRO CRÍTICO");
+            System.Windows.MessageBox.Show($"Erro ao iniciar a aplicação: {ex.Message}\n\nConsulte os logs para mais detalhes.", "Erro Fatal", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            System.Windows.Application.Current.Shutdown();
+        }
+    }
 
-            System.Windows.MessageBox.Show($"Error starting application: {ex.Message}\n\n{ex.StackTrace}", "Startup Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+    private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        Log.Error(e.Exception, "Dispatcher Unhandled Exception");
+        System.Windows.MessageBox.Show($"Ocorreu um erro inesperado: {e.Exception.Message}", "Erro", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+        e.Handled = true;
+    }
+
+    private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        if (e.ExceptionObject is Exception ex)
+        {
+            Log.Fatal(ex, "Unhandled Domain Exception");
+        }
+        else
+        {
+            Log.Fatal("Unhandled Domain Exception (non-exception object): {ExceptionObject}", e.ExceptionObject);
         }
     }
 }

@@ -21,12 +21,12 @@ public class EfProductRepository : IProductRepository
 
     public async Task<IEnumerable<Product>> GetAllAsync()
     {
-        return await _context.Products.ToListAsync();
+        return await _context.Products.AsNoTracking().ToListAsync();
     }
 
     public async Task<IEnumerable<Product>> GetActiveAsync()
     {
-        return await _context.Products.Where(p => p.IsActive).ToListAsync();
+        return await _context.Products.AsNoTracking().Where(p => p.IsActive).ToListAsync();
     }
 
     public async Task SaveAsync(Product product)

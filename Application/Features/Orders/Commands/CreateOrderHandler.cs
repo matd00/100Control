@@ -1,11 +1,12 @@
+using Domain.Common;
 using Domain.Entities;
 using Domain.Interfaces;
 using Domain.Interfaces.Repositories;
-using Domain.Common;
+using MediatR;
 
-namespace Application.UseCases.Orders;
+namespace Application.Features.Orders.Commands;
 
-public class CreateOrderUseCase
+public class CreateOrderHandler : IRequestHandler<CreateOrderCommand, Result<Guid>>
 {
     private readonly IOrderRepository _orderRepository;
     private readonly ICustomerRepository _customerRepository;
@@ -13,7 +14,7 @@ public class CreateOrderUseCase
     private readonly IInventoryMovementRepository _inventoryMovementRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public CreateOrderUseCase(
+    public CreateOrderHandler(
         IOrderRepository orderRepository,
         ICustomerRepository customerRepository,
         IProductRepository productRepository,
@@ -27,19 +28,10 @@ public class CreateOrderUseCase
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<Guid>> Execute(CreateOrderCommand command)
+    public async Task<Result<Guid>> Handle(CreateOrderCommand command, CancellationToken cancellationToken)
     {
         try
         {
-            if (command == null)
-                return Result<Guid>.Failure("Command cannot be null");
-
-            if (command.CustomerId == Guid.Empty)
-                return Result<Guid>.Failure("Customer ID is required");
-
-            if (command.Items == null || command.Items.Count == 0)
-                return Result<Guid>.Failure("Order must contain at least one item");
-
             var customer = await _customerRepository.GetByIdAsync(command.CustomerId);
             if (customer == null)
                 return Result<Guid>.Failure("Customer not found");
@@ -87,28 +79,13 @@ public class CreateOrderUseCase
                 return Result<Guid>.Failure("Order cannot contain more than 100 items");
 
             await _orderRepository.SaveAsync(order);
-            
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
             
             return Result<Guid>.Success(order.Id);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return Result<Guid>.Failure("An error occurred while creating the order. Please try again later.");
+            return Result<Guid>.Failure($"An error occurred while creating the order: {ex.Message}");
         }
     }
-}
-
-public class CreateOrderCommand
-{
-    public Guid CustomerId { get; set; }
-    public OrderSource Source { get; set; }
-    public bool IsDropshipping { get; set; }
-    public List<CreateOrderItemCommand> Items { get; set; } = new();
-}
-
-public class CreateOrderItemCommand
-{
-    public Guid ProductId { get; set; }
-    public int Quantity { get; set; }
 }

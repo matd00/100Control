@@ -24,6 +24,7 @@ public class EfOrderRepository : IOrderRepository
     public async Task<IEnumerable<Order>> GetAllAsync()
     {
         return await _context.Orders
+            .AsNoTracking()
             .Include(o => o.Items)
             .ToListAsync();
     }
@@ -31,6 +32,7 @@ public class EfOrderRepository : IOrderRepository
     public async Task<IEnumerable<Order>> GetByStatusAsync(OrderStatus status)
     {
         return await _context.Orders
+            .AsNoTracking()
             .Include(o => o.Items)
             .Where(o => o.Status == status)
             .ToListAsync();
@@ -39,6 +41,7 @@ public class EfOrderRepository : IOrderRepository
     public async Task<IEnumerable<Order>> GetByCustomerIdAsync(Guid customerId)
     {
         return await _context.Orders
+            .AsNoTracking()
             .Include(o => o.Items)
             .Where(o => o.CustomerId == customerId)
             .ToListAsync();

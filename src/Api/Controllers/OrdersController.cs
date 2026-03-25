@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Domain.Entities;
 using Domain.Interfaces.Repositories;
 using Application.UseCases.Orders;
+using MediatR;
+using Application.Features.Orders.Commands;
 
 namespace Api.Controllers;
 
@@ -12,20 +14,20 @@ public class OrdersController : ControllerBase
     private readonly IOrderRepository _orderRepository;
     private readonly ICustomerRepository _customerRepository;
     private readonly IProductRepository _productRepository;
-    private readonly CreateOrderUseCase _createOrderUseCase;
+    private readonly IMediator _mediator;
     private readonly UpdateOrderStatusUseCase _updateOrderStatusUseCase;
 
     public OrdersController(
         IOrderRepository orderRepository,
         ICustomerRepository customerRepository,
         IProductRepository productRepository,
-        CreateOrderUseCase createOrderUseCase,
+        IMediator mediator,
         UpdateOrderStatusUseCase updateOrderStatusUseCase)
     {
         _orderRepository = orderRepository;
         _customerRepository = customerRepository;
         _productRepository = productRepository;
-        _createOrderUseCase = createOrderUseCase;
+        _mediator = mediator;
         _updateOrderStatusUseCase = updateOrderStatusUseCase;
     }
 

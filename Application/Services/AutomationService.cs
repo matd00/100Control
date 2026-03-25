@@ -9,8 +9,8 @@ public interface IAutomationService : IDisposable
 public class AutomationService : IAutomationService
 {
     private readonly IMarketplaceSyncService _marketplaceSyncService;
-    private CancellationTokenSource _cancellationTokenSource;
-    private Task _automationTask;
+    private CancellationTokenSource? _cancellationTokenSource;
+    private Task? _automationTask;
     private bool _disposed = false;
 
     public AutomationService(IMarketplaceSyncService marketplaceSyncService)

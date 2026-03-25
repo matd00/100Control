@@ -3,6 +3,7 @@ using System.Windows.Input;
 using Application.UseCases.FactoryOrders;
 using Desktop.Infrastructure.MVVM;
 using Domain.Entities;
+using Domain.Interfaces;
 using Domain.Interfaces.Repositories;
 using Domain.Services;
 using Integrations.SuperFrete.Interfaces;

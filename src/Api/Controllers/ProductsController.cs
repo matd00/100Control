@@ -53,14 +53,14 @@ public class ProductsController : ControllerBase
 
             var result = await _createProductUseCase.Execute(command);
 
-            if (!result.Success)
-                return BadRequest(new { error = result.ErrorMessage });
+            if (!result.IsSuccess)
+                return BadRequest(new { error = result.Error });
 
-            var product = await _productRepository.GetByIdAsync(result.ProductId);
+            var product = await _productRepository.GetByIdAsync(result.Value);
             if (product == null)
                 return BadRequest(new { error = "Product created but not found" });
 
-            return CreatedAtAction(nameof(GetById), new { id = result.ProductId }, new ProductDto(product));
+            return CreatedAtAction(nameof(GetById), new { id = result.Value }, new ProductDto(product));
         }
         catch (Exception ex)
         {
