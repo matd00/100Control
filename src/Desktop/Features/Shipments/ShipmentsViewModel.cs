@@ -44,7 +44,16 @@ public class ShipmentsViewModel : ViewModelBase
     public ShipmentItemViewModel? SelectedShipment
     {
         get => _selectedShipment;
-        set => SetProperty(ref _selectedShipment, value);
+        set 
+        {
+            if (SetProperty(ref _selectedShipment, value) && value != null)
+            {
+                _selectedSuperFreteLabel = null;
+                OnPropertyChanged(nameof(SelectedSuperFreteLabel));
+                TrackingNumber = value.TrackingNumber;
+                ShippingCost = value.ShippingCost;
+            }
+        }
     }
 
     public string TrackingNumber
@@ -120,16 +129,22 @@ public class ShipmentsViewModel : ViewModelBase
         MarkAsDeliveredCommand = new AsyncRelayCommand(MarkAsDeliveredAsync, () => !IsLoading && SelectedShipment != null);
         CancelShipmentCommand = new AsyncRelayCommand(CancelShipmentAsync, () => !IsLoading && SelectedShipment != null);
         TrackShipmentCommand = new AsyncRelayCommand(TrackShipmentAsync, () => !IsLoading && (SelectedShipment != null || SelectedSuperFreteLabel != null));
-        RefreshCommand = new AsyncRelayCommand(LoadDataAsync);
+        RefreshCommand = new AsyncRelayCommand(RefreshAllDataAsync);
         RefreshSuperFreteCommand = new AsyncRelayCommand(LoadSuperFreteLabelsAsync);
-        SelectShipmentCommand = new RelayCommand<ShipmentItemViewModel>(SelectShipment);
+        SelectShipmentCommand = new RelayCommand<ShipmentItemViewModel>(shipment => SelectedShipment = shipment);
         SelectSuperFreteLabelCommand = new RelayCommand<SuperFreteLabelViewModel>(label => SelectedSuperFreteLabel = label);
         PrintLabelCommand = new AsyncRelayCommand(PrintLabelAsync, () => !IsLoading && (SelectedShipment != null || SelectedSuperFreteLabel != null));
         CheckoutLabelCommand = new AsyncRelayCommand(CheckoutLabelAsync, () => !IsLoading && SelectedSuperFreteLabel != null && !SelectedSuperFreteLabel.IsPaid);
         RefreshLabelStatusCommand = new AsyncRelayCommand(RefreshLabelStatusAsync, () => !IsLoading && SelectedSuperFreteLabel != null);
 
-        _ = LoadDataAsync();
-        _ = LoadSuperFreteLabelsAsync();
+        _ = RefreshAllDataAsync();
+    }
+
+    private async Task RefreshAllDataAsync()
+    {
+        var t1 = LoadDataAsync();
+        var t2 = LoadSuperFreteLabelsAsync();
+        await Task.WhenAll(t1, t2);
     }
 
     private async Task CheckoutLabelAsync()
@@ -184,7 +199,14 @@ public class ShipmentsViewModel : ViewModelBase
     public SuperFreteLabelViewModel? SelectedSuperFreteLabel
     {
         get => _selectedSuperFreteLabel;
-        set => SetProperty(ref _selectedSuperFreteLabel, value);
+        set 
+        {
+            if (SetProperty(ref _selectedSuperFreteLabel, value) && value != null)
+            {
+                _selectedShipment = null;
+                OnPropertyChanged(nameof(SelectedShipment));
+            }
+        }
     }
 
     private void SelectShipment(ShipmentItemViewModel? shipment)
@@ -192,9 +214,6 @@ public class ShipmentsViewModel : ViewModelBase
         if (shipment != null)
         {
             SelectedShipment = shipment;
-            SelectedSuperFreteLabel = null; // Clear SuperFrete selection
-            TrackingNumber = shipment.TrackingNumber;
-            ShippingCost = shipment.ShippingCost;
         }
     }
 
@@ -309,7 +328,7 @@ public class ShipmentsViewModel : ViewModelBase
             await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Envio criado! Gere a etiqueta.";
-            await LoadDataAsync();
+            await RefreshAllDataAsync();
             
             // Select the new shipment
             SelectedShipment = Shipments.FirstOrDefault(s => s.Id == shipment.Id);
@@ -413,7 +432,7 @@ public class ShipmentsViewModel : ViewModelBase
             await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = $"✅ Etiqueta gerada! Código: {TrackingNumber}";
-            await LoadDataAsync();
+            await RefreshAllDataAsync();
         }
         catch (Exception ex)
         {
@@ -446,7 +465,7 @@ public class ShipmentsViewModel : ViewModelBase
             await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Envio marcado como enviado!";
-            await LoadDataAsync();
+            await RefreshAllDataAsync();
         }
         catch (Exception ex)
         {
@@ -479,7 +498,7 @@ public class ShipmentsViewModel : ViewModelBase
             await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Envio marcado como entregue!";
-            await LoadDataAsync();
+            await RefreshAllDataAsync();
         }
         catch (Exception ex)
         {
@@ -512,7 +531,7 @@ public class ShipmentsViewModel : ViewModelBase
             await _unitOfWork.SaveChangesAsync();
 
             StatusMessage = "✅ Envio cancelado!";
-            await LoadDataAsync();
+            await RefreshAllDataAsync();
         }
         catch (Exception ex)
         {
