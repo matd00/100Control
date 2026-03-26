@@ -78,60 +78,124 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
-                    <TextBlock Text="📦 Envios" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B"/>
-                    <TextBlock Text="{Binding Shipments.Count, StringFormat=' ({0})'}" FontSize="14" Foreground="#64748B" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding StatusMessage}" Foreground="#64748B" Margin="20,0,0,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="📦 Gestão de Envios" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B"/>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="#64748B" Margin="20,0,0,0" VerticalAlignment="Center" FontSize="12"/>
                 </StackPanel>
 
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding Shipments}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border CornerRadius="10" Padding="16" Margin="0,0,0,12" Cursor="Hand" x:Name="Card">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Setter Property="Background" Value="#FEF3C7"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding StatusText}" Value="Enviado">
-                                                    <Setter Property="Background" Value="#DBEAFE"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding StatusText}" Value="Entregue">
-                                                    <Setter Property="Background" Value="#DCFCE7"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding StatusText}" Value="Cancelado">
-                                                    <Setter Property="Background" Value="#FEE2E2"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                    <Border.InputBindings>
-                                        <MouseBinding MouseAction="LeftClick" Command="{Binding DataContext.SelectShipmentCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"/>
-                                    </Border.InputBindings>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding Id, StringFormat='ENV-{0:N8}'}" FontWeight="Bold" Foreground="#1E293B"/>
-                                                <Border Background="#22C55E" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
-                                                    <TextBlock Text="{Binding StatusText}" FontSize="10" Foreground="White" FontWeight="Bold"/>
-                                                </Border>
-                                                <Border Background="#FEF3C7" CornerRadius="4" Padding="6,2" Margin="4,0,0,0">
-                                                    <TextBlock Text="{Binding ProviderText}" FontSize="10" Foreground="#D97706"/>
-                                                </Border>
-                                            </StackPanel>
-                                            <TextBlock Text="{Binding TrackingNumber, StringFormat='Rastreio: {0}'}" FontSize="12" Foreground="#64748B" Margin="0,6,0,0"/>
-                                            <TextBlock Text="{Binding DateFormatted, Mode=OneWay}" FontSize="11" Foreground="#94A3B8"/>
-                                        </StackPanel>
-                                        <TextBlock Grid.Column="1" Text="{Binding CostFormatted, Mode=OneWay}" FontSize="18" FontWeight="Bold" Foreground="#1E293B" VerticalAlignment="Center"/>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
+                <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0">
+                    <TabItem Header="Envios Locais">
+                        <Grid Margin="0,12,0,0">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding Shipments}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border CornerRadius="10" Padding="16" Margin="0,0,0,12" Cursor="Hand" x:Name="Card">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="#FEF3C7"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding StatusText}" Value="Enviado">
+                                                                <Setter Property="Background" Value="#DBEAFE"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding StatusText}" Value="Entregue">
+                                                                <Setter Property="Background" Value="#DCFCE7"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding StatusText}" Value="Cancelado">
+                                                                <Setter Property="Background" Value="#FEE2E2"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <Border.InputBindings>
+                                                    <MouseBinding MouseAction="LeftClick" Command="{Binding DataContext.SelectShipmentCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"/>
+                                                </Border.InputBindings>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding Id, StringFormat='ENV-{0:N8}'}" FontWeight="Bold" Foreground="#1E293B"/>
+                                                            <Border Background="#22C55E" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
+                                                                <TextBlock Text="{Binding StatusText}" FontSize="10" Foreground="White" FontWeight="Bold"/>
+                                                            </Border>
+                                                            <Border Background="#FEF3C7" CornerRadius="4" Padding="6,2" Margin="4,0,0,0">
+                                                                <TextBlock Text="{Binding ProviderText}" FontSize="10" Foreground="#D97706"/>
+                                                            </Border>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding TrackingNumber, StringFormat='Rastreio: {0}'}" FontSize="12" Foreground="#64748B" Margin="0,6,0,0"/>
+                                                        <TextBlock Text="{Binding DateFormatted, Mode=OneWay}" FontSize="11" Foreground="#94A3B8"/>
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="1" Text="{Binding CostFormatted, Mode=OneWay}" FontSize="18" FontWeight="Bold" Foreground="#1E293B" VerticalAlignment="Center"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="Todas Etiquetas SuperFrete">
+                        <Grid Margin="0,12,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <Button Grid.Row="0" Content="🔄 Atualizar Etiquetas" Command="{Binding RefreshSuperFreteCommand}" 
+                                    Style="{StaticResource SecondaryButton}" HorizontalAlignment="Right" Margin="0,0,0,12"/>
+
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding SuperFreteLabels}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border CornerRadius="10" Padding="16" Margin="0,0,0,12" Cursor="Hand" x:Name="Card">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="#F8FAFC"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Status}" Value="released">
+                                                                <Setter Property="Background" Value="#DBEAFE"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Status}" Value="posted">
+                                                                <Setter Property="Background" Value="#DCFCE7"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Status}" Value="paid">
+                                                                <Setter Property="Background" Value="#DCFCE7"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <Border.InputBindings>
+                                                    <MouseBinding MouseAction="LeftClick" Command="{Binding DataContext.SelectSuperFreteLabelCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"/>
+                                                </Border.InputBindings>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding ReceiverName}" FontWeight="Bold" Foreground="#1E293B" FontSize="14"/>
+                                                            <Border Background="#3B82F6" CornerRadius="4" Padding="6,2" Margin="8,0,0,0">
+                                                                <TextBlock Text="{Binding StatusText}" FontSize="10" Foreground="White" FontWeight="Bold"/>
+                                                            </Border>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding TrackingCode, StringFormat='Rastreio: {0}'}" FontSize="12" Foreground="#64748B" Margin="0,4,0,0"/>
+                                                        <TextBlock Text="{Binding DateFormatted, Mode=OneWay}" FontSize="11" Foreground="#94A3B8" Margin="0,2,0,0"/>
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="1" Text="{Binding OrderId}" FontSize="11" Opacity="0.5" VerticalAlignment="Center"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
             </Grid>
         </Border>
 
@@ -149,21 +213,42 @@
                 <Button Content="📦 Criar Envio" Command="{Binding CreateShipmentCommand}" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Stretch" Margin="0,0,0,20"/>
 
                 <!-- Ações do Envio Selecionado -->
-                <Border Background="#F0F9FF" CornerRadius="8" Padding="12" Visibility="{Binding SelectedShipment, Converter={StaticResource NullToVisibility}}">
+                <Border Background="#F0F9FF" CornerRadius="8" Padding="12">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedShipment, Converter={StaticResource NullToVisibility}}" Value="Visible">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding SelectedSuperFreteLabel, Converter={StaticResource NullToVisibility}}" Value="Visible">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
                     <StackPanel>
-                        <TextBlock Text="Envio Selecionado" FontSize="12" Foreground="#64748B" FontWeight="SemiBold"/>
-                        <TextBlock Text="{Binding SelectedShipment.CostFormatted, Mode=OneWay}" FontSize="18" FontWeight="Bold" Foreground="#1E293B" Margin="0,4,0,12"/>
+                        <TextBlock Text="Item Selecionado" FontSize="12" Foreground="#64748B" FontWeight="SemiBold"/>
+                        
+                        <!-- Local Shipment Details -->
+                        <StackPanel Visibility="{Binding SelectedShipment, Converter={StaticResource NullToVisibility}}">
+                            <TextBlock Text="{Binding SelectedShipment.CostFormatted, Mode=OneWay}" FontSize="18" FontWeight="Bold" Foreground="#1E293B" Margin="0,4,0,12"/>
+                            <TextBlock Text="Código de Rastreio" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
+                            <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding TrackingNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                            <TextBlock Text="Custo do Frete" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
+                            <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding ShippingCost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
+                            <Button Content="🏷️ Gerar Etiqueta" Command="{Binding GenerateLabelCommand}" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Stretch" Margin="0,0,0,8"/>
+                        </StackPanel>
 
-                        <TextBlock Text="Código de Rastreio" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
-                        <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding TrackingNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                        <!-- SuperFrete Label Details -->
+                        <StackPanel Visibility="{Binding SelectedSuperFreteLabel, Converter={StaticResource NullToVisibility}}">
+                            <TextBlock Text="{Binding SelectedSuperFreteLabel.ReceiverName}" FontSize="16" FontWeight="Bold" Foreground="#1E293B" Margin="0,4,0,4"/>
+                            <TextBlock Text="{Binding SelectedSuperFreteLabel.TrackingCode}" FontSize="14" Foreground="#3B82F6" Margin="0,0,0,12"/>
+                        </StackPanel>
 
-                        <TextBlock Text="Custo do Frete" FontSize="12" Foreground="#64748B" Margin="0,0,0,6"/>
-                        <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding ShippingCost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
-
-                        <Button Content="🏷️ Gerar Etiqueta" Command="{Binding GenerateLabelCommand}" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Stretch" Margin="0,0,0,8"/>
                         <Button Content="🖨️ Imprimir Etiqueta" Command="{Binding PrintLabelCommand}" Style="{StaticResource SuccessButton}" HorizontalAlignment="Stretch" Margin="0,0,0,8"/>
 
-                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0" Visibility="{Binding SelectedShipment, Converter={StaticResource NullToVisibility}}">
                             <Button Content="📤 Enviado" Command="{Binding MarkAsShippedCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
                             <Button Content="✅ Entregue" Command="{Binding MarkAsDeliveredCommand}" Style="{StaticResource SecondaryButton}"/>
                         </StackPanel>

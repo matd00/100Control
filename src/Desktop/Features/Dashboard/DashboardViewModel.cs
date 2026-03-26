@@ -20,6 +20,7 @@ public class DashboardViewModel : ViewModelBase
     private readonly IProductRepository _productRepository;
     private readonly IFactoryOrderRepository _factoryOrderRepository;
     private readonly ICustomerRepository _customerRepository;
+    private readonly Integrations.SuperFrete.Interfaces.ISuperFreteService _superFreteService;
 
     private DashboardPeriod _selectedPeriod = DashboardPeriod.Last30Days;
     private decimal _totalRevenue;
@@ -31,6 +32,7 @@ public class DashboardViewModel : ViewModelBase
     private int _lowStockProductsCount;
     private int _factoryPendingOrders;
     private decimal _factoryPeriodRevenue;
+    private int _totalLabelsCount;
 
     public DashboardPeriod SelectedPeriod
     {
@@ -92,6 +94,12 @@ public class DashboardViewModel : ViewModelBase
         set => SetProperty(ref _factoryPeriodRevenue, value);
     }
 
+    public int TotalLabelsCount
+    {
+        get => _totalLabelsCount;
+        set => SetProperty(ref _totalLabelsCount, value);
+    }
+
     public ObservableCollection<RecentOrderViewModel> RecentOrders { get; } = new();
     public ObservableCollection<TopProductViewModel> TopProducts { get; } = new();
     public ObservableCollection<SalesSourceViewModel> SalesBySource { get; } = new();
@@ -102,12 +110,14 @@ public class DashboardViewModel : ViewModelBase
         IOrderRepository orderRepository, 
         IProductRepository productRepository,
         IFactoryOrderRepository factoryOrderRepository,
-        ICustomerRepository customerRepository)
+        ICustomerRepository customerRepository,
+        Integrations.SuperFrete.Interfaces.ISuperFreteService superFreteService)
     {
         _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
         _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
         _factoryOrderRepository = factoryOrderRepository ?? throw new ArgumentNullException(nameof(factoryOrderRepository));
         _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(customerRepository));
+        _superFreteService = superFreteService ?? throw new ArgumentNullException(nameof(superFreteService));
 
         RefreshCommand = new AsyncRelayCommand(LoadDashboardDataAsync);
 
@@ -124,7 +134,13 @@ public class DashboardViewModel : ViewModelBase
             var factoryOrders = await _factoryOrderRepository.GetAllAsync();
             var customers = await _customerRepository.GetAllAsync();
 
-            var customerDict = customers.ToDictionary(c => c.Id);
+            // Fetch SuperFrete label count asynchronously
+            _ = Task.Run(async () => {
+                try {
+                    var labels = await _superFreteService.ListLabelsAsync();
+                    TotalLabelsCount = labels.Count;
+                } catch { /* Ignore SF errors in dashboard */ }
+            });
             DateTime startDate = SelectedPeriod switch
             {
                 DashboardPeriod.Today => DateTime.UtcNow.Date,

@@ -74,6 +74,7 @@ public class ShipmentsViewModel : ViewModelBase
     #endregion
 
     public ObservableCollection<ShipmentItemViewModel> Shipments { get; } = new();
+    public ObservableCollection<SuperFreteLabelViewModel> SuperFreteLabels { get; } = new();
     public ObservableCollection<OrderForShipmentViewModel> PendingOrders { get; } = new();
     public ObservableCollection<ShipmentProvider> Providers { get; } = new()
     {
@@ -89,7 +90,9 @@ public class ShipmentsViewModel : ViewModelBase
     public ICommand CancelShipmentCommand { get; }
     public ICommand TrackShipmentCommand { get; }
     public ICommand RefreshCommand { get; }
+    public ICommand RefreshSuperFreteCommand { get; }
     public ICommand SelectShipmentCommand { get; }
+    public ICommand SelectSuperFreteLabelCommand { get; }
     public ICommand PrintLabelCommand { get; }
 
     public ShipmentsViewModel(
@@ -114,12 +117,22 @@ public class ShipmentsViewModel : ViewModelBase
         MarkAsShippedCommand = new AsyncRelayCommand(MarkAsShippedAsync, () => !IsLoading && SelectedShipment != null);
         MarkAsDeliveredCommand = new AsyncRelayCommand(MarkAsDeliveredAsync, () => !IsLoading && SelectedShipment != null);
         CancelShipmentCommand = new AsyncRelayCommand(CancelShipmentAsync, () => !IsLoading && SelectedShipment != null);
-        TrackShipmentCommand = new AsyncRelayCommand(TrackShipmentAsync, () => !IsLoading && SelectedShipment != null);
+        TrackShipmentCommand = new AsyncRelayCommand(TrackShipmentAsync, () => !IsLoading && (SelectedShipment != null || SelectedSuperFreteLabel != null));
         RefreshCommand = new AsyncRelayCommand(LoadDataAsync);
+        RefreshSuperFreteCommand = new AsyncRelayCommand(LoadSuperFreteLabelsAsync);
         SelectShipmentCommand = new RelayCommand<ShipmentItemViewModel>(SelectShipment);
-        PrintLabelCommand = new AsyncRelayCommand(PrintLabelAsync, () => !IsLoading && SelectedShipment != null && (!string.IsNullOrEmpty(SelectedShipment.LabelUrl) || !string.IsNullOrEmpty(SelectedShipment.SuperFreteOrderId)));
+        SelectSuperFreteLabelCommand = new RelayCommand<SuperFreteLabelViewModel>(label => SelectedSuperFreteLabel = label);
+        PrintLabelCommand = new AsyncRelayCommand(PrintLabelAsync, () => !IsLoading && (SelectedShipment != null || SelectedSuperFreteLabel != null));
 
         _ = LoadDataAsync();
+        _ = LoadSuperFreteLabelsAsync();
+    }
+
+    private SuperFreteLabelViewModel? _selectedSuperFreteLabel;
+    public SuperFreteLabelViewModel? SelectedSuperFreteLabel
+    {
+        get => _selectedSuperFreteLabel;
+        set => SetProperty(ref _selectedSuperFreteLabel, value);
     }
 
     private void SelectShipment(ShipmentItemViewModel? shipment)
@@ -127,6 +140,7 @@ public class ShipmentsViewModel : ViewModelBase
         if (shipment != null)
         {
             SelectedShipment = shipment;
+            SelectedSuperFreteLabel = null; // Clear SuperFrete selection
             TrackingNumber = shipment.TrackingNumber;
             ShippingCost = shipment.ShippingCost;
         }
@@ -134,22 +148,28 @@ public class ShipmentsViewModel : ViewModelBase
 
     private async Task PrintLabelAsync()
     {
-        if (SelectedShipment == null) return;
-        
         try
         {
             IsLoading = true;
             StatusMessage = "Buscando etiqueta...";
 
-            string? url = SelectedShipment.LabelUrl;
+            string? url = null;
+            string? superFreteId = null;
 
-            if (string.IsNullOrEmpty(url) && !string.IsNullOrEmpty(SelectedShipment.SuperFreteOrderId))
+            if (SelectedShipment != null)
             {
-                url = await _superFreteService.GetLabelUrlAsync(SelectedShipment.SuperFreteOrderId);
-                if (!string.IsNullOrEmpty(url))
-                {
-                    SelectedShipment.LabelUrl = url;
-                }
+                url = SelectedShipment.LabelUrl;
+                superFreteId = SelectedShipment.SuperFreteOrderId;
+            }
+            else if (SelectedSuperFreteLabel != null)
+            {
+                url = SelectedSuperFreteLabel.LabelUrl;
+                superFreteId = SelectedSuperFreteLabel.OrderId;
+            }
+
+            if (string.IsNullOrEmpty(url) && !string.IsNullOrEmpty(superFreteId))
+            {
+                url = await _superFreteService.GetLabelUrlAsync(superFreteId);
             }
 
             if (!string.IsNullOrEmpty(url))
@@ -169,6 +189,42 @@ public class ShipmentsViewModel : ViewModelBase
         catch (Exception ex)
         {
             StatusMessage = $"❌ Erro ao buscar etiqueta: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task LoadSuperFreteLabelsAsync()
+    {
+        try
+        {
+            IsLoading = true;
+            StatusMessage = "Buscando etiquetas do SuperFrete...";
+
+            var labels = await _superFreteService.ListLabelsAsync();
+            SuperFreteLabels.Clear();
+
+            foreach (var label in labels.OrderByDescending(l => l.CreatedAt))
+            {
+                SuperFreteLabels.Add(new SuperFreteLabelViewModel
+                {
+                    OrderId = label.OrderId,
+                    TrackingCode = label.TrackingCode ?? "Pendente",
+                    LabelUrl = label.LabelUrl,
+                    Status = label.Status,
+                    IsPaid = label.IsPaid,
+                    ReceiverName = label.ReceiverName ?? "Não informado",
+                    CreatedAt = label.CreatedAt
+                });
+            }
+
+            StatusMessage = "✅ Etiquetas SuperFrete carregadas.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"❌ Erro ao carregar SuperFrete: {ex.Message}";
         }
         finally
         {
@@ -418,14 +474,18 @@ public class ShipmentsViewModel : ViewModelBase
 
     private async Task TrackShipmentAsync()
     {
-        if (SelectedShipment == null || string.IsNullOrWhiteSpace(SelectedShipment.TrackingNumber)) return;
+        string? trackingNumber = null;
+        if (SelectedShipment != null) trackingNumber = SelectedShipment.TrackingNumber;
+        else if (SelectedSuperFreteLabel != null) trackingNumber = SelectedSuperFreteLabel.TrackingCode;
+
+        if (string.IsNullOrWhiteSpace(trackingNumber) || trackingNumber == "Pendente") return;
 
         try
         {
             IsLoading = true;
             StatusMessage = "Rastreando envio...";
 
-            var tracking = await _superFreteService.TrackShipmentAsync(SelectedShipment.TrackingNumber);
+            var tracking = await _superFreteService.TrackShipmentAsync(trackingNumber);
             
             StatusMessage = $"📦 Status: {tracking.Status} - {tracking.Location} ({tracking.LastUpdate:dd/MM/yyyy HH:mm})";
         }
@@ -492,6 +552,28 @@ public class ShipmentsViewModel : ViewModelBase
             IsLoading = false;
         }
     }
+}
+
+public class SuperFreteLabelViewModel : ViewModelBase
+{
+    public string OrderId { get; set; } = string.Empty;
+    public string TrackingCode { get; set; } = string.Empty;
+    public string? LabelUrl { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public bool IsPaid { get; set; }
+    public string ReceiverName { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+
+    public string DateFormatted => CreatedAt.ToString("dd/MM/yyyy HH:mm");
+    public string StatusText => Status switch
+    {
+        "pending" => "Pendente",
+        "released" => "Liberada",
+        "posted" => "Postada",
+        "paid" => "Paga",
+        "cancelled" => "Cancelada",
+        _ => Status
+    };
 }
 
 public class ShipmentItemViewModel : ViewModelBase

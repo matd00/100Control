@@ -11,6 +11,7 @@ public interface ISuperFreteService
     Task<string?> GetLabelUrlAsync(string orderId);
     Task<ShipmentTrackingDto> TrackShipmentAsync(string trackingNumber);
     Task CancelOrderAsync(string superFreteOrderId);
+    Task<List<ShipmentResult>> ListLabelsAsync();
 }
 
 /// <summary>
@@ -24,6 +25,8 @@ public class ShipmentResult
     public string Status { get; set; } = string.Empty;
     public bool IsPaid { get; set; }
     public decimal ShippingCost { get; set; }
+    public string? ReceiverName { get; set; }
+    public DateTime CreatedAt { get; set; }
 }
 
 public class FreightQuoteRequest

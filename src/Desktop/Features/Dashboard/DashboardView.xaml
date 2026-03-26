@@ -8,9 +8,9 @@
              mc:Ignorable="d" 
              d:DesignHeight="800" d:DesignWidth="1000">
     <StackPanel>
-        <!-- Top KPI Cards -->
         <Grid Margin="0,0,0,32">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -47,12 +47,21 @@
                 </StackPanel>
             </materialDesign:Card>
 
-            <materialDesign:Card Grid.Column="3" Margin="12,0,0,0" ContentControl.Padding="24" materialDesign:ElevationAssist.Elevation="Dp2" UniformCornerRadius="16">
+            <materialDesign:Card Grid.Column="3" Margin="12,0" ContentControl.Padding="24" materialDesign:ElevationAssist.Elevation="Dp2" UniformCornerRadius="16">
+                <StackPanel>
+                    <materialDesign:PackIcon Kind="Label" Foreground="{DynamicResource PrimaryHueMidBrush}" Width="24" Height="24"/>
+                    <TextBlock Text="Etiquetas SuperFrete" FontSize="12" Foreground="#64748B" Margin="0,12,0,4"/>
+                    <TextBlock Text="{Binding TotalLabelsCount}" FontSize="24" FontWeight="Bold" Foreground="#1E293B"/>
+                    <TextBlock Text="API/Site" FontSize="10" Foreground="{StaticResource SuccessBrush}" Margin="0,8,0,0"/>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <materialDesign:Card Grid.Column="4" Margin="12,0,0,0" ContentControl.Padding="24" materialDesign:ElevationAssist.Elevation="Dp2" UniformCornerRadius="16">
                 <StackPanel>
                     <materialDesign:PackIcon Kind="AlertCircleOutline" Foreground="{StaticResource DangerBrush}" Width="24" Height="24"/>
                     <TextBlock Text="Low Stock" Style="{StaticResource MaterialDesignBody2TextBlock}" Opacity="0.6" Margin="0,12,0,4"/>
                     <TextBlock Text="{Binding LowStockProductsCount}" Style="{StaticResource MaterialDesignHeadline5TextBlock}" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>
-                    <TextBlock Text="Items requiring attention" FontSize="11" Opacity="0.5" Margin="0,8,0,0"/>
+                    <TextBlock Text="Attention needed" FontSize="11" Opacity="0.5" Margin="0,8,0,0"/>
                 </StackPanel>
             </materialDesign:Card>
         </Grid>

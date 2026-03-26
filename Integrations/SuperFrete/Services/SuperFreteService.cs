@@ -626,6 +626,41 @@ public class SuperFreteService : ISuperFreteService
             Location = lastEvent?.Location ?? "Não informado"
         };
     }
+
+    public async Task<List<ShipmentResult>> ListLabelsAsync()
+    {
+        try
+        {
+            // O endpoint padrão para listar pedidos é GET /api/v0/orders
+            var response = await _httpClient.GetAsync("/api/v0/orders");
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new SuperFreteException($"Erro ao listar etiquetas: {response.StatusCode} - {responseContent}");
+            }
+
+            var ordersResponse = JsonSerializer.Deserialize<SuperFreteOrdersResponse>(responseContent, _jsonOptions);
+            
+            if (ordersResponse?.Data == null)
+                return new List<ShipmentResult>();
+
+            return ordersResponse.Data.Select(s => new ShipmentResult
+            {
+                OrderId = s.Id ?? "",
+                TrackingCode = s.Tracking,
+                LabelUrl = s.Print?.Url,
+                Status = s.Status ?? "unknown",
+                IsPaid = s.Status == "released" || s.Status == "posted" || s.Status == "paid",
+                ReceiverName = s.To?.Name,
+                CreatedAt = s.CreatedAt
+            }).ToList();
+        }
+        catch (Exception ex) when (ex is not SuperFreteException)
+        {
+            throw new SuperFreteException($"Erro inesperado ao listar etiquetas: {ex.Message}", ex);
+        }
+    }
 }
 
 public class SuperFreteException : Exception

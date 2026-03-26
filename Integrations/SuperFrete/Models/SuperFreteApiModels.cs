@@ -323,6 +323,9 @@ public class SuperFreteShipmentResponse
     [JsonPropertyName("created_at")]
     public DateTime CreatedAt { get; set; }
 
+    [JsonPropertyName("to")]
+    public SuperFreteAddress? To { get; set; }
+
     [JsonPropertyName("print")]
     public SuperFretePrint? Print { get; set; }
 
@@ -343,6 +346,21 @@ public class SuperFreteCheckoutResponse
 {
     [JsonPropertyName("orders")]
     public List<SuperFreteShipmentResponse>? Orders { get; set; }
+}
+
+public class SuperFreteOrdersResponse
+{
+    [JsonPropertyName("data")]
+    public List<SuperFreteShipmentResponse>? Data { get; set; }
+
+    [JsonPropertyName("current_page")]
+    public int CurrentPage { get; set; }
+
+    [JsonPropertyName("last_page")]
+    public int LastPage { get; set; }
+
+    [JsonPropertyName("total")]
+    public int Total { get; set; }
 }
 
 public class SuperFreteTrackingResponse
