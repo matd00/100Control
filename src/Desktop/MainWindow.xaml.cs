@@ -20,6 +20,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        MainSnackbar.MessageQueue = App.SnackbarMessageQueue;
         _activeMenuButton = BtnDashboard;
         TxtDate.Text = DateTime.Now.ToString("dd/MM/yyyy");
         ShowDashboard();
@@ -198,12 +199,6 @@ public partial class MainWindow : Window
 
     private void ShowDashboard()
     {
-        HideAllContent();
-        PageTitle.Text = "Dashboard";
-        PageSubtitle.Text = "Visão geral do sistema";
-
-        var viewModel = App.ServiceProvider.GetRequiredService<DashboardViewModel>();
-        DashboardContent.DataContext = viewModel;
-        DashboardContent.Visibility = Visibility.Visible;
+        LoadView<DashboardView, DashboardViewModel>("Dashboard", "General system overview");
     }
 }

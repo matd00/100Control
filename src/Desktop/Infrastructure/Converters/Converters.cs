@@ -93,3 +93,36 @@ public class BoolToEditTextConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
+
+public class BoolToOpacityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is bool b)
+            return b ? 1.0 : 0.3;
+        return 0.3;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class StepToBrushConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is int currentStep && parameter is string targetStepStr && int.TryParse(targetStepStr, out int targetStep))
+        {
+            if (currentStep >= targetStep)
+                return Application.Current.FindResource("PrimaryBrush");
+        }
+        return new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.LightGray);
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}

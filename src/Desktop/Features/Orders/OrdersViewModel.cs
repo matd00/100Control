@@ -11,6 +11,7 @@ using Application.UseCases.Products;
 using Integrations.SuperFrete.Configuration;
 using Integrations.SuperFrete.Interfaces;
 using Integrations.SuperFrete.Models;
+using MaterialDesignThemes.Wpf;
 
 namespace Desktop.Features.Orders
 {
@@ -424,18 +425,13 @@ namespace Desktop.Features.Orders
             {
                 try
                 {
-                    StatusMessage = "Buscando etiqueta...";
-                    OnPropertyChanged(nameof(HasStatusMessage));
+                    App.SnackbarMessageQueue.Enqueue("Buscando etiqueta...");
 
                     url = await _superFreteService.GetLabelUrlAsync(superFreteOrderId);
-
-                    StatusMessage = "";
-                    OnPropertyChanged(nameof(HasStatusMessage));
                 }
                 catch (Exception ex)
                 {
-                    StatusMessage = $"Erro ao buscar etiqueta: {ex.Message}";
-                    OnPropertyChanged(nameof(HasStatusMessage));
+                    App.SnackbarMessageQueue.Enqueue($"Erro ao buscar etiqueta: {ex.Message}");
                     return;
                 }
             }
@@ -452,14 +448,12 @@ namespace Desktop.Features.Orders
                 }
                 catch (Exception ex)
                 {
-                    StatusMessage = $"Erro ao abrir etiqueta: {ex.Message}";
-                    OnPropertyChanged(nameof(HasStatusMessage));
+                    App.SnackbarMessageQueue.Enqueue($"Erro ao abrir etiqueta: {ex.Message}");
                 }
             }
             else
             {
-                StatusMessage = "⚠️ URL da etiqueta não disponível. Acesse o painel do SuperFrete.";
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue("⚠️ URL da etiqueta não disponível. Acesse o painel do SuperFrete.");
             }
         }
 
@@ -469,8 +463,7 @@ namespace Desktop.Features.Orders
 
             try
             {
-                StatusMessage = "Cancelando envio no SuperFrete...";
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue("Cancelando envio no SuperFrete...");
 
                 // Cancelar no SuperFrete primeiro
                 try
@@ -479,8 +472,7 @@ namespace Desktop.Features.Orders
                 }
                 catch (Exception ex)
                 {
-                    StatusMessage = $"⚠️ Erro ao cancelar no SuperFrete: {ex.Message}. Cancelando localmente...";
-                    OnPropertyChanged(nameof(HasStatusMessage));
+                    App.SnackbarMessageQueue.Enqueue($"⚠️ Erro ao cancelar no SuperFrete: {ex.Message}. Cancelando localmente...");
                 }
 
                 // Cancelar o pedido no banco
@@ -494,7 +486,7 @@ namespace Desktop.Features.Orders
                     await _shipmentRepository.UpdateAsync(shipment);
                 }
 
-                StatusMessage = "✅ Envio cancelado com sucesso!";
+                App.SnackbarMessageQueue.Enqueue("✅ Envio cancelado com sucesso!");
                 await LoadOrdersAsync();
 
                 // Atualizar o pedido selecionado
@@ -507,9 +499,8 @@ namespace Desktop.Features.Orders
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Erro ao cancelar envio: {ex.Message}";
+                App.SnackbarMessageQueue.Enqueue($"Erro ao cancelar envio: {ex.Message}");
             }
-            OnPropertyChanged(nameof(HasStatusMessage));
         }
 
         private async Task CheckoutLabelAsync()
@@ -519,30 +510,28 @@ namespace Desktop.Features.Orders
             try
             {
                 IsGeneratingLabel = true;
-                StatusMessage = "Processando pagamento da etiqueta...";
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue("Processando pagamento da etiqueta...");
 
                 var result = await _superFreteService.CheckoutAsync(SelectedOrder.TrackingCode);
 
                 if (!string.IsNullOrEmpty(result.LabelUrl))
                 {
                     GeneratedLabelUrl = result.LabelUrl;
-                    StatusMessage = "✅ Etiqueta liberada! Clique em 'Imprimir' para baixar.";
+                    App.SnackbarMessageQueue.Enqueue("✅ Etiqueta liberada! Clique em 'Imprimir' para baixar.");
                     await LoadOrdersAsync();
                 }
                 else
                 {
-                    StatusMessage = "⚠️ Etiqueta ainda não disponível. Tente novamente em alguns segundos.";
+                    App.SnackbarMessageQueue.Enqueue("⚠️ Etiqueta ainda não disponível. Tente novamente em alguns segundos.");
                 }
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Erro no checkout: {ex.Message}";
+                App.SnackbarMessageQueue.Enqueue($"Erro no checkout: {ex.Message}");
             }
             finally
             {
                 IsGeneratingLabel = false;
-                OnPropertyChanged(nameof(HasStatusMessage));
             }
         }
 
@@ -552,15 +541,13 @@ namespace Desktop.Features.Orders
             if (!string.IsNullOrEmpty(code))
             {
                 System.Windows.Clipboard.SetText(code);
-                StatusMessage = "📋 Código copiado para a área de transferência!";
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue("📋 Código copiado para a área de transferência!");
             }
         }
 
         private async Task RefreshOrdersAsync()
         {
-            StatusMessage = "🔄 Atualizando pedidos...";
-            OnPropertyChanged(nameof(HasStatusMessage));
+            App.SnackbarMessageQueue.Enqueue("🔄 Atualizando pedidos...");
 
             await LoadOrdersAsync();
 
@@ -575,13 +562,7 @@ namespace Desktop.Features.Orders
                 }
             }
 
-            StatusMessage = "✅ Pedidos atualizados!";
-            OnPropertyChanged(nameof(HasStatusMessage));
-
-            // Limpar mensagem após 2 segundos
-            await Task.Delay(2000);
-            StatusMessage = "";
-            OnPropertyChanged(nameof(HasStatusMessage));
+            App.SnackbarMessageQueue.Enqueue("✅ Pedidos atualizados!");
         }
 
         private void CloseSuccessAndReset()
@@ -605,8 +586,7 @@ namespace Desktop.Features.Orders
         {
             if (SelectedShipping == null)
             {
-                StatusMessage = "Selecione uma opção de frete antes de finalizar.";
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue("Selecione uma opção de frete antes de finalizar.");
                 return;
             }
             ShowConfirmationDialog = true;
@@ -624,8 +604,7 @@ namespace Desktop.Features.Orders
             try
             {
                 IsGeneratingLabel = true;
-                StatusMessage = "Gerando etiqueta no SuperFrete...";
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue("Gerando etiqueta no SuperFrete...");
 
                 // Preparar lista de produtos
                 var products = OrderItems.Select(item => new ShipmentProduct
@@ -663,8 +642,7 @@ namespace Desktop.Features.Orders
                 var superFreteOrderId = result.OrderId;
 
                 // 2. Fazer checkout (pagar e emitir a etiqueta)
-                StatusMessage = "Pagando e emitindo etiqueta...";
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue("Pagando e emitindo etiqueta...");
 
                 var checkoutResult = await _superFreteService.CheckoutAsync(superFreteOrderId);
 
@@ -724,16 +702,14 @@ namespace Desktop.Features.Orders
                 await _shipmentRepository.SaveAsync(shipment);
                 System.Diagnostics.Debug.WriteLine("✓ Shipment salvo com sucesso!");
 
-                StatusMessage = "✅ Pedido e Envio registrados com sucesso!";
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue("✅ Pedido e Envio registrados com sucesso!");
 
                 await LoadOrdersAsync();
             }
             catch (Exception ex)
             {
                 ShowConfirmationDialog = false;
-                StatusMessage = $"Erro ao emitir etiqueta: {ex.Message}";
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue($"Erro ao emitir etiqueta: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"!!! ERRO em ConfirmFinalizeAsync: {ex.Message}");
             }
             finally
@@ -749,8 +725,7 @@ namespace Desktop.Features.Orders
             try
             {
                 await _updateOrderStatusUseCase.Execute(SelectedOrder.Id, (int)OrderStatus.Cancelled);
-                StatusMessage = "Pedido cancelado com sucesso.";
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue("Pedido cancelado com sucesso.");
                 await LoadOrdersAsync();
 
                 // Limpar seleção
@@ -764,8 +739,7 @@ namespace Desktop.Features.Orders
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Erro ao cancelar: {ex.Message}";
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue($"Erro ao cancelar: {ex.Message}");
             }
         }
 
@@ -804,14 +778,12 @@ namespace Desktop.Features.Orders
                             SelectedCustomer.ZipCode
                         );
                         await _customerRepository.UpdateAsync(customer);
-                        StatusMessage = "CEP do cliente atualizado com sucesso!";
-                        OnPropertyChanged(nameof(HasStatusMessage));
+                        App.SnackbarMessageQueue.Enqueue("CEP do cliente atualizado com sucesso!");
                     }
                 }
                 catch (Exception ex)
                 {
-                    StatusMessage = $"Erro ao salvar CEP: {ex.Message}";
-                    OnPropertyChanged(nameof(HasStatusMessage));
+                    App.SnackbarMessageQueue.Enqueue($"Erro ao salvar CEP: {ex.Message}");
                 }
             }
 
@@ -881,8 +853,7 @@ namespace Desktop.Features.Orders
                     System.Diagnostics.Debug.WriteLine($"!!! InnerException: {ex.InnerException.Message}");
                 }
 
-                StatusMessage = errorMsg;
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue(errorMsg);
             }
         }
 
@@ -908,8 +879,7 @@ namespace Desktop.Features.Orders
             }
             catch (Exception ex)
             {
-                StatusMessage = $"❌ Erro ao carregar pedidos: {ex.Message}";
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue($"❌ Erro ao carregar pedidos: {ex.Message}");
             }
         }
 
@@ -945,8 +915,7 @@ namespace Desktop.Features.Orders
             }
             catch (Exception ex)
             {
-                StatusMessage = $"❌ Erro ao carregar clientes: {ex.Message}";
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue($"❌ Erro ao carregar clientes: {ex.Message}");
             }
         }
 
@@ -981,8 +950,7 @@ namespace Desktop.Features.Orders
             }
             catch (Exception ex)
             {
-                StatusMessage = $"❌ Erro ao carregar produtos: {ex.Message}";
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue($"❌ Erro ao carregar produtos: {ex.Message}");
             }
         }
 
@@ -1366,13 +1334,11 @@ namespace Desktop.Features.Orders
 
             try
             {
-                StatusMessage = string.Format("Sincronizando pedido {0}...", orderVm.TrackingCode);
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue($"Sincronizando pedido {orderVm.TrackingCode}...");
 
                 var tracking = await _superFreteService.TrackShipmentAsync(orderVm.TrackingCode);
                 
-                StatusMessage = string.Format("✅ Sincronizado! Status SuperFrete: {0}", tracking.Status);
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue($"✅ Sincronizado! Status SuperFrete: {tracking.Status}");
                 
                 if (tracking.Status.Contains("Entregue", StringComparison.OrdinalIgnoreCase))
                 {
@@ -1382,8 +1348,7 @@ namespace Desktop.Features.Orders
             }
             catch (Exception ex)
             {
-                StatusMessage = string.Format("❌ Erro na sincronização: {0}", ex.Message);
-                OnPropertyChanged(nameof(HasStatusMessage));
+                App.SnackbarMessageQueue.Enqueue($"❌ Erro na sincronização: {ex.Message}");
             }
         }
 
@@ -1402,8 +1367,7 @@ namespace Desktop.Features.Orders
                 try
                 {
                     await _deleteOrderUseCase.Execute(orderVm.Id);
-                    StatusMessage = "✅ Pedido removido e estoque atualizado.";
-                    OnPropertyChanged(nameof(HasStatusMessage));
+                    App.SnackbarMessageQueue.Enqueue("✅ Pedido removido e estoque atualizado.");
                     await LoadOrdersAsync();
                     
                     if (SelectedOrder?.Id == orderVm.Id)
@@ -1414,8 +1378,7 @@ namespace Desktop.Features.Orders
                 }
                 catch (Exception ex)
                 {
-                    StatusMessage = $"❌ Erro ao remover: {ex.Message}";
-                    OnPropertyChanged(nameof(HasStatusMessage));
+                    App.SnackbarMessageQueue.Enqueue($"❌ Erro ao remover: {ex.Message}");
                 }
             }
         }
