@@ -244,6 +244,24 @@
                         <StackPanel Visibility="{Binding SelectedSuperFreteLabel, Converter={StaticResource NullToVisibility}}">
                             <TextBlock Text="{Binding SelectedSuperFreteLabel.ReceiverName}" FontSize="16" FontWeight="Bold" Foreground="#1E293B" Margin="0,4,0,4"/>
                             <TextBlock Text="{Binding SelectedSuperFreteLabel.TrackingCode}" FontSize="14" Foreground="#3B82F6" Margin="0,0,0,12"/>
+                            
+                            <!-- Checkout button if not paid -->
+                            <Button Content="💳 Pagar Etiqueta" Command="{Binding CheckoutLabelCommand}" 
+                                    Style="{StaticResource PrimaryButton}" HorizontalAlignment="Stretch" Margin="0,0,0,8">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedSuperFreteLabel.IsPaid}" Value="False">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+
+                            <Button Content="🔄 Atualizar Status SF" Command="{Binding RefreshLabelStatusCommand}" 
+                                    Style="{StaticResource SecondaryButton}" HorizontalAlignment="Stretch" Margin="0,0,0,8"/>
                         </StackPanel>
 
                         <Button Content="🖨️ Imprimir Etiqueta" Command="{Binding PrintLabelCommand}" Style="{StaticResource SuccessButton}" HorizontalAlignment="Stretch" Margin="0,0,0,8"/>

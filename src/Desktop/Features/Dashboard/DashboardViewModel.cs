@@ -33,6 +33,8 @@ public class DashboardViewModel : ViewModelBase
     private int _factoryPendingOrders;
     private decimal _factoryPeriodRevenue;
     private int _totalLabelsCount;
+    private int _labelsToPostCount;
+    private int _labelsInTransitCount;
 
     public DashboardPeriod SelectedPeriod
     {
@@ -100,6 +102,18 @@ public class DashboardViewModel : ViewModelBase
         set => SetProperty(ref _totalLabelsCount, value);
     }
 
+    public int LabelsToPostCount
+    {
+        get => _labelsToPostCount;
+        set => SetProperty(ref _labelsToPostCount, value);
+    }
+
+    public int LabelsInTransitCount
+    {
+        get => _labelsInTransitCount;
+        set => SetProperty(ref _labelsInTransitCount, value);
+    }
+
     public ObservableCollection<RecentOrderViewModel> RecentOrders { get; } = new();
     public ObservableCollection<TopProductViewModel> TopProducts { get; } = new();
     public ObservableCollection<SalesSourceViewModel> SalesBySource { get; } = new();
@@ -139,6 +153,8 @@ public class DashboardViewModel : ViewModelBase
                 try {
                     var labels = await _superFreteService.ListLabelsAsync();
                     TotalLabelsCount = labels.Count;
+                    LabelsToPostCount = labels.Count(l => l.Status == "released");
+                    LabelsInTransitCount = labels.Count(l => l.Status == "posted");
                 } catch { /* Ignore SF errors in dashboard */ }
             });
             DateTime startDate = SelectedPeriod switch

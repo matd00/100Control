@@ -12,6 +12,7 @@ public interface ISuperFreteService
     Task<ShipmentTrackingDto> TrackShipmentAsync(string trackingNumber);
     Task CancelOrderAsync(string superFreteOrderId);
     Task<List<ShipmentResult>> ListLabelsAsync();
+    Task<ShipmentResult> GetLabelDetailsAsync(string orderId);
 }
 
 /// <summary>

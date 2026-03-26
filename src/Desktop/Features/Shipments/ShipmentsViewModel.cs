@@ -94,6 +94,8 @@ public class ShipmentsViewModel : ViewModelBase
     public ICommand SelectShipmentCommand { get; }
     public ICommand SelectSuperFreteLabelCommand { get; }
     public ICommand PrintLabelCommand { get; }
+    public ICommand CheckoutLabelCommand { get; }
+    public ICommand RefreshLabelStatusCommand { get; }
 
     public ShipmentsViewModel(
         IShipmentRepository shipmentRepository,
@@ -123,9 +125,59 @@ public class ShipmentsViewModel : ViewModelBase
         SelectShipmentCommand = new RelayCommand<ShipmentItemViewModel>(SelectShipment);
         SelectSuperFreteLabelCommand = new RelayCommand<SuperFreteLabelViewModel>(label => SelectedSuperFreteLabel = label);
         PrintLabelCommand = new AsyncRelayCommand(PrintLabelAsync, () => !IsLoading && (SelectedShipment != null || SelectedSuperFreteLabel != null));
+        CheckoutLabelCommand = new AsyncRelayCommand(CheckoutLabelAsync, () => !IsLoading && SelectedSuperFreteLabel != null && !SelectedSuperFreteLabel.IsPaid);
+        RefreshLabelStatusCommand = new AsyncRelayCommand(RefreshLabelStatusAsync, () => !IsLoading && SelectedSuperFreteLabel != null);
 
         _ = LoadDataAsync();
         _ = LoadSuperFreteLabelsAsync();
+    }
+
+    private async Task CheckoutLabelAsync()
+    {
+        if (SelectedSuperFreteLabel == null) return;
+
+        try
+        {
+            IsLoading = true;
+            StatusMessage = "Processando pagamento da etiqueta...";
+
+            var result = await _superFreteService.CheckoutAsync(SelectedSuperFreteLabel.OrderId);
+            
+            StatusMessage = "✅ Etiqueta paga com sucesso!";
+            await RefreshLabelStatusAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"❌ Erro no pagamento: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task RefreshLabelStatusAsync()
+    {
+        if (SelectedSuperFreteLabel == null) return;
+
+        try
+        {
+            IsLoading = true;
+            StatusMessage = "Atualizando status...";
+
+            var details = await _superFreteService.GetLabelDetailsAsync(SelectedSuperFreteLabel.OrderId);
+            
+            SelectedSuperFreteLabel.UpdateFrom(details);
+            StatusMessage = $"✅ Status atualizado: {SelectedSuperFreteLabel.StatusText}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"❌ Erro ao atualizar status: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     private SuperFreteLabelViewModel? _selectedSuperFreteLabel;
@@ -476,9 +528,22 @@ public class ShipmentsViewModel : ViewModelBase
     {
         string? trackingNumber = null;
         if (SelectedShipment != null) trackingNumber = SelectedShipment.TrackingNumber;
-        else if (SelectedSuperFreteLabel != null) trackingNumber = SelectedSuperFreteLabel.TrackingCode;
+        else if (SelectedSuperFreteLabel != null) 
+        {
+            trackingNumber = SelectedSuperFreteLabel.TrackingCode;
+            // Se o código de rastreio ainda não está no objeto local, tenta buscar detalhes atualizados
+            if (string.IsNullOrWhiteSpace(trackingNumber) || trackingNumber == "Pendente")
+            {
+                await RefreshLabelStatusAsync();
+                trackingNumber = SelectedSuperFreteLabel.TrackingCode;
+            }
+        }
 
-        if (string.IsNullOrWhiteSpace(trackingNumber) || trackingNumber == "Pendente") return;
+        if (string.IsNullOrWhiteSpace(trackingNumber) || trackingNumber == "Pendente")
+        {
+            StatusMessage = "⚠️ Código de rastreio não disponível para este item.";
+            return;
+        }
 
         try
         {
@@ -574,6 +639,19 @@ public class SuperFreteLabelViewModel : ViewModelBase
         "cancelled" => "Cancelada",
         _ => Status
     };
+
+    public void UpdateFrom(ShipmentResult result)
+    {
+        TrackingCode = result.TrackingCode ?? "Pendente";
+        LabelUrl = result.LabelUrl;
+        Status = result.Status;
+        IsPaid = result.IsPaid;
+        OnPropertyChanged(nameof(TrackingCode));
+        OnPropertyChanged(nameof(LabelUrl));
+        OnPropertyChanged(nameof(Status));
+        OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(IsPaid));
+    }
 }
 
 public class ShipmentItemViewModel : ViewModelBase

@@ -371,6 +371,11 @@ public class SuperFreteService : ISuperFreteService
         return result.LabelUrl;
     }
 
+    public async Task<ShipmentResult> GetLabelDetailsAsync(string orderId)
+    {
+        return await GetShipmentInfoAsync(orderId);
+    }
+
     private async Task<ShipmentResult> GetShipmentInfoAsync(string orderId)
     {
         if (string.IsNullOrWhiteSpace(orderId))
