@@ -206,12 +206,12 @@
                                          Style="{StaticResource MaterialDesignNavigationPrimaryListBox}">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid Padding="8">
+                                            <Border Padding="8">
                                                 <StackPanel>
                                                     <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
                                                     <TextBlock Text="{Binding Email}" Opacity="0.6" FontSize="12"/>
                                                 </StackPanel>
-                                            </Grid>
+                                            </Border>
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>
