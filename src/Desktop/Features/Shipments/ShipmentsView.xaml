@@ -247,7 +247,7 @@
                             
                             <!-- Checkout button if not paid -->
                             <Button Content="💳 Pagar Etiqueta" Command="{Binding CheckoutLabelCommand}" 
-                                    Style="{StaticResource PrimaryButton}" HorizontalAlignment="Stretch" Margin="0,0,0,8">
+                                    HorizontalAlignment="Stretch" Margin="0,0,0,8">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
                                         <Setter Property="Visibility" Value="Collapsed"/>
