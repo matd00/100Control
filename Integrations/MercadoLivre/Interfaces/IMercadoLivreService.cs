@@ -10,27 +10,27 @@ public interface IMercadoLivreService
 
 public class MeliOrderDto
 {
-    public string OrderId { get; set; }
-    public string CustomerId { get; set; }
-    public string CustomerName { get; set; }
-    public string CustomerEmail { get; set; }
+    public string OrderId { get; set; } = string.Empty;
+    public string CustomerId { get; set; } = string.Empty;
+    public string CustomerName { get; set; } = string.Empty;
+    public string CustomerEmail { get; set; } = string.Empty;
     public DateTime CreatedDate { get; set; }
     public decimal TotalAmount { get; set; }
-    public List<MeliOrderItemDto> Items { get; set; }
+    public List<MeliOrderItemDto> Items { get; set; } = new();
 }
 
 public class MeliOrderItemDto
 {
-    public string ProductId { get; set; }
-    public string Title { get; set; }
+    public string ProductId { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
     public int Quantity { get; set; }
     public decimal Price { get; set; }
 }
 
 public class MeliProductDto
 {
-    public string ProductId { get; set; }
-    public string Title { get; set; }
+    public string ProductId { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
     public decimal Price { get; set; }
     public int AvailableQuantity { get; set; }
 }

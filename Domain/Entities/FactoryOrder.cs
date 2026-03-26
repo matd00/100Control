@@ -13,11 +13,11 @@ public enum FactoryOrderStatus
 
 public class FactoryOrder : Entity
 {
-    public string CustomerName { get; private set; }
-    public string CustomerContact { get; private set; }
-    public string DeliveryAddress { get; private set; }
-    public string SupplierName { get; private set; }
-    public string SupplierContact { get; private set; }
+    public string CustomerName { get; private set; } = string.Empty;
+    public string CustomerContact { get; private set; } = string.Empty;
+    public string DeliveryAddress { get; private set; } = string.Empty;
+    public string SupplierName { get; private set; } = string.Empty;
+    public string SupplierContact { get; private set; } = string.Empty;
     
     public List<FactoryOrderItem> Items { get; private set; } = new();
     
@@ -150,7 +150,7 @@ public class FactoryOrder : Entity
 public class FactoryOrderItem
 {
     public Guid Id { get; private set; }
-    public string Description { get; private set; }
+    public string Description { get; private set; } = string.Empty;
     public int Quantity { get; private set; }
     public decimal UnitCost { get; private set; }
     public decimal UnitSalePrice { get; private set; }

@@ -39,8 +39,9 @@ public class CreateOrderHandlerTests
         // Arrange
         var customerId = Guid.NewGuid();
         var productId = Guid.NewGuid();
-        var customer = new Customer("John Doe", "john@example.com", "12345678900");
-        var product = new Product("Paintball Gun", "A cool gun", 100, 10);
+        var customer = new Customer("John Doe", "john@example.com", "551199999999", "12345678900");
+        var product = new Product("Paintball Gun", "Equipamento", "A cool gun", 50m, 100m);
+        product.IncreaseStock(10);
         
         _customerRepositoryMock.Setup(x => x.GetByIdAsync(customerId)).ReturnsAsync(customer);
         _productRepositoryMock.Setup(x => x.GetByIdAsync(productId)).ReturnsAsync(product);
@@ -70,8 +71,9 @@ public class CreateOrderHandlerTests
         // Arrange
         var customerId = Guid.NewGuid();
         var productId = Guid.NewGuid();
-        var customer = new Customer("John Doe", "john@example.com", "12345678900");
-        var product = new Product("Paintball Gun", "A cool gun", 100, 1); // Only 1 in stock
+        var customer = new Customer("John Doe", "john@example.com", "551199999999", "12345678900");
+        var product = new Product("Paintball Gun", "Equipamento", "A cool gun", 50m, 100m);
+        product.IncreaseStock(1); // Only 1 in stock
         
         _customerRepositoryMock.Setup(x => x.GetByIdAsync(customerId)).ReturnsAsync(customer);
         _productRepositoryMock.Setup(x => x.GetByIdAsync(productId)).ReturnsAsync(product);

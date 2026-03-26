@@ -19,7 +19,7 @@ public static class SuperFreteServiceExtensions
         var settings = configuration.GetSection(SuperFreteSettings.SectionName).Get<SuperFreteSettings>()
             ?? throw new InvalidOperationException("Configuração SuperFrete não encontrada no appsettings.");
 
-        services.AddSingleton(settings);
+        services.AddSingleton<SuperFreteSettings>(settings);
 
         services.AddHttpClient<ISuperFreteService, SuperFreteService>((serviceProvider, client) =>
         {
@@ -38,7 +38,7 @@ public static class SuperFreteServiceExtensions
         var settings = new SuperFreteSettings();
         configure(settings);
 
-        services.AddSingleton(settings);
+        services.AddSingleton<SuperFreteSettings>(settings);
 
         services.AddHttpClient<ISuperFreteService, SuperFreteService>((serviceProvider, client) =>
         {
