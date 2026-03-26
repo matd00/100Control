@@ -71,6 +71,7 @@
 
                 <Button Grid.Row="1" Content="NEW ORDER" Command="{Binding NewOrderCommand}" 
                         Style="{StaticResource MaterialDesignRaisedButton}" 
+                        Foreground="White"
                         Margin="20,10" Height="45" materialDesign:ButtonAssist.CornerRadius="12"/>
 
                 <!-- Orders List -->
@@ -166,7 +167,7 @@
                                 <!-- Step 2 -->
                                 <StackPanel Orientation="Horizontal" Opacity="{Binding Step1Completed, Converter={StaticResource BoolToOpacityConverter}, FallbackValue=0.3}">
                                     <Border Width="32" Height="32" CornerRadius="16" 
-                                            Background="{Binding CurrentStep, Converter={local:StepToBrushConverter}, ConverterParameter=2}" VerticalAlignment="Center">
+                                            Background="{Binding CurrentStep, Converter={StaticResource StepToBrushConverter}, ConverterParameter=2}" VerticalAlignment="Center">
                                         <materialDesign:PackIcon Kind="PackageVariant" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <TextBlock Text="Products" VerticalAlignment="Center" Margin="12,0,24,0" FontWeight="SemiBold"/>
@@ -177,7 +178,7 @@
                                 <!-- Step 3 -->
                                 <StackPanel Orientation="Horizontal" Opacity="{Binding Step2Completed, Converter={StaticResource BoolToOpacityConverter}, FallbackValue=0.3}">
                                     <Border Width="32" Height="32" CornerRadius="16" 
-                                            Background="{Binding CurrentStep, Converter={local:StepToBrushConverter}, ConverterParameter=3}" VerticalAlignment="Center">
+                                            Background="{Binding CurrentStep, Converter={StaticResource StepToBrushConverter}, ConverterParameter=3}" VerticalAlignment="Center">
                                         <materialDesign:PackIcon Kind="TruckDelivery" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <TextBlock Text="Shipping" VerticalAlignment="Center" Margin="12,0,0,0" FontWeight="SemiBold"/>
@@ -298,9 +299,10 @@
                                 <Button Command="{Binding CalculateShippingCommand}" 
                                         Style="{StaticResource MaterialDesignRaisedButton}" 
                                         Height="50" materialDesign:ButtonAssist.CornerRadius="12"
+                                        Foreground="White"
                                         IsEnabled="{Binding IsCalculatingShipping, Converter={StaticResource InverseBool}}">
                                     <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Kind="Calculate" VerticalAlignment="Center"/>
+                                        <materialDesign:PackIcon Kind="Calculator" VerticalAlignment="Center"/>
                                         <TextBlock Text="CALCULATE SHIPPING" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="Bold"/>
                                     </StackPanel>
                                 </Button>
@@ -350,6 +352,7 @@
                             <Button HorizontalAlignment="Right" Content="NEXT STEP" 
                                     Command="{Binding NextStepCommand}"
                                     Style="{StaticResource MaterialDesignRaisedButton}"
+                                    Foreground="White"
                                     Visibility="{Binding IsStep3, Converter={StaticResource InverseBoolToVisibility}}"
                                     IsEnabled="{Binding Step1Completed}"
                                     materialDesign:ButtonAssist.CornerRadius="12"/>
@@ -359,6 +362,7 @@
                                     Style="{StaticResource MaterialDesignRaisedButton}"
                                     Background="{StaticResource SuccessBrush}"
                                     BorderBrush="{StaticResource SuccessBrush}"
+                                    Foreground="White"
                                     Visibility="{Binding IsStep3, Converter={StaticResource BoolToVisibility}}"
                                     IsEnabled="{Binding HasSelectedShipping}"
                                     materialDesign:ButtonAssist.CornerRadius="12"/>

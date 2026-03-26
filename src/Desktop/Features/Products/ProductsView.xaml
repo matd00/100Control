@@ -107,9 +107,9 @@
                                             <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
                                             <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                                                 <Border Background="{StaticResource BorderBrush}" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
-                                                    <TextBlock Text="{Binding Category}" FontSize="10" Foreground="{StaticResource SecondaryColor}" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{Binding Category}" FontSize="10" Foreground="{StaticResource SecondaryBrush}" FontWeight="SemiBold"/>
                                                 </Border>
-                                                <TextBlock Text="{Binding SKU, StringFormat='SKU: {0}'}" FontSize="11" Foreground="{StaticResource MutedTextColor}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding SKU, StringFormat='SKU: {0}'}" FontSize="11" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </StackPanel>
 
@@ -131,7 +131,7 @@
                                             </StackPanel>
                                         </Grid>
 
-                                        <TextBlock Grid.Column="2" Text="{Binding Dimensions}" Foreground="{StaticResource MutedTextColor}" VerticalAlignment="Center" FontSize="12"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding Dimensions}" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" FontSize="12"/>
                                         <TextBlock Grid.Column="3" Text="{Binding PriceFormatted, Mode=OneWay}" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center" FontSize="14"/>
                                     </Grid>
                                 </Border>
@@ -166,10 +166,10 @@
                             </TextBlock.Style>
                         </TextBlock>
 
-                        <TextBlock Text="Nome do Produto" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource MutedTextColor}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Nome do Produto" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,6"/>
                         <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16"/>
 
-                        <TextBlock Text="Categoria" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource MutedTextColor}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Categoria" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,6"/>
                         <ComboBox SelectedValue="{Binding Category, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Content" Margin="0,0,0,16" Height="40" Padding="12,0" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
                             <ComboBoxItem Content="Kits de Peças" />
                             <ComboBoxItem Content="Cilindros de CO2" />
@@ -191,11 +191,11 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                                <TextBlock Text="Custo (R$)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource MutedTextColor}" Margin="0,0,0,6"/>
+                                <TextBlock Text="Custo (R$)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,6"/>
                                 <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Cost, UpdateSourceTrigger=PropertyChanged}"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Margin="8,0,0,0">
-                                <TextBlock Text="Preço Venda (R$)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource MutedTextColor}" Margin="0,0,0,6"/>
+                                <TextBlock Text="Preço Venda (R$)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,6"/>
                                 <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Price, UpdateSourceTrigger=PropertyChanged}"/>
                             </StackPanel>
                         </Grid>
@@ -210,11 +210,11 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0" Margin="0,0,6,0">
-                                        <TextBlock Text="Peso (kg)" FontSize="11" Foreground="{StaticResource MutedTextColor}" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Peso (kg)" FontSize="11" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,4"/>
                                         <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Weight, UpdateSourceTrigger=PropertyChanged}" Padding="8"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Margin="6,0,0,0">
-                                        <TextBlock Text="Largura (cm)" FontSize="11" Foreground="{StaticResource MutedTextColor}" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Largura (cm)" FontSize="11" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,4"/>
                                         <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}" Padding="8"/>
                                     </StackPanel>
                                 </Grid>
@@ -224,11 +224,11 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0" Margin="0,0,6,0">
-                                        <TextBlock Text="Altura (cm)" FontSize="11" Foreground="{StaticResource MutedTextColor}" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Altura (cm)" FontSize="11" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,4"/>
                                         <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Height, UpdateSourceTrigger=PropertyChanged}" Padding="8"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Margin="6,0,0,0">
-                                        <TextBlock Text="Compr. (cm)" FontSize="11" Foreground="{StaticResource MutedTextColor}" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Compr. (cm)" FontSize="11" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,4"/>
                                         <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Length, UpdateSourceTrigger=PropertyChanged}" Padding="8"/>
                                     </StackPanel>
                                 </Grid>
@@ -267,11 +267,11 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                                <TextBlock Text="Quantidade" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedTextColor}" Margin="0,0,0,6"/>
+                                <TextBlock Text="Quantidade" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,6"/>
                                 <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding StockAdjustment, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="16"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1">
-                                <TextBlock Text="Motivo do Ajuste" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedTextColor}" Margin="0,0,0,6"/>
+                                <TextBlock Text="Motivo do Ajuste" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,6"/>
                                 <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding AdjustmentNotes, UpdateSourceTrigger=PropertyChanged}" Padding="8" VerticalAlignment="Bottom"/>
                             </StackPanel>
                         </Grid>

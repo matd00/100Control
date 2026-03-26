@@ -25,6 +25,7 @@
 
             <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
             <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}"/>
+            <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>
             <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}"/>
             <SolidColorBrush x:Key="MutedTextBrush" Color="{StaticResource MutedTextColor}"/>
             <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
@@ -49,13 +50,14 @@
 
             <Style x:Key="ModernButton" TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
                 <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="8"/>
+                <Setter Property="Foreground" Value="White"/>
                 <Setter Property="Padding" Value="16,10"/>
                 <Setter Property="Height" Value="Auto"/>
             </Style>
 
             <Style x:Key="ModernTextBox" TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
                 <Setter Property="materialDesign:TextFieldAssist.HasClearButton" Value="True"/>
-                <Setter Property="materialDesign:TextFieldAssist.CornerRadius" Value="8"/>
+                <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="8"/>
                 <Setter Property="Margin" Value="0,4"/>
             </Style>
 

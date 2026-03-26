@@ -141,7 +141,7 @@
                     <StackPanel>
                         <TextBlock Text="Ready for more?" Style="{StaticResource MaterialDesignHeadline6TextBlock}" FontWeight="Bold"/>
                         <TextBlock Text="Create a new order now to boost your sales." Margin="0,8,0,24" TextWrapping="Wrap" Opacity="0.8"/>
-                        <Button Style="{StaticResource MaterialDesignFlatMidPrimaryButton}" Content="NEW ORDER" Background="White" Foreground="{DynamicResource PrimaryHueMidBrush}" FontWeight="Bold"/>
+                        <Button Style="{StaticResource MaterialDesignFlatButton}" Content="NEW ORDER" Background="White" Foreground="{StaticResource PrimaryBrush}" FontWeight="Bold"/>
                     </StackPanel>
                 </materialDesign:Card>
             </StackPanel>

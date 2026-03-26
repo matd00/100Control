@@ -68,6 +68,12 @@
                                     <TextBlock Text="Products" Margin="16,0,0,0" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
+                            <Button x:Name="BtnKits" Style="{StaticResource MenuButton}" Click="Kits_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Tools" Width="20" Height="20"/>
+                                    <TextBlock Text="Kits" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                             <Button x:Name="BtnOrders" Style="{StaticResource MenuButton}" Click="Orders_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <materialDesign:PackIcon Kind="Cart" Width="20" Height="20"/>
@@ -86,6 +92,12 @@
                                 <StackPanel Orientation="Horizontal">
                                     <materialDesign:PackIcon Kind="Factory" Width="20" Height="20"/>
                                     <TextBlock Text="Suppliers" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnPurchases" Style="{StaticResource MenuButton}" Click="Purchases_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="ShoppingBasket" Width="20" Height="20"/>
+                                    <TextBlock Text="Purchases" Margin="16,0,0,0" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                             <Button x:Name="BtnInventory" Style="{StaticResource MenuButton}" Click="Inventory_Click">
