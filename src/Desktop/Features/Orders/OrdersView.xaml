@@ -11,69 +11,6 @@
         <converters:BoolToLoadingTextConverter x:Key="BoolToLoadingText"/>
         <converters:InverseBoolConverter x:Key="InverseBool"/>
 
-        <Style x:Key="CardStyle" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="20"/>
-        </Style>
-
-        <Style x:Key="PrimaryButton" TargetType="Button">
-            <Setter Property="Background" Value="#3B82F6"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="16,10"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="6">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
-            <Setter Property="Background" Value="#22C55E"/>
-        </Style>
-
-        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
-            <Setter Property="Background" Value="#F1F5F9"/>
-            <Setter Property="Foreground" Value="#475569"/>
-        </Style>
-
-        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
-            <Setter Property="Background" Value="#EF4444"/>
-        </Style>
-
-        <Style x:Key="StepIndicator" TargetType="Border">
-            <Setter Property="Width" Value="32"/>
-            <Setter Property="Height" Value="32"/>
-            <Setter Property="CornerRadius" Value="16"/>
-            <Setter Property="Background" Value="#E2E8F0"/>
-        </Style>
-
-        <Style x:Key="ModernTextBox" TargetType="TextBox">
-            <Setter Property="Background" Value="#F8FAFC"/>
-            <Setter Property="BorderBrush" Value="#E2E8F0"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                            <ScrollViewer x:Name="PART_ContentHost"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <!-- Estilo para botão de link/texto simples com hover -->
         <Style x:Key="LinkButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -108,6 +45,14 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <Style x:Key="StepBorder" TargetType="Border">
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="{StaticResource BorderBrush}"/>
+        </Style>
     </UserControl.Resources>
 
     <Grid>
@@ -117,7 +62,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- PAINEL ESQUERDO: Lista de Pedidos -->
-        <Border Grid.Column="0" Style="{StaticResource CardStyle}" Margin="0,0,16,0">
+        <Border Grid.Column="0" Style="{StaticResource CardContainer}" Margin="0,0,16,0">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -132,14 +77,14 @@
                     </Grid.RowDefinitions>
                     
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
-                        <TextBlock Text="🛒 Pedidos" FontSize="20" FontWeight="Bold" Foreground="#1E293B"/>
-                        <TextBlock Text="{Binding FilteredOrders.Count, StringFormat=' ({0})'}" FontSize="14" Foreground="#64748B" VerticalAlignment="Center" Margin="4,2,0,0"/>
+                        <TextBlock Text="🛒 Pedidos" Style="{StaticResource TitleText}" FontSize="20" Margin="0"/>
+                        <TextBlock Text="{Binding FilteredOrders.Count, StringFormat=' ({0})'}" FontSize="14" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="4,2,0,0"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="1">
                         <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
                                  Style="{StaticResource ModernTextBox}" 
-                                 ToolTip="Buscar por Cliente, Status ou Rastreio"/>
+                                 Tag="Buscar por Cliente, Status ou Rastreio"/>
                         
                         <Grid Margin="0,8,0,0">
                             <Grid.ColumnDefinitions>
@@ -150,7 +95,7 @@
                             <ComboBox SelectedValue="{Binding CategoryFilter, UpdateSourceTrigger=PropertyChanged}" 
                                       SelectedValuePath="Content"
                                       HorizontalAlignment="Stretch"
-                                      Height="32" Padding="8,0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1">
+                                      Height="36" Padding="12,0" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
                                 <ComboBoxItem Content="Todas Categorias" IsSelected="True"/>
                                 <ComboBoxItem Content="Kits de Peças" />
                                 <ComboBoxItem Content="Cilindros de CO2" />
