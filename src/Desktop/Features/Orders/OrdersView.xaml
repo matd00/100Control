@@ -34,38 +34,40 @@
                 </Grid.RowDefinitions>
 
                 <!-- Search and Filters -->
-                <StackPanel Grid.Row="0" Padding="20,20,20,10">
-                    <TextBlock Text="Orders" Style="{StaticResource MaterialDesignHeadline5TextBlock}" FontWeight="Bold" Margin="0,0,0,16"/>
-                    
-                    <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                             materialDesign:HintAssist.Hint="Search orders..."
-                             materialDesign:TextFieldAssist.HasClearButton="True"
-                             Margin="0,0,0,12"/>
+                <Border Grid.Row="0" Padding="20,20,20,10">
+                    <StackPanel>
+                        <TextBlock Text="Orders" Style="{StaticResource MaterialDesignHeadline5TextBlock}" FontWeight="Bold" Margin="0,0,0,16"/>
+                        
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 materialDesign:HintAssist.Hint="Search orders..."
+                                 materialDesign:TextFieldAssist.HasClearButton="True"
+                                 Margin="0,0,0,12"/>
 
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <ComboBox SelectedValue="{Binding CategoryFilter, UpdateSourceTrigger=PropertyChanged}" 
-                                  Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                                  materialDesign:HintAssist.Hint="Category"
-                                  Height="45">
-                            <ComboBoxItem Content="Todas Categorias" IsSelected="True"/>
-                            <ComboBoxItem Content="Kits de Peças" />
-                            <ComboBoxItem Content="Cilindros de CO2" />
-                            <ComboBoxItem Content="Válvulas de CO2" />
-                            <ComboBoxItem Content="Cilindros de HPA" />
-                            <ComboBoxItem Content="Válvulas de HPA" />
-                            <ComboBoxItem Content="Geral" />
-                        </ComboBox>
-                        <Button Grid.Column="1" Command="{Binding RefreshOrdersCommand}" 
-                                Style="{StaticResource MaterialDesignIconButton}" Margin="8,0,0,0">
-                            <materialDesign:PackIcon Kind="Refresh" />
-                        </Button>
-                    </Grid>
-                </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ComboBox SelectedValue="{Binding CategoryFilter, UpdateSourceTrigger=PropertyChanged}" 
+                                      Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                      materialDesign:HintAssist.Hint="Category"
+                                      Height="45">
+                                <ComboBoxItem Content="Todas Categorias" IsSelected="True"/>
+                                <ComboBoxItem Content="Kits de Peças" />
+                                <ComboBoxItem Content="Cilindros de CO2" />
+                                <ComboBoxItem Content="Válvulas de CO2" />
+                                <ComboBoxItem Content="Cilindros de HPA" />
+                                <ComboBoxItem Content="Válvulas de HPA" />
+                                <ComboBoxItem Content="Geral" />
+                            </ComboBox>
+                            <Button Grid.Column="1" Command="{Binding RefreshOrdersCommand}" 
+                                    Style="{StaticResource MaterialDesignIconButton}" Margin="8,0,0,0">
+                                <materialDesign:PackIcon Kind="Refresh" />
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </Border>
 
                 <Button Grid.Row="1" Content="NEW ORDER" Command="{Binding NewOrderCommand}" 
                         Style="{StaticResource MaterialDesignRaisedButton}" 
@@ -249,7 +251,7 @@
                                     </ItemsControl>
                                 </StackPanel>
 
-                                <materialDesign:Card Grid.Column="1" Padding="24" Background="#F8FAFC" UniformCornerRadius="16">
+                                <materialDesign:Card Grid.Column="1" ContentControl.Padding="24" Background="#F8FAFC" UniformCornerRadius="16">
                                     <StackPanel>
                                         <TextBlock Text="Current Order" FontWeight="Bold" Margin="0,0,0,16"/>
                                         <ItemsControl ItemsSource="{Binding OrderItems}">
@@ -282,7 +284,7 @@
                             <StackPanel Visibility="{Binding IsStep3, Converter={StaticResource BoolToVisibility}}">
                                 <TextBlock Text="Shipping Options" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,24"/>
                                 
-                                <materialDesign:Card Padding="24" Margin="0,0,0,24" Background="{StaticResource PrimaryBrush}" Foreground="White" UniformCornerRadius="16">
+                                <materialDesign:Card ContentControl.Padding="24" Margin="0,0,0,24" Background="{StaticResource PrimaryBrush}" Foreground="White" UniformCornerRadius="16">
                                     <Grid>
                                         <materialDesign:PackIcon Kind="MapMarker" Width="24" Height="24"/>
                                         <StackPanel Margin="40,0,0,0">
