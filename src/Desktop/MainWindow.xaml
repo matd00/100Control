@@ -147,13 +147,13 @@
                         <Grid x:Name="DashboardContent" Visibility="Visible">
                             <StackPanel>
                                 <!-- Period Selector & Summary Metrics -->
-                                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,24">
+                                <Border Style="{StaticResource CardContainer}" Margin="0,0,0,24">
                                     <StackPanel>
                                         <Grid Margin="0,0,0,20">
-                                            <TextBlock Text="Desempenho de Vendas" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Desempenho de Vendas" Style="{StaticResource TitleText}" FontSize="20" VerticalAlignment="Center" Margin="0"/>
                                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                                <TextBlock Text="Período:" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#64748B"/>
-                                                <ComboBox SelectedValue="{Binding SelectedPeriod}" Width="150">
+                                                <TextBlock Text="Período:" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{StaticResource MutedTextBrush}"/>
+                                                <ComboBox SelectedValue="{Binding SelectedPeriod}" Width="150" Padding="8,4">
                                                     <dash:DashboardPeriod>Today</dash:DashboardPeriod>
                                                     <dash:DashboardPeriod>Last7Days</dash:DashboardPeriod>
                                                     <dash:DashboardPeriod>Last30Days</dash:DashboardPeriod>
@@ -172,22 +172,22 @@
                                             </Grid.ColumnDefinitions>
 
                                             <StackPanel Grid.Column="0">
-                                                <TextBlock Text="Faturamento Total" FontSize="13" Foreground="#64748B"/>
-                                                <TextBlock Text="{Binding TotalRevenue, StringFormat='R$ {0:N2}'}" FontSize="24" FontWeight="Bold" Foreground="#1E293B" Margin="0,8,0,0"/>
+                                                <TextBlock Text="Faturamento Total" FontSize="13" Foreground="{StaticResource MutedTextBrush}"/>
+                                                <TextBlock Text="{Binding TotalRevenue, StringFormat='R$ {0:N2}'}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,8,0,0"/>
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="1">
-                                                <TextBlock Text="Lucro Estimado" FontSize="13" Foreground="#64748B"/>
-                                                <TextBlock Text="{Binding TotalProfit, StringFormat='R$ {0:N2}'}" FontSize="24" FontWeight="Bold" Foreground="#22C55E" Margin="0,8,0,0"/>
+                                                <TextBlock Text="Lucro Estimado" FontSize="13" Foreground="{StaticResource MutedTextBrush}"/>
+                                                <TextBlock Text="{Binding TotalProfit, StringFormat='R$ {0:N2}'}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" Margin="0,8,0,0"/>
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="2">
-                                                <TextBlock Text="Total de Pedidos" FontSize="13" Foreground="#64748B"/>
-                                                <TextBlock Text="{Binding OrderCount}" FontSize="24" FontWeight="Bold" Foreground="#3B82F6" Margin="0,8,0,0"/>
+                                                <TextBlock Text="Total de Pedidos" FontSize="13" Foreground="{StaticResource MutedTextBrush}"/>
+                                                <TextBlock Text="{Binding OrderCount}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,8,0,0"/>
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="3">
-                                                <TextBlock Text="Ticket Médio" FontSize="13" Foreground="#64748B"/>
+                                                <TextBlock Text="Ticket Médio" FontSize="13" Foreground="{StaticResource MutedTextBrush}"/>
                                                 <TextBlock Text="{Binding AverageOrderValue, StringFormat='R$ {0:N2}'}" FontSize="24" FontWeight="Bold" Foreground="#8B5CF6" Margin="0,8,0,0"/>
                                             </StackPanel>
                                         </Grid>
@@ -203,31 +203,31 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <Border Grid.Column="0" Style="{StaticResource CardStyle}" Margin="0,0,12,0" Padding="20">
+                                    <Border Grid.Column="0" Style="{StaticResource CardContainer}" Margin="0,0,12,0" Padding="20">
                                         <StackPanel>
-                                            <TextBlock Text="📦 Pedidos Pendentes" FontSize="13" Foreground="#64748B"/>
-                                            <TextBlock Text="{Binding PendingOrders}" FontSize="26" FontWeight="Bold" Foreground="#F59E0B" Margin="0,8,0,0"/>
+                                            <TextBlock Text="📦 Pedidos Pendentes" FontSize="13" Foreground="{StaticResource MutedTextBrush}"/>
+                                            <TextBlock Text="{Binding PendingOrders}" FontSize="26" FontWeight="Bold" Foreground="{StaticResource WarningBrush}" Margin="0,8,0,0"/>
                                         </StackPanel>
                                     </Border>
 
-                                    <Border Grid.Column="1" Style="{StaticResource CardStyle}" Margin="12,0,12,0" Padding="20">
+                                    <Border Grid.Column="1" Style="{StaticResource CardContainer}" Margin="12,0,12,0" Padding="20">
                                         <StackPanel>
-                                            <TextBlock Text="⚠️ Estoque Baixo" FontSize="13" Foreground="#64748B"/>
-                                            <TextBlock Text="{Binding LowStockProductsCount}" FontSize="26" FontWeight="Bold" Foreground="#EF4444" Margin="0,8,0,0"/>
+                                            <TextBlock Text="⚠️ Estoque Baixo" FontSize="13" Foreground="{StaticResource MutedTextBrush}"/>
+                                            <TextBlock Text="{Binding LowStockProductsCount}" FontSize="26" FontWeight="Bold" Foreground="{StaticResource DangerBrush}" Margin="0,8,0,0"/>
                                         </StackPanel>
                                     </Border>
 
-                                    <Border Grid.Column="2" Style="{StaticResource CardStyle}" Margin="12,0,12,0" Padding="20">
+                                    <Border Grid.Column="2" Style="{StaticResource CardContainer}" Margin="12,0,12,0" Padding="20">
                                         <StackPanel>
-                                            <TextBlock Text="🏭 Fábrica Pendente" FontSize="13" Foreground="#64748B"/>
-                                            <TextBlock Text="{Binding FactoryPendingOrders}" FontSize="26" FontWeight="Bold" Foreground="#F59E0B" Margin="0,8,0,0"/>
+                                            <TextBlock Text="🏭 Fábrica Pendente" FontSize="13" Foreground="{StaticResource MutedTextBrush}"/>
+                                            <TextBlock Text="{Binding FactoryPendingOrders}" FontSize="26" FontWeight="Bold" Foreground="{StaticResource WarningBrush}" Margin="0,8,0,0"/>
                                         </StackPanel>
                                     </Border>
 
-                                    <Border Grid.Column="3" Style="{StaticResource CardStyle}" Margin="12,0,0,0" Padding="20">
+                                    <Border Grid.Column="3" Style="{StaticResource CardContainer}" Margin="12,0,0,0" Padding="20">
                                         <StackPanel>
-                                            <TextBlock Text="🏭 Receita Fábrica" FontSize="13" Foreground="#64748B"/>
-                                            <TextBlock Text="{Binding FactoryPeriodRevenue, StringFormat='R$ {0:N2}'}" FontSize="26" FontWeight="Bold" Foreground="#10B981" Margin="0,8,0,0"/>
+                                            <TextBlock Text="🏭 Receita Fábrica" FontSize="13" Foreground="{StaticResource MutedTextBrush}"/>
+                                            <TextBlock Text="{Binding FactoryPeriodRevenue, StringFormat='R$ {0:N2}'}" FontSize="26" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" Margin="0,8,0,0"/>
                                         </StackPanel>
                                     </Border>
                                 </Grid>
