@@ -117,7 +117,7 @@ public static class ServiceProviderConfiguration
 
             // Legacy Use Cases (Refactoring to MediatR in progress)
             services.AddTransient<UpdateOrderUseCase>();
-
+            services.AddTransient<GetOrdersUseCase>();
             services.AddTransient<DeleteOrderUseCase>();
             services.AddTransient<CreateProductUseCase>();
             services.AddTransient<AdjustStockUseCase>();
