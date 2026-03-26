@@ -93,14 +93,14 @@
         </Style>
 
         <Style x:Key="CardContainer" TargetType="Border">
+            <Style.Resources>
+                <DropShadowEffect x:Key="CardShadow" BlurRadius="15" ShadowDepth="1" Opacity="0.05" Color="Black"/>
+            </Style.Resources>
             <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
             <Setter Property="CornerRadius" Value="12"/>
             <Setter Property="Padding" Value="20"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
-            <Style.Resources>
-                <DropShadowEffect x:Key="CardShadow" BlurRadius="15" ShadowDepth="1" Opacity="0.05" Color="Black"/>
-            </Style.Resources>
             <Setter Property="Effect" Value="{StaticResource CardShadow}"/>
         </Style>
     </Application.Resources>
