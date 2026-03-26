@@ -312,12 +312,15 @@ public class SuperFreteCompany
 public class SuperFreteShipmentResponse
 {
     [JsonPropertyName("id")]
+    [JsonConverter(typeof(FlexibleStringConverter))]
     public string? Id { get; set; }
 
     [JsonPropertyName("tracking")]
+    [JsonConverter(typeof(FlexibleStringConverter))]
     public string? Tracking { get; set; }
 
     [JsonPropertyName("status")]
+    [JsonConverter(typeof(FlexibleStringConverter))]
     public string? Status { get; set; }
 
     [JsonPropertyName("created_at")]
@@ -330,9 +333,11 @@ public class SuperFreteShipmentResponse
     public SuperFretePrint? Print { get; set; }
 
     [JsonPropertyName("error")]
+    [JsonConverter(typeof(FlexibleStringConverter))]
     public string? Error { get; set; }
 
     [JsonPropertyName("message")]
+    [JsonConverter(typeof(FlexibleStringConverter))]
     public string? Message { get; set; }
 }
 

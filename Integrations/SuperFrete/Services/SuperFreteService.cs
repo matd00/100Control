@@ -640,17 +640,52 @@ public class SuperFreteService : ISuperFreteService
             var response = await _httpClient.GetAsync("/api/v0/orders");
             var responseContent = await response.Content.ReadAsStringAsync();
 
+            // === LOG PARA DEBUG ===
+            var logMessage = new StringBuilder();
+            logMessage.AppendLine("========== SUPERFRETE LIST LABELS DEBUG ==========");
+            logMessage.AppendLine($"Timestamp: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            logMessage.AppendLine($"Endpoint: GET /api/v0/orders");
+            logMessage.AppendLine($"Status Code: {response.StatusCode}");
+            logMessage.AppendLine($"Response JSON: {responseContent}");
+            logMessage.AppendLine("=================================================");
+            Debug.WriteLine(logMessage.ToString());
+            System.IO.File.AppendAllText(
+                System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "superfrete_debug.log"), 
+                logMessage.ToString() + Environment.NewLine);
+            // === FIM DO LOG ===
+
             if (!response.IsSuccessStatusCode)
             {
                 throw new SuperFreteException($"Erro ao listar etiquetas: {response.StatusCode} - {responseContent}");
             }
 
-            var ordersResponse = JsonSerializer.Deserialize<SuperFreteOrdersResponse>(responseContent, _jsonOptions);
+            // Tenta primeiro como SuperFreteOrdersResponse (com .data)
+            List<SuperFreteShipmentResponse>? labels = null;
+            try 
+            {
+                if (responseContent.TrimStart().StartsWith("{"))
+                {
+                    var ordersResponse = JsonSerializer.Deserialize<SuperFreteOrdersResponse>(responseContent, _jsonOptions);
+                    labels = ordersResponse?.Data;
+                }
+                else if (responseContent.TrimStart().StartsWith("["))
+                {
+                    labels = JsonSerializer.Deserialize<List<SuperFreteShipmentResponse>>(responseContent, _jsonOptions);
+                }
+            }
+            catch (JsonException ex)
+            {
+                Debug.WriteLine($"SuperFrete JSON Deserialization error: {ex.Message}");
+                // Fallback: tenta como lista direta se o anterior falhou
+                try {
+                    labels = JsonSerializer.Deserialize<List<SuperFreteShipmentResponse>>(responseContent, _jsonOptions);
+                } catch { /* Ignora */ }
+            }
             
-            if (ordersResponse?.Data == null)
+            if (labels == null)
                 return new List<ShipmentResult>();
 
-            return ordersResponse.Data.Select(s => new ShipmentResult
+            return labels.Select(s => new ShipmentResult
             {
                 OrderId = s.Id ?? "",
                 TrackingCode = s.Tracking,
