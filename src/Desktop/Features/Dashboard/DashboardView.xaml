@@ -17,7 +17,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <materialDesign:Card Grid.Column="0" Margin="0,0,12,0" Padding="24" materialDesign:ShadowAssist.ShadowDepth="Depth1" UniformCornerRadius="16">
+            <materialDesign:Card Grid.Column="0" Margin="0,0,12,0" Padding="24" materialDesign:ElevationAssist.Elevation="Dp2" UniformCornerRadius="16">
                 <StackPanel>
                     <materialDesign:PackIcon Kind="CurrencyUsd" Foreground="{DynamicResource PrimaryHueMidBrush}" Width="24" Height="24"/>
                     <TextBlock Text="Total Revenue" Style="{StaticResource MaterialDesignBody2TextBlock}" Opacity="0.6" Margin="0,12,0,4"/>
@@ -29,7 +29,7 @@
                 </StackPanel>
             </materialDesign:Card>
 
-            <materialDesign:Card Grid.Column="1" Margin="12,0" Padding="24" materialDesign:ShadowAssist.ShadowDepth="Depth1" UniformCornerRadius="16">
+            <materialDesign:Card Grid.Column="1" Margin="12,0" Padding="24" materialDesign:ElevationAssist.Elevation="Dp2" UniformCornerRadius="16">
                 <StackPanel>
                     <materialDesign:PackIcon Kind="TrendingUp" Foreground="{StaticResource SuccessBrush}" Width="24" Height="24"/>
                     <TextBlock Text="Estimated Profit" Style="{StaticResource MaterialDesignBody2TextBlock}" Opacity="0.6" Margin="0,12,0,4"/>
@@ -38,7 +38,7 @@
                 </StackPanel>
             </materialDesign:Card>
 
-            <materialDesign:Card Grid.Column="2" Margin="12,0" Padding="24" materialDesign:ShadowAssist.ShadowDepth="Depth1" UniformCornerRadius="16">
+            <materialDesign:Card Grid.Column="2" Margin="12,0" Padding="24" materialDesign:ElevationAssist.Elevation="Dp2" UniformCornerRadius="16">
                 <StackPanel>
                     <materialDesign:PackIcon Kind="ShoppingOutline" Foreground="{StaticResource PrimaryBrush}" Width="24" Height="24"/>
                     <TextBlock Text="Total Orders" Style="{StaticResource MaterialDesignBody2TextBlock}" Opacity="0.6" Margin="0,12,0,4"/>
@@ -47,7 +47,7 @@
                 </StackPanel>
             </materialDesign:Card>
 
-            <materialDesign:Card Grid.Column="3" Margin="12,0,0,0" Padding="24" materialDesign:ShadowAssist.ShadowDepth="Depth1" UniformCornerRadius="16">
+            <materialDesign:Card Grid.Column="3" Margin="12,0,0,0" Padding="24" materialDesign:ElevationAssist.Elevation="Dp2" UniformCornerRadius="16">
                 <StackPanel>
                     <materialDesign:PackIcon Kind="AlertCircleOutline" Foreground="{StaticResource DangerBrush}" Width="24" Height="24"/>
                     <TextBlock Text="Low Stock" Style="{StaticResource MaterialDesignBody2TextBlock}" Opacity="0.6" Margin="0,12,0,4"/>
@@ -64,7 +64,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- Recent Activity -->
-            <materialDesign:Card Grid.Column="0" Margin="0,0,24,0" Padding="24" materialDesign:ShadowAssist.ShadowDepth="Depth1" UniformCornerRadius="16">
+            <materialDesign:Card Grid.Column="0" Margin="0,0,24,0" Padding="24" materialDesign:ElevationAssist.Elevation="Dp2" UniformCornerRadius="16">
                 <StackPanel>
                     <Grid Margin="0,0,0,24">
                         <TextBlock Text="Recent Orders" Style="{StaticResource MaterialDesignHeadline6TextBlock}" FontWeight="Bold"/>
@@ -100,7 +100,7 @@
 
             <!-- Sales by Source -->
             <StackPanel Grid.Column="1">
-                <materialDesign:Card Padding="24" materialDesign:ShadowAssist.ShadowDepth="Depth1" UniformCornerRadius="16" Margin="0,0,0,24">
+                <materialDesign:Card Padding="24" materialDesign:ElevationAssist.Elevation="Dp2" UniformCornerRadius="16" Margin="0,0,0,24">
                     <StackPanel>
                         <TextBlock Text="Sales by Channel" Style="{StaticResource MaterialDesignHeadline6TextBlock}" FontWeight="Bold" Margin="0,0,0,24"/>
                         <ItemsControl ItemsSource="{Binding SalesBySource}">
@@ -121,7 +121,7 @@
                     </StackPanel>
                 </materialDesign:Card>
 
-                <materialDesign:Card Padding="24" materialDesign:ShadowAssist.ShadowDepth="Depth1" UniformCornerRadius="16" Background="{DynamicResource PrimaryHueMidBrush}" Foreground="White">
+                <materialDesign:Card Padding="24" materialDesign:ElevationAssist.Elevation="Dp2" UniformCornerRadius="16" Background="{DynamicResource PrimaryHueMidBrush}" Foreground="White">
                     <StackPanel>
                         <TextBlock Text="Ready for more?" Style="{StaticResource MaterialDesignHeadline6TextBlock}" FontWeight="Bold"/>
                         <TextBlock Text="Create a new order now to boost your sales." Margin="0,8,0,24" TextWrapping="Wrap" Opacity="0.8"/>

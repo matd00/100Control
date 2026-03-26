@@ -25,7 +25,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- LEFT PANEL: Order List -->
-        <materialDesign:Card Grid.Column="0" Margin="0,0,16,0" materialDesign:ShadowAssist.ShadowDepth="Depth1" UniformCornerRadius="16">
+        <materialDesign:Card Grid.Column="0" Margin="0,0,16,0" materialDesign:ElevationAssist.Elevation="Dp2" UniformCornerRadius="16">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -122,7 +122,7 @@
         <Grid Grid.Column="1">
             <!-- Empty State -->
             <materialDesign:Card Visibility="{Binding HasSelectedOrder, Converter={StaticResource InverseBoolToVisibility}}"
-                                 UniformCornerRadius="16" materialDesign:ShadowAssist.ShadowDepth="Depth1">
+                                 UniformCornerRadius="16" materialDesign:ElevationAssist.Elevation="Dp2">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                     <materialDesign:PackIcon Kind="CartOutline" Width="80" Height="80" Opacity="0.1" HorizontalAlignment="Center"/>
                     <TextBlock Text="Select an order or create a new one" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Opacity="0.4" Margin="0,24,0,0"/>
@@ -134,7 +134,7 @@
 
             <!-- Wizard Flow -->
             <materialDesign:Card Visibility="{Binding HasSelectedOrder, Converter={StaticResource BoolToVisibility}}"
-                                 UniformCornerRadius="16" materialDesign:ShadowAssist.ShadowDepth="Depth1">
+                                 UniformCornerRadius="16" materialDesign:ElevationAssist.Elevation="Dp2">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -309,7 +309,7 @@
                                 <ItemsControl ItemsSource="{Binding ShippingQuotes}" Margin="0,24,0,0">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <materialDesign:Card Margin="0,0,0,12" Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth0">
+                                            <materialDesign:Card Margin="0,0,0,12" Padding="16" materialDesign:ElevationAssist.Elevation="Dp0">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="Auto"/>
