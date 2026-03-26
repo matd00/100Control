@@ -13,11 +13,12 @@
             <!-- Color Palette -->
             <Color x:Key="PrimaryColor">#4F46E5</Color> <!-- Indigo 600 -->
             <Color x:Key="PrimaryHoverColor">#4338CA</Color> <!-- Indigo 700 -->
-            <Color x:Key="SecondaryColor">#64748B</Color> <!-- Slate 500 -->
+            <Color x:Key="SecondaryColor">#475569</Color> <!-- Slate 600 (Better contrast) -->
             <Color x:Key="BackgroundColor">#F8FAFC</Color> <!-- Slate 50 -->
             <Color x:Key="CardBackgroundColor">#FFFFFF</Color>
-            <Color x:Key="TextColor">#1E293B</Color> <!-- Slate 800 -->
-            <Color x:Key="MutedTextColor">#64748B</Color>
+            <Color x:Key="TextColor">#0F172A</Color> <!-- Slate 900 (Darker for title readability) -->
+            <Color x:Key="MutedTextColor">#64748B</Color> <!-- Slate 500 (Used only for non-critical text) -->
+            <Color x:Key="StrongMutedTextColor">#475569</Color> <!-- Slate 600 (For labels) -->
             <Color x:Key="BorderColor">#E2E8F0</Color> <!-- Slate 200 -->
             <Color x:Key="SuccessColor">#10B981</Color> <!-- Emerald 500 -->
             <Color x:Key="WarningColor">#F59E0B</Color> <!-- Amber 500 -->
@@ -28,6 +29,7 @@
             <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>
             <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}"/>
             <SolidColorBrush x:Key="MutedTextBrush" Color="{StaticResource MutedTextColor}"/>
+            <SolidColorBrush x:Key="StrongMutedTextBrush" Color="{StaticResource StrongMutedTextColor}"/>
             <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
             <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource CardBackgroundColor}"/>
             <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
@@ -45,6 +47,7 @@
             <Style x:Key="TitleText" TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignHeadline5TextBlock}">
                 <Setter Property="FontSize" Value="24"/>
                 <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
                 <Setter Property="Margin" Value="0,0,0,16"/>
             </Style>
 
@@ -52,25 +55,49 @@
                 <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="8"/>
                 <Setter Property="Foreground" Value="White"/>
                 <Setter Property="Padding" Value="16,10"/>
-                <Setter Property="Height" Value="Auto"/>
+                <Setter Property="Height" Value="40"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Opacity" Value="0.9"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+                <Setter Property="Background" Value="#F1F5F9"/>
+                <Setter Property="Foreground" Value="#475569"/>
+                <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                <Setter Property="BorderThickness" Value="1"/>
             </Style>
 
             <Style x:Key="ModernTextBox" TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
                 <Setter Property="materialDesign:TextFieldAssist.HasClearButton" Value="True"/>
                 <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="8"/>
                 <Setter Property="Margin" Value="0,4"/>
+                <Setter Property="Padding" Value="12,10"/>
+                <Setter Property="Height" Value="42"/>
+            </Style>
+
+            <Style x:Key="ModernComboBox" TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignOutlinedComboBox}">
+                <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="8"/>
+                <Setter Property="Margin" Value="0,4"/>
+                <Setter Property="Padding" Value="12,10"/>
+                <Setter Property="Height" Value="42"/>
             </Style>
 
             <Style x:Key="CardContainer" TargetType="Border">
-                <Style.Resources>
-                    <DropShadowEffect x:Key="CardShadow" BlurRadius="15" ShadowDepth="1" Opacity="0.05" Color="Black"/>
-                </Style.Resources>
                 <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
                 <Setter Property="CornerRadius" Value="12"/>
                 <Setter Property="Padding" Value="20"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
-                <Setter Property="Effect" Value="{StaticResource CardShadow}"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.06" Color="Black"/>
+                    </Setter.Value>
+                </Setter>
             </Style>
         </ResourceDictionary>
     </Application.Resources>

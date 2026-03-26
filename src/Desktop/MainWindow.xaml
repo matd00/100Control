@@ -18,14 +18,26 @@
             <Setter Property="Foreground" Value="#94A3B8"/>
             <Setter Property="Padding" Value="24,14"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="Height" Value="Auto"/>
-            <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="0,20,20,0"/>
+            <Setter Property="Height" Value="52"/>
+            <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="0,26,26,0"/>
             <Setter Property="Margin" Value="0,2,16,2"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="Background" Value="#2D3748"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
         <Style x:Key="MenuButtonActive" TargetType="Button" BasedOn="{StaticResource MenuButton}">
-            <Setter Property="Background" Value="#3B82F6"/>
+            <Setter Property="Background" Value="#4F46E5"/>
             <Setter Property="Foreground" Value="White"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#4338CA"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
     </Window.Resources>
 
@@ -37,7 +49,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- SIDEBAR -->
-            <Border Grid.Column="0" Background="#1E293B" Effect="{StaticResource MaterialDesignShadowDepth3}">
+            <Border Grid.Column="0" Background="#0F172A">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -45,94 +57,99 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0" Margin="24,40,24,40" Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Target" Foreground="#3B82F6" Width="32" Height="32" VerticalAlignment="Center"/>
-                        <StackPanel Margin="12,0,0,0">
+                    <StackPanel Grid.Row="0" Margin="24,48,24,40" Orientation="Horizontal">
+                        <Border Background="#4F46E5" CornerRadius="8" Width="40" Height="40">
+                            <materialDesign:PackIcon Kind="Target" Foreground="White" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="100Control" FontSize="20" FontWeight="Bold" Foreground="White"/>
-                            <TextBlock Text="Management System" FontSize="10" Foreground="#64748B"/>
+                            <TextBlock Text="Admin Dashboard" FontSize="11" Foreground="#64748B" FontWeight="Medium"/>
                         </StackPanel>
                     </StackPanel>
 
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                         <StackPanel>
-                            <TextBlock Text="MAIN MENU" FontSize="11" Foreground="#475569" Margin="24,0,0,12" FontWeight="Bold" Opacity="0.8"/>
+                            <TextBlock Text="MENU PRINCIPAL" FontSize="11" Foreground="#475569" Margin="24,0,0,12" FontWeight="Bold" Opacity="0.8" />
                             <Button x:Name="BtnDashboard" Style="{StaticResource MenuButtonActive}" Click="Dashboard_Click">
                                 <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="ViewDashboard" Width="20" Height="20"/>
-                                    <TextBlock Text="Dashboard" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                                    <materialDesign:PackIcon Kind="ViewDashboardOutline" Width="20" Height="20"/>
+                                    <TextBlock Text="Dashboard" Margin="16,0,0,0" VerticalAlignment="Center" FontWeight="Medium"/>
                                 </StackPanel>
                             </Button>
                             <Button x:Name="BtnProducts" Style="{StaticResource MenuButton}" Click="Products_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <materialDesign:PackIcon Kind="PackageVariantClosed" Width="20" Height="20"/>
-                                    <TextBlock Text="Products" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Produtos" Margin="16,0,0,0" VerticalAlignment="Center" FontWeight="Medium"/>
                                 </StackPanel>
                             </Button>
                             <Button x:Name="BtnKits" Style="{StaticResource MenuButton}" Click="Kits_Click">
                                 <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="Tools" Width="20" Height="20"/>
-                                    <TextBlock Text="Kits" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                                    <materialDesign:PackIcon Kind="HandTools" Width="20" Height="20"/>
+                                    <TextBlock Text="Kits de Peças" Margin="16,0,0,0" VerticalAlignment="Center" FontWeight="Medium"/>
                                 </StackPanel>
                             </Button>
                             <Button x:Name="BtnOrders" Style="{StaticResource MenuButton}" Click="Orders_Click">
                                 <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="Cart" Width="20" Height="20"/>
-                                    <TextBlock Text="Orders" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                                    <materialDesign:PackIcon Kind="CartOutline" Width="20" Height="20"/>
+                                    <TextBlock Text="Pedidos" Margin="16,0,0,0" VerticalAlignment="Center" FontWeight="Medium"/>
                                 </StackPanel>
                             </Button>
                             <Button x:Name="BtnCustomers" Style="{StaticResource MenuButton}" Click="Customers_Click">
                                 <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="AccountGroup" Width="20" Height="20"/>
-                                    <TextBlock Text="Customers" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                                    <materialDesign:PackIcon Kind="AccountGroupOutline" Width="20" Height="20"/>
+                                    <TextBlock Text="Clientes" Margin="16,0,0,0" VerticalAlignment="Center" FontWeight="Medium"/>
                                 </StackPanel>
                             </Button>
                             
-                            <TextBlock Text="OPERATIONS" FontSize="11" Foreground="#475569" Margin="24,30,0,12" FontWeight="Bold" Opacity="0.8"/>
+                            <TextBlock Text="OPERAÇÕES" FontSize="11" Foreground="#475569" Margin="24,30,0,12" FontWeight="Bold" Opacity="0.8" />
                             <Button x:Name="BtnSuppliers" Style="{StaticResource MenuButton}" Click="Suppliers_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <materialDesign:PackIcon Kind="Factory" Width="20" Height="20"/>
-                                    <TextBlock Text="Suppliers" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Fornecedores" Margin="16,0,0,0" VerticalAlignment="Center" FontWeight="Medium"/>
                                 </StackPanel>
                             </Button>
                             <Button x:Name="BtnPurchases" Style="{StaticResource MenuButton}" Click="Purchases_Click">
                                 <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="ShoppingBasket" Width="20" Height="20"/>
-                                    <TextBlock Text="Purchases" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                                    <materialDesign:PackIcon Kind="ShoppingOutline" Width="20" Height="20"/>
+                                    <TextBlock Text="Compras" Margin="16,0,0,0" VerticalAlignment="Center" FontWeight="Medium"/>
                                 </StackPanel>
                             </Button>
                             <Button x:Name="BtnInventory" Style="{StaticResource MenuButton}" Click="Inventory_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <materialDesign:PackIcon Kind="Warehouse" Width="20" Height="20"/>
-                                    <TextBlock Text="Inventory" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Estoque" Margin="16,0,0,0" VerticalAlignment="Center" FontWeight="Medium"/>
                                 </StackPanel>
                             </Button>
                             <Button x:Name="BtnShipments" Style="{StaticResource MenuButton}" Click="Shipments_Click">
                                 <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="TruckDelivery" Width="20" Height="20"/>
-                                    <TextBlock Text="Shipments" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                                    <materialDesign:PackIcon Kind="TruckDeliveryOutline" Width="20" Height="20"/>
+                                    <TextBlock Text="Envios" Margin="16,0,0,0" VerticalAlignment="Center" FontWeight="Medium"/>
                                 </StackPanel>
                             </Button>
                             
-                            <TextBlock Text="INTEGRATIONS" FontSize="11" Foreground="#475569" Margin="24,30,0,12" FontWeight="Bold" Opacity="0.8"/>
+                            <TextBlock Text="INTEGRAÇÕES" FontSize="11" Foreground="#475569" Margin="24,30,0,12" FontWeight="Bold" Opacity="0.8" />
                             <Button x:Name="BtnMercadoLivre" Style="{StaticResource MenuButton}" Click="MercadoLivre_Click">
                                 <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="Storefront" Width="20" Height="20" Foreground="#FFE600"/>
-                                    <TextBlock Text="Mercado Livre" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                                    <materialDesign:PackIcon Kind="StorefrontOutline" Width="20" Height="20" Foreground="#FFE600"/>
+                                    <TextBlock Text="Mercado Livre" Margin="16,0,0,0" VerticalAlignment="Center" FontWeight="Medium"/>
                                 </StackPanel>
                             </Button>
                             <Button x:Name="BtnShopee" Style="{StaticResource MenuButton}" Click="Shopee_Click">
                                 <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="Shopping" Width="20" Height="20" Foreground="#EE4D2D"/>
-                                    <TextBlock Text="Shopee" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                                    <materialDesign:PackIcon Kind="ShoppingOutline" Width="20" Height="20" Foreground="#EE4D2D"/>
+                                    <TextBlock Text="Shopee" Margin="16,0,0,0" VerticalAlignment="Center" FontWeight="Medium"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>
                     </ScrollViewer>
 
-                    <Border Grid.Row="2" Background="#1a222f" Padding="24,20">
+                    <Border Grid.Row="2" Background="#0c1221" Padding="24,24">
                         <StackPanel>
-                            <TextBlock Text="v1.1.0" FontSize="11" Foreground="#64748B" FontWeight="Bold"/>
-                            <TextBlock Text="Connected" FontSize="10" Foreground="#10B981" Margin="0,4,0,0"/>
+                            <TextBlock Text="CONTROL SYSTEM" FontSize="10" Foreground="#475569" FontWeight="Bold" />
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                <Border Width="8" Height="8" CornerRadius="4" Background="#10B981" VerticalAlignment="Center"/>
+                                <TextBlock Text="v1.1.0 Online" FontSize="11" Foreground="#94A3B8" Margin="8,0,0,0" FontWeight="Medium"/>
+                            </StackPanel>
                         </StackPanel>
                     </Border>
                 </Grid>
@@ -145,31 +162,31 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <Border Grid.Row="0" Background="White" Padding="32,24" Effect="{StaticResource MaterialDesignShadowDepth1}">
+                <Border Grid.Row="0" Background="White" Padding="40,24" BorderBrush="#F1F5F9" BorderThickness="0,0,0,1">
                     <Grid>
                         <StackPanel>
-                            <TextBlock x:Name="PageTitle" Text="Dashboard" Style="{StaticResource MaterialDesignHeadline5TextBlock}" FontWeight="Bold"/>
-                            <TextBlock x:Name="PageSubtitle" Text="General system overview" Style="{StaticResource MaterialDesignBody2TextBlock}" Opacity="0.6" Margin="0,4,0,0"/>
+                            <TextBlock x:Name="PageTitle" Text="Dashboard" FontSize="24" FontWeight="Bold" Foreground="#0F172A"/>
+                            <TextBlock x:Name="PageSubtitle" Text="Visão geral do sistema" FontSize="13" Foreground="#64748B" Margin="0,4,0,0"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <materialDesign:Badged Badge="3" BadgeBackground="{StaticResource DangerBrush}" Margin="0,0,24,0">
-                                <Button Style="{StaticResource MaterialDesignIconButton}">
-                                    <materialDesign:PackIcon Kind="Bell" Width="24" Height="24"/>
+                                <Button Style="{StaticResource MaterialDesignIconButton}" Foreground="#64748B">
+                                    <materialDesign:PackIcon Kind="BellOutline" Width="24" Height="24"/>
                                 </Button>
                             </materialDesign:Badged>
-                            <Border Background="#F1F5F9" CornerRadius="8" Padding="12,8">
+                            <Border Background="#F8FAFC" CornerRadius="10" Padding="14,10" BorderBrush="#F1F5F9" BorderThickness="1">
                                 <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="Calendar" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,8,0" Opacity="0.6"/>
-                                    <TextBlock x:Name="TxtDate" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                                    <materialDesign:PackIcon Kind="CalendarMonthOutline" Width="18" Height="18" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#4F46E5"/>
+                                    <TextBlock x:Name="TxtDate" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold" Foreground="#475569"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
                     </Grid>
                 </Border>
 
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Background="#F8FAFC">
                     <Grid>
-                        <Border Padding="32">
+                        <Border Padding="40,32">
                             <Grid>
                                 <!-- Dynamic Content Container -->
                                 <StackPanel x:Name="DynamicContent"/>
@@ -181,7 +198,7 @@
                         </Border>
                         
                         <!-- Global Snackbar -->
-                        <materialDesign:Snackbar x:Name="MainSnackbar" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,20"/>
+                        <materialDesign:Snackbar x:Name="MainSnackbar" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,24"/>
                     </Grid>
                 </ScrollViewer>
             </Grid>

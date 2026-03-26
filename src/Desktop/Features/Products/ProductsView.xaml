@@ -1,6 +1,7 @@
 <UserControl x:Class="Desktop.Features.Products.ProductsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:converters="clr-namespace:Desktop.Infrastructure.Converters"
              Background="#F0F2F5">
 
@@ -19,7 +20,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- Lista de Produtos -->
-        <Border Grid.Column="0" Style="{StaticResource CardContainer}" Margin="0,0,20,0">
+        <Border Grid.Column="0" Style="{StaticResource CardContainer}" Margin="0,0,20,0" Padding="0">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -27,28 +28,28 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <Grid Margin="0,0,0,16">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="📦 Produtos" Style="{StaticResource TitleText}" FontSize="20" Margin="0"/>
-                        <TextBlock Text="{Binding Products.Count, StringFormat=' ({0})'}" FontSize="14" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" Margin="4,2,0,0"/>
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="32,24,0,16">
+                        <TextBlock Text="📦 Produtos" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                        <Border Background="#EEF2FF" CornerRadius="6" Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Products.Count}" FontSize="12" Foreground="#4F46E5" FontWeight="Bold"/>
+                        </Border>
                     </StackPanel>
 
-                    <Grid Grid.Column="1" HorizontalAlignment="Right">
+                    <Grid Grid.Column="1" HorizontalAlignment="Right" Margin="0,24,32,16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="180"/>
-                            <ColumnDefinition Width="220"/>
+                            <ColumnDefinition Width="260"/>
                         </Grid.ColumnDefinitions>
 
                         <ComboBox Grid.Column="0" SelectedValue="{Binding CategoryFilter, UpdateSourceTrigger=PropertyChanged}" 
-                                  SelectedValuePath="Content" Margin="0,0,8,0"
-                                  HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                                  Height="36" Padding="12,0" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                                  Style="{StaticResource ModernComboBox}"
+                                  SelectedValuePath="Content" Margin="0,0,12,0">
                             <ComboBoxItem Content="Todas Categorias" IsSelected="True"/>
                             <ComboBoxItem Content="Kits de Peças" />
                             <ComboBoxItem Content="Cilindros de CO2" />
@@ -57,87 +58,96 @@
                             <ComboBoxItem Content="Válvulas de HPA" />
                             <ComboBoxItem Content="Loaders" />
                             <ComboBoxItem Content="Placas" />
-                            <ComboBoxItem Content="Cilindro e Válvula de HPA" />
-                            <ComboBoxItem Content="Cilindro e Válvula de CO2" />
-                            <ComboBoxItem Content="Bolinhas (Dragon)" />
-                            <ComboBoxItem Content="Bolinhas (Machine)" />
                         </ComboBox>
 
                         <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
                                  Style="{StaticResource ModernTextBox}" 
-                                 VerticalAlignment="Center"
-                                 Tag="Buscar por Nome, SKU ou Categoria"/>
+                                 materialDesign:HintAssist.Hint="Buscar por Nome, SKU ou Categoria"/>
                     </Grid>
                 </Grid>
 
                 <!-- Header -->
-                <Border Grid.Row="1" Background="{StaticResource BackgroundBrush}" CornerRadius="8" Padding="16,12" Margin="0,0,0,12">
+                <Border Grid.Row="1" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="0,1" Padding="32,12">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="2.2*"/>
                             <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="140"/>
                             <ColumnDefinition Width="100"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="PRODUTO" FontSize="11" FontWeight="Bold" Foreground="{StaticResource MutedTextBrush}"/>
-                        <TextBlock Grid.Column="1" Text="ESTOQUE" FontSize="11" FontWeight="Bold" Foreground="{StaticResource MutedTextBrush}"/>
-                        <TextBlock Grid.Column="2" Text="DIMENSÕES" FontSize="11" FontWeight="Bold" Foreground="{StaticResource MutedTextBrush}"/>
-                        <TextBlock Grid.Column="3" Text="PREÇO" FontSize="11" FontWeight="Bold" Foreground="{StaticResource MutedTextBrush}"/>
+                        <TextBlock Grid.Column="0" Text="PRODUTO" FontSize="11" FontWeight="Bold" Foreground="{StaticResource StrongMutedTextBrush}" />
+                        <TextBlock Grid.Column="1" Text="ESTOQUE" FontSize="11" FontWeight="Bold" Foreground="{StaticResource StrongMutedTextBrush}" />
+                        <TextBlock Grid.Column="2" Text="DIMENSÕES" FontSize="11" FontWeight="Bold" Foreground="{StaticResource StrongMutedTextBrush}" />
+                        <TextBlock Grid.Column="3" Text="PREÇO" FontSize="11" FontWeight="Bold" Foreground="{StaticResource StrongMutedTextBrush}"  HorizontalAlignment="Right"/>
                     </Grid>
                 </Border>
 
                 <!-- Lista -->
                 <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding Products}">
+                    <ItemsControl ItemsSource="{Binding Products}" Padding="16,0">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="16,14" Cursor="Hand" Background="Transparent" x:Name="Row">
+                                <Border BorderBrush="#F1F5F9" BorderThickness="0,0,0,1" Padding="16,14" Cursor="Hand" Background="Transparent" x:Name="Row" CornerRadius="8">
                                     <Border.InputBindings>
                                         <MouseBinding MouseAction="LeftClick" Command="{Binding DataContext.SelectProductCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"/>
                                     </Border.InputBindings>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="2*"/>
-                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="2.2*"/>
                                             <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="140"/>
                                             <ColumnDefinition Width="100"/>
                                         </Grid.ColumnDefinitions>
                                         
                                         <StackPanel Grid.Column="0">
-                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" FontSize="14"/>
                                             <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                                <Border Background="{StaticResource BorderBrush}" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
-                                                    <TextBlock Text="{Binding Category}" FontSize="10" Foreground="{StaticResource SecondaryBrush}" FontWeight="SemiBold"/>
-                                                </Border>
-                                                <TextBlock Text="{Binding SKU, StringFormat='SKU: {0}'}" FontSize="11" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding Category}" FontSize="11" Foreground="#4F46E5" FontWeight="SemiBold" Margin="0,0,12,0"/>
+                                                <TextBlock Text="{Binding SKU, StringFormat='SKU: {0}'}" FontSize="11" Foreground="{StaticResource MutedTextBrush}"/>
                                             </StackPanel>
                                         </StackPanel>
 
-                                        <Grid Grid.Column="1" VerticalAlignment="Center">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Border Width="12" Height="12" CornerRadius="6" Margin="0,0,8,0">
-                                                    <Border.Style>
-                                                        <Style TargetType="Border">
-                                                            <Setter Property="Background" Value="{StaticResource SuccessBrush}"/>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
+                                            <Border CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="#DCFCE7"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsLowStock}" Value="True">
+                                                                <Setter Property="Background" Value="#FEE2E2"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock FontSize="11" FontWeight="Bold">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="EM DIA"/>
+                                                            <Setter Property="Foreground" Value="#166534"/>
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding IsLowStock}" Value="True">
-                                                                    <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
+                                                                    <Setter Property="Text" Value="BAIXO"/>
+                                                                    <Setter Property="Foreground" Value="#991B1B"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
-                                                    </Border.Style>
-                                                </Border>
-                                                <TextBlock Text="{Binding Stock}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
-                                            </StackPanel>
-                                        </Grid>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Border>
+                                            <TextBlock Text="{Binding Stock}" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                                        </StackPanel>
 
-                                        <TextBlock Grid.Column="2" Text="{Binding Dimensions}" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" FontSize="12"/>
-                                        <TextBlock Grid.Column="3" Text="{Binding PriceFormatted, Mode=OneWay}" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center" FontSize="14"/>
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Dimensions}" Foreground="{StaticResource StrongMutedTextBrush}" FontSize="12"/>
+                                            <TextBlock Text="{Binding Weight, StringFormat='{}{0} kg'}" FontSize="11" Foreground="{StaticResource MutedTextBrush}" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                        
+                                        <TextBlock Grid.Column="3" Text="{Binding PriceFormatted, Mode=OneWay}" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center" FontSize="15" HorizontalAlignment="Right"/>
                                     </Grid>
                                 </Border>
                                 <DataTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="Row" Property="Background" Value="{StaticResource BackgroundBrush}"/>
+                                        <Setter TargetName="Row" Property="Background" Value="#F8FAFC"/>
                                     </Trigger>
                                 </DataTemplate.Triggers>
                             </DataTemplate>
@@ -153,7 +163,7 @@
                 <!-- Formulário de Produto -->
                 <Border Style="{StaticResource CardContainer}" Margin="0,0,0,16">
                     <StackPanel>
-                        <TextBlock FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20">
+                        <TextBlock FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,24">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Text" Value="➕ Novo Produto"/>
@@ -166,11 +176,13 @@
                             </TextBlock.Style>
                         </TextBlock>
 
-                        <TextBlock Text="Nome do Produto" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,6"/>
-                        <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16"/>
+                        <TextBlock Text="INFORMAÇÕES BÁSICAS" FontSize="11" FontWeight="Bold" Foreground="#4F46E5" Margin="0,0,0,16" />
 
-                        <TextBlock Text="Categoria" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,6"/>
-                        <ComboBox SelectedValue="{Binding Category, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Content" Margin="0,0,0,16" Height="40" Padding="12,0" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                        <TextBlock Text="Nome do Produto" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource StrongMutedTextBrush}" Margin="0,0,0,6"/>
+                        <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,20"/>
+
+                        <TextBlock Text="Categoria" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource StrongMutedTextBrush}" Margin="0,0,0,6"/>
+                        <ComboBox SelectedValue="{Binding Category, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernComboBox}" SelectedValuePath="Content" Margin="0,0,0,20">
                             <ComboBoxItem Content="Kits de Peças" />
                             <ComboBoxItem Content="Cilindros de CO2" />
                             <ComboBoxItem Content="Válvulas de CO2" />
@@ -178,44 +190,40 @@
                             <ComboBoxItem Content="Válvulas de HPA" />
                             <ComboBoxItem Content="Loaders" />
                             <ComboBoxItem Content="Placas" />
-                            <ComboBoxItem Content="Cilindro e Válvula de HPA" />
-                            <ComboBoxItem Content="Cilindro e Válvula de CO2" />
-                            <ComboBoxItem Content="Bolinhas (Dragon)" />
-                            <ComboBoxItem Content="Bolinhas (Machine)" />
                             <ComboBoxItem Content="Geral" />
                         </ComboBox>
 
-                        <Grid Margin="0,0,0,16">
+                        <Grid Margin="0,0,0,24">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                                <TextBlock Text="Custo (R$)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,6"/>
+                                <TextBlock Text="Custo (R$)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource StrongMutedTextBrush}" Margin="0,0,0,6"/>
                                 <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Cost, UpdateSourceTrigger=PropertyChanged}"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Margin="8,0,0,0">
-                                <TextBlock Text="Preço Venda (R$)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,6"/>
+                                <TextBlock Text="Preço Venda (R$)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource StrongMutedTextBrush}" Margin="0,0,0,6"/>
                                 <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Price, UpdateSourceTrigger=PropertyChanged}"/>
                             </StackPanel>
                         </Grid>
 
                         <!-- Dimensões -->
-                        <Border Background="{StaticResource BackgroundBrush}" CornerRadius="12" Padding="16" Margin="0,0,0,20">
+                        <Border Background="#F8FAFC" CornerRadius="12" Padding="20" Margin="0,0,0,24" BorderBrush="#E2E8F0" BorderThickness="1">
                             <StackPanel>
-                                <TextBlock Text="📐 Dimensões e Logística" FontSize="13" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,12"/>
-                                <Grid Margin="0,0,0,8">
+                                <TextBlock Text="LOGÍSTICA E DIMENSÕES" FontSize="11" FontWeight="Bold" Foreground="#4F46E5" Margin="0,0,0,16" />
+                                <Grid Margin="0,0,0,12">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0" Margin="0,0,6,0">
-                                        <TextBlock Text="Peso (kg)" FontSize="11" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,4"/>
-                                        <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Weight, UpdateSourceTrigger=PropertyChanged}" Padding="8"/>
+                                        <TextBlock Text="Peso (kg)" FontSize="11" Foreground="{StaticResource StrongMutedTextBrush}" Margin="0,0,0,6"/>
+                                        <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Weight, UpdateSourceTrigger=PropertyChanged}" Height="38"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Margin="6,0,0,0">
-                                        <TextBlock Text="Largura (cm)" FontSize="11" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,4"/>
-                                        <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}" Padding="8"/>
+                                        <TextBlock Text="Largura (cm)" FontSize="11" Foreground="{StaticResource StrongMutedTextBrush}" Margin="0,0,0,6"/>
+                                        <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}" Height="38"/>
                                     </StackPanel>
                                 </Grid>
                                 <Grid>
@@ -224,33 +232,29 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0" Margin="0,0,6,0">
-                                        <TextBlock Text="Altura (cm)" FontSize="11" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,4"/>
-                                        <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Height, UpdateSourceTrigger=PropertyChanged}" Padding="8"/>
+                                        <TextBlock Text="Altura (cm)" FontSize="11" Foreground="{StaticResource StrongMutedTextBrush}" Margin="0,0,0,6"/>
+                                        <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Height, UpdateSourceTrigger=PropertyChanged}" Height="38"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Margin="6,0,0,0">
-                                        <TextBlock Text="Compr. (cm)" FontSize="11" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,4"/>
-                                        <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Length, UpdateSourceTrigger=PropertyChanged}" Padding="8"/>
+                                        <TextBlock Text="Compr. (cm)" FontSize="11" Foreground="{StaticResource StrongMutedTextBrush}" Margin="0,0,0,6"/>
+                                        <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding Length, UpdateSourceTrigger=PropertyChanged}" Height="38"/>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
                         </Border>
 
-                        <Button Content="Salvar Produto" Command="{Binding CreateProductCommand}" Style="{StaticResource ModernButton}" 
-                                HorizontalAlignment="Stretch" Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibility}}"/>
+                        <Button Content="SALVAR PRODUTO" Command="{Binding CreateProductCommand}" Style="{StaticResource ModernButton}" 
+                                HorizontalAlignment="Stretch" Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibility}}" Height="48"/>
                         
                         <StackPanel Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibility}}">
-                            <Button Content="Atualizar Dados" Command="{Binding UpdateProductCommand}" Style="{StaticResource ModernButton}" HorizontalAlignment="Stretch" Margin="0,0,0,8"/>
+                            <Button Content="ATUALIZAR DADOS" Command="{Binding UpdateProductCommand}" Style="{StaticResource ModernButton}" HorizontalAlignment="Stretch" Margin="0,0,0,12" Height="48"/>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0" Command="{Binding DeleteProductCommand}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,4,0">
-                                    <Border Background="{StaticResource DangerBrush}" CornerRadius="8" Padding="12">
-                                        <TextBlock Text="🗑️ Excluir" Foreground="White" HorizontalAlignment="Center"/>
-                                    </Border>
-                                </Button>
-                                <Button Grid.Column="1" Content="Cancelar" Command="{Binding ClearFormCommand}" Style="{StaticResource ModernButton}" Background="{StaticResource BorderBrush}" Foreground="{StaticResource TextBrush}" Margin="4,0,0,0"/>
+                                <Button Grid.Column="0" Command="{Binding DeleteProductCommand}" Style="{StaticResource ModernButton}" Background="{StaticResource DangerBrush}" Margin="0,0,6,0" Content="EXCLUIR"/>
+                                <Button Grid.Column="1" Content="CANCELAR" Command="{Binding ClearFormCommand}" Style="{StaticResource SecondaryButton}" Margin="6,0,0,0"/>
                             </Grid>
                         </StackPanel>
                     </StackPanel>
@@ -259,20 +263,20 @@
                 <!-- Ajuste de Estoque Rápido -->
                 <Border Style="{StaticResource CardContainer}" Margin="0,0,0,16" Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibility}}">
                     <StackPanel>
-                        <TextBlock Text="🔄 Gestão de Estoque" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,16"/>
+                        <TextBlock Text="GESTÃO DE ESTOQUE" FontSize="11" FontWeight="Bold" Foreground="#4F46E5" Margin="0,0,0,20" />
                         
-                        <Grid Margin="0,0,0,16">
+                        <Grid Margin="0,0,0,20">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="100"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                                <TextBlock Text="Quantidade" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,6"/>
-                                <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding StockAdjustment, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="16"/>
+                            <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                <TextBlock Text="Quantidade" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource StrongMutedTextBrush}" Margin="0,0,0,6"/>
+                                <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding StockAdjustment, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="18" Height="48"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1">
-                                <TextBlock Text="Motivo do Ajuste" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,6"/>
-                                <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding AdjustmentNotes, UpdateSourceTrigger=PropertyChanged}" Padding="8" VerticalAlignment="Bottom"/>
+                                <TextBlock Text="Observação" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource StrongMutedTextBrush}" Margin="0,0,0,6"/>
+                                <TextBox Style="{StaticResource ModernTextBox}" Text="{Binding AdjustmentNotes, UpdateSourceTrigger=PropertyChanged}" Height="48"/>
                             </StackPanel>
                         </Grid>
 
@@ -281,16 +285,8 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Button Grid.Column="0" Command="{Binding AddStockCommand}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,4,0">
-                                <Border Background="{StaticResource SuccessBrush}" CornerRadius="8" Padding="12">
-                                    <TextBlock Text="➕ Adicionar" Foreground="White" HorizontalAlignment="Center" FontWeight="SemiBold"/>
-                                </Border>
-                            </Button>
-                            <Button Grid.Column="1" Command="{Binding RemoveStockCommand}" Background="Transparent" BorderThickness="0" Padding="0" Margin="4,0,0,0">
-                                <Border Background="{StaticResource WarningBrush}" CornerRadius="8" Padding="12">
-                                    <TextBlock Text="➖ Remover" Foreground="White" HorizontalAlignment="Center" FontWeight="SemiBold"/>
-                                </Border>
-                            </Button>
+                            <Button Grid.Column="0" Command="{Binding AddStockCommand}" Style="{StaticResource ModernButton}" Background="{StaticResource SuccessBrush}" Margin="0,0,6,0" Content="ADICIONAR"/>
+                            <Button Grid.Column="1" Command="{Binding RemoveStockCommand}" Style="{StaticResource ModernButton}" Background="{StaticResource WarningBrush}" Margin="6,0,0,0" Content="REMOVER"/>
                         </Grid>
                     </StackPanel>
                 </Border>
