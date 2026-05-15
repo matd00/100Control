@@ -27,7 +27,7 @@ public class ThemeService : IThemeService
         _isDarkMode = isDark;
         
         // 1. Update MaterialDesign Theme
-        ITheme theme = _paletteHelper.GetTheme();
+        var theme = _paletteHelper.GetTheme();
         theme.SetBaseTheme(isDark ? BaseTheme.Dark : BaseTheme.Light);
         _paletteHelper.SetTheme(theme);
 
@@ -37,7 +37,7 @@ public class ThemeService : IThemeService
 
     private void UpdateCustomTheme(bool isDark)
     {
-        var dictionaries = Application.Current.Resources.MergedDictionaries;
+        var dictionaries = System.Windows.Application.Current.Resources.MergedDictionaries;
         var themeSource = isDark ? "Themes/DarkTheme.xaml" : "Themes/LightTheme.xaml";
         
         // Find and replace our custom theme dictionary
@@ -49,7 +49,7 @@ public class ThemeService : IThemeService
             {
                 dictionaries[i] = new ResourceDictionary 
                 { 
-                    Source = new Uri(themeSource, UriKind.Relative) 
+                    Source = new Uri($"pack://application:,,,/Themes/{(isDark ? "Dark" : "Light")}Theme.xaml", UriKind.Absolute)
                 };
                 return;
             }
@@ -58,7 +58,7 @@ public class ThemeService : IThemeService
         // If not found, add it
         dictionaries.Add(new ResourceDictionary 
         { 
-            Source = new Uri(themeSource, UriKind.Relative) 
+            Source = new Uri($"pack://application:,,,/Themes/{(isDark ? "Dark" : "Light")}Theme.xaml", UriKind.Absolute)
         });
     }
 }
