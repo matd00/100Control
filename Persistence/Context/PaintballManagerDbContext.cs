@@ -22,6 +22,9 @@ public class PaintballManagerDbContext : DbContext, IUnitOfWork
     public DbSet<Part> Parts => Set<Part>();
     public DbSet<FactoryOrder> FactoryOrders => Set<FactoryOrder>();
     public DbSet<FactoryOrderItem> FactoryOrderItems => Set<FactoryOrderItem>();
+    public DbSet<DragonOrder> DragonOrders => Set<DragonOrder>();
+    public DbSet<DragonOrderItem> DragonOrderItems => Set<DragonOrderItem>();
+    public DbSet<DragonPayment> DragonPayments => Set<DragonPayment>();
 
     private readonly IDomainEventDispatcher? _dispatcher;
 
@@ -229,6 +232,54 @@ public class PaintballManagerDbContext : DbContext, IUnitOfWork
             entity.Property(e => e.UnitSalePrice).HasPrecision(18, 2);
             entity.Property(e => e.SubtotalCost).HasPrecision(18, 2);
             entity.Property(e => e.SubtotalSalePrice).HasPrecision(18, 2);
+        });
+
+        // DragonOrder
+        modelBuilder.Entity<DragonOrder>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CustomerName).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.CustomerContact).HasMaxLength(200);
+            entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
+            entity.Property(e => e.FactoryCost).HasPrecision(18, 2);
+            entity.Property(e => e.ShippingCost).HasPrecision(18, 2);
+            entity.Property(e => e.TotalCost).HasPrecision(18, 2);
+            entity.Property(e => e.Margin).HasPrecision(6, 2);
+            entity.Property(e => e.CashbackAmount).HasPrecision(18, 2);
+            entity.Property(e => e.TotalPaid).HasPrecision(18, 2);
+            entity.Property(e => e.RemainingBalance).HasPrecision(18, 2);
+            entity.Property(e => e.TrackingCode).HasMaxLength(100);
+            entity.Property(e => e.Notes).HasMaxLength(1000);
+
+            entity.HasMany(e => e.Items)
+                  .WithOne()
+                  .HasForeignKey("DragonOrderId")
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(e => e.Payments)
+                  .WithOne()
+                  .HasForeignKey(p => p.DragonOrderId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // DragonOrderItem
+        modelBuilder.Entity<DragonOrderItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Description).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.UnitCost).HasPrecision(18, 2);
+            entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+            entity.Property(e => e.SubtotalCost).HasPrecision(18, 2);
+            entity.Property(e => e.SubtotalPrice).HasPrecision(18, 2);
+        });
+
+        // DragonPayment
+        modelBuilder.Entity<DragonPayment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            entity.Property(e => e.Notes).HasMaxLength(500);
+            entity.HasIndex(e => e.DragonOrderId);
         });
     }
 }

@@ -25,6 +25,8 @@ using Desktop.Features.Purchases;
 using Desktop.Features.Kits;
 using Desktop.Features.Inventory;
 using Desktop.Features.Shipments;
+using Desktop.Features.DragonOrders;
+using Desktop.Infrastructure.Services;
 using Integrations.SuperFrete.Extensions;
 using Integrations.SuperFrete.Interfaces;
 using Integrations.SuperFrete.Configuration;
@@ -110,6 +112,7 @@ public static class ServiceProviderConfiguration
             services.AddScoped<IPartRepository, EfPartRepository>();
             services.AddScoped<IInventoryMovementRepository, EfInventoryMovementRepository>();
             services.AddScoped<IFactoryOrderRepository, EfFactoryOrderRepository>();
+            services.AddScoped<IDragonOrderRepository, EfDragonOrderRepository>();
 
             Log.Information("ServiceProviderConfiguration: Registrando Use Cases e MediatR...");
             // Application Services (MediatR, Validators, etc.)
@@ -133,6 +136,7 @@ public static class ServiceProviderConfiguration
 
             Log.Information("ServiceProviderConfiguration: Registrando Services...");
             // Services
+            services.AddSingleton<IThemeService, ThemeService>();
             services.AddSingleton<ISmartSearchService, SmartSearchService>();
             services.AddScoped<IMarketplaceSyncService, MarketplaceSyncService>();
             services.AddScoped<IAutomationService, AutomationService>();
@@ -170,6 +174,7 @@ public static class ServiceProviderConfiguration
             services.AddTransient<KitsViewModel>();
             services.AddTransient<InventoryViewModel>();
             services.AddTransient<ShipmentsViewModel>();
+            services.AddTransient<DragonOrdersViewModel>();
 
             Log.Information("ServiceProviderConfiguration: Construindo ServiceProvider...");
             var serviceProvider = services.BuildServiceProvider();

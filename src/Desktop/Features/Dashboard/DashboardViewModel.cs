@@ -206,6 +206,8 @@ public class DashboardViewModel : ViewModelBase
                 .Where(o => o.CreatedAt >= startDate && o.Status != Domain.Entities.FactoryOrderStatus.Cancelado)
                 .Sum(o => o.TotalSalePrice);
 
+            var customerDict = customers.ToDictionary(c => c.Id);
+
             // Recent orders
             RecentOrders.Clear();
             foreach (var order in orders.OrderByDescending(o => o.CreatedAt).Take(8))

@@ -8,8 +8,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="800" d:DesignWidth="1000">
     <StackPanel>
-        <!-- Top Metrics -->
-        <Grid Margin="0,0,0,32">
+        <!-- Top Metrics — 5 KPI Cards -->
+        <Grid Margin="0,0,0,28">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -18,99 +18,107 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Style="{StaticResource CardContainer}" Margin="0,0,16,0" Padding="24">
+            <!-- Revenue -->
+            <Border Grid.Column="0" Style="{StaticResource CardContainer}" Margin="0,0,12,0" Padding="20">
                 <StackPanel>
-                    <Border Background="#EEF2FF" CornerRadius="8" Width="40" Height="40" HorizontalAlignment="Left">
-                        <materialDesign:PackIcon Kind="CurrencyUsd" Foreground="#4F46E5" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <TextBlock Text="Receita Total" FontSize="13" Foreground="{StaticResource StrongMutedTextBrush}" FontWeight="Medium" Margin="0,16,0,4"/>
-                    <TextBlock Text="{Binding TotalRevenue, StringFormat='R$ {0:N2}'}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                        <materialDesign:PackIcon Kind="TrendingUp" Foreground="{StaticResource SuccessBrush}" Width="16" Height="16" VerticalAlignment="Center"/>
-                        <TextBlock Text="12% vs mês ant." FontSize="11" Foreground="{StaticResource SuccessBrush}" Margin="6,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    <Grid>
+                        <Border Background="{DynamicResource PrimaryLightBrush}" CornerRadius="8" Width="36" Height="36" HorizontalAlignment="Left">
+                            <materialDesign:PackIcon Kind="CurrencyUsd" Foreground="{DynamicResource PrimaryBrush}" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
+                    <TextBlock Text="Receita Total" FontSize="12" Foreground="{StaticResource MutedTextBrush}" FontWeight="Medium" Margin="0,14,0,4"/>
+                    <TextBlock Text="{Binding TotalRevenue, StringFormat='R$ {0:N2}'}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <materialDesign:PackIcon Kind="TrendingUp" Foreground="{StaticResource SuccessBrush}" Width="14" Height="14" VerticalAlignment="Center"/>
+                        <TextBlock Text="12% vs mês ant." FontSize="10.5" Foreground="{StaticResource SuccessBrush}" Margin="4,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="1" Style="{StaticResource CardContainer}" Margin="0,0,16,0" Padding="24">
+            <!-- Profit -->
+            <Border Grid.Column="1" Style="{StaticResource CardContainer}" Margin="0,0,12,0" Padding="20">
                 <StackPanel>
-                    <Border Background="#ECFDF5" CornerRadius="8" Width="40" Height="40" HorizontalAlignment="Left">
-                        <materialDesign:PackIcon Kind="TrendingUp" Foreground="{StaticResource SuccessBrush}" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Border Background="{DynamicResource SuccessLightBrush}" CornerRadius="8" Width="36" Height="36" HorizontalAlignment="Left">
+                        <materialDesign:PackIcon Kind="TrendingUp" Foreground="{StaticResource SuccessBrush}" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
-                    <TextBlock Text="Lucro Estimado" FontSize="13" Foreground="{StaticResource StrongMutedTextBrush}" FontWeight="Medium" Margin="0,16,0,4"/>
-                    <TextBlock Text="{Binding TotalProfit, StringFormat='R$ {0:N2}'}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}"/>
-                    <TextBlock Text="Margem média: 35%" FontSize="11" Foreground="{StaticResource MutedTextBrush}" Margin="0,10,0,0" FontWeight="Medium"/>
+                    <TextBlock Text="Lucro Estimado" FontSize="12" Foreground="{StaticResource MutedTextBrush}" FontWeight="Medium" Margin="0,14,0,4"/>
+                    <TextBlock Text="{Binding TotalProfit, StringFormat='R$ {0:N2}'}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}"/>
+                    <TextBlock Text="Margem média: 35%" FontSize="10.5" Foreground="{StaticResource MutedTextBrush}" Margin="0,8,0,0" FontWeight="Medium"/>
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="2" Style="{StaticResource CardContainer}" Margin="0,0,16,0" Padding="24">
+            <!-- Orders -->
+            <Border Grid.Column="2" Style="{StaticResource CardContainer}" Margin="0,0,12,0" Padding="20">
                 <StackPanel>
-                    <Border Background="#F5F3FF" CornerRadius="8" Width="40" Height="40" HorizontalAlignment="Left">
-                        <materialDesign:PackIcon Kind="ShoppingOutline" Foreground="{StaticResource PrimaryBrush}" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Border Background="{DynamicResource PrimaryLightBrush}" CornerRadius="8" Width="36" Height="36" HorizontalAlignment="Left">
+                        <materialDesign:PackIcon Kind="ShoppingOutline" Foreground="{StaticResource PrimaryBrush}" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
-                    <TextBlock Text="Total Pedidos" FontSize="13" Foreground="{StaticResource StrongMutedTextBrush}" FontWeight="Medium" Margin="0,16,0,4"/>
-                    <TextBlock Text="{Binding OrderCount}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
-                    <TextBlock Text="Período ativo" FontSize="11" Foreground="{StaticResource MutedTextBrush}" Margin="0,10,0,0" FontWeight="Medium"/>
+                    <TextBlock Text="Total Pedidos" FontSize="12" Foreground="{StaticResource MutedTextBrush}" FontWeight="Medium" Margin="0,14,0,4"/>
+                    <TextBlock Text="{Binding OrderCount}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                    <TextBlock Text="Período ativo" FontSize="10.5" Foreground="{StaticResource MutedTextBrush}" Margin="0,8,0,0" FontWeight="Medium"/>
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="3" Style="{StaticResource CardContainer}" Margin="0,0,16,0" Padding="24">
+            <!-- Shipping -->
+            <Border Grid.Column="3" Style="{StaticResource CardContainer}" Margin="0,0,12,0" Padding="20">
                 <StackPanel>
-                    <Border Background="#EFF6FF" CornerRadius="8" Width="40" Height="40" HorizontalAlignment="Left">
-                        <materialDesign:PackIcon Kind="TruckDeliveryOutline" Foreground="#3B82F6" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Border Background="{DynamicResource InfoLightBrush}" CornerRadius="8" Width="36" Height="36" HorizontalAlignment="Left">
+                        <materialDesign:PackIcon Kind="TruckDeliveryOutline" Foreground="{DynamicResource InfoBrush}" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
-                    <TextBlock Text="Envios SuperFrete" FontSize="13" Foreground="{StaticResource StrongMutedTextBrush}" FontWeight="Medium" Margin="0,16,0,4"/>
-                    <TextBlock Text="{Binding TotalLabelsCount}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                        <Border Background="#DBEAFE" CornerRadius="6" Padding="8,3" Margin="0,0,6,0">
-                            <TextBlock Text="{Binding LabelsToPostCount, StringFormat='{} {0} pendentes'}" FontSize="10" Foreground="#1E40AF" FontWeight="Bold"/>
+                    <TextBlock Text="Envios SuperFrete" FontSize="12" Foreground="{StaticResource MutedTextBrush}" FontWeight="Medium" Margin="0,14,0,4"/>
+                    <TextBlock Text="{Binding TotalLabelsCount}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <Border Style="{StaticResource BadgeInfo}" Padding="6,2" Margin="0,0,4,0">
+                            <TextBlock Text="{Binding LabelsToPostCount, StringFormat='{} {0} pendentes'}" FontSize="10" Foreground="{DynamicResource InfoBrush}" FontWeight="SemiBold"/>
                         </Border>
-                        <Border Background="#DCFCE7" CornerRadius="6" Padding="8,3">
-                            <TextBlock Text="{Binding LabelsInTransitCount, StringFormat='{} {0} em rota'}" FontSize="10" Foreground="#166534" FontWeight="Bold"/>
+                        <Border Style="{StaticResource BadgeSuccess}" Padding="6,2">
+                            <TextBlock Text="{Binding LabelsInTransitCount, StringFormat='{} {0} em rota'}" FontSize="10" Foreground="{DynamicResource SuccessBrush}" FontWeight="SemiBold"/>
                         </Border>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="4" Style="{StaticResource CardContainer}" Padding="24">
+            <!-- Low Stock -->
+            <Border Grid.Column="4" Style="{StaticResource CardContainer}" Padding="20">
                 <StackPanel>
-                    <Border Background="#FEF2F2" CornerRadius="8" Width="40" Height="40" HorizontalAlignment="Left">
-                        <materialDesign:PackIcon Kind="AlertCircleOutline" Foreground="{StaticResource DangerBrush}" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Border Background="{DynamicResource DangerLightBrush}" CornerRadius="8" Width="36" Height="36" HorizontalAlignment="Left">
+                        <materialDesign:PackIcon Kind="AlertCircleOutline" Foreground="{StaticResource DangerBrush}" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
-                    <TextBlock Text="Estoque Baixo" FontSize="13" Foreground="{StaticResource StrongMutedTextBrush}" FontWeight="Medium" Margin="0,16,0,4"/>
-                    <TextBlock Text="{Binding LowStockProductsCount}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>
-                    <TextBlock Text="Ação necessária" FontSize="11" Foreground="{StaticResource DangerBrush}" Margin="0,10,0,0" FontWeight="SemiBold"/>
+                    <TextBlock Text="Estoque Baixo" FontSize="12" Foreground="{StaticResource MutedTextBrush}" FontWeight="Medium" Margin="0,14,0,4"/>
+                    <TextBlock Text="{Binding LowStockProductsCount}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>
+                    <TextBlock Text="Ação necessária" FontSize="10.5" Foreground="{StaticResource DangerBrush}" Margin="0,8,0,0" FontWeight="SemiBold"/>
                 </StackPanel>
             </Border>
         </Grid>
 
+        <!-- Bottom Section -->
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1.8*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Recent Activity -->
-            <Border Grid.Column="0" Style="{StaticResource CardContainer}" Margin="0,0,24,0" Padding="32">
+            <!-- Recent Orders -->
+            <Border Grid.Column="0" Style="{StaticResource CardContainer}" Margin="0,0,20,0" Padding="28">
                 <StackPanel>
-                    <Grid Margin="0,0,0,28">
+                    <Grid Margin="0,0,0,24">
                         <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="ClockOutline" Foreground="{StaticResource PrimaryBrush}" Width="20" Height="20" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <TextBlock Text="Pedidos Recentes" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                            <materialDesign:PackIcon Kind="ClockOutline" Foreground="{StaticResource PrimaryBrush}" Width="18" Height="18" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Text="Pedidos Recentes" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
                         </StackPanel>
-                        <Button Style="{StaticResource SecondaryButton}" Content="VER TUDO" HorizontalAlignment="Right" FontSize="11" Height="32" Padding="12,0"/>
+                        <Button Style="{StaticResource SecondaryButton}" Content="VER TUDO" HorizontalAlignment="Right" FontSize="11" Height="30" Padding="12,0"/>
                     </Grid>
                     
-                    <ListView ItemsSource="{Binding RecentOrders}" BorderThickness="0" Background="Transparent" SelectionMode="None">
+                    <ListView ItemsSource="{Binding RecentOrders}" BorderThickness="0" Background="Transparent">
                         <ListView.ItemContainerStyle>
                             <Style TargetType="ListViewItem">
-                                <Setter Property="Padding" Value="0,12"/>
-                                <Setter Property="BorderBrush" Value="#F1F5F9"/>
+                                <Setter Property="Padding" Value="0,10"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}"/>
                                 <Setter Property="BorderThickness" Value="0,0,0,1"/>
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="ListViewItem">
-                                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" CornerRadius="6">
                                                 <ContentPresenter />
                                             </Border>
                                         </ControlTemplate>
@@ -118,7 +126,7 @@
                                 </Setter>
                                 <Style.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="#F8FAFC"/>
+                                        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
@@ -128,29 +136,29 @@
                                 <GridViewColumn Header="PEDIDO" Width="100">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding OrderId}" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/>
+                                            <TextBlock Text="{Binding OrderId}" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontSize="13"/>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
                                 <GridViewColumn Header="CLIENTE" Width="220">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding CustomerName}" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
+                                            <TextBlock Text="{Binding CustomerName}" FontWeight="Medium" Foreground="{StaticResource TextBrush}" FontSize="13"/>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
                                 <GridViewColumn Header="TOTAL" Width="120">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding Total, StringFormat='R$ {0:N2}'}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                                            <TextBlock Text="{Binding Total, StringFormat='R$ {0:N2}'}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" FontSize="13"/>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
                                 <GridViewColumn Header="STATUS" Width="140">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Border CornerRadius="6" Padding="10,4" Background="#F1F5F9" HorizontalAlignment="Left">
-                                                <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="Bold" Foreground="#475569"/>
+                                            <Border CornerRadius="6" Padding="8,3" Background="{DynamicResource BorderSubtleBrush}" HorizontalAlignment="Left">
+                                                <TextBlock Text="{Binding Status}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource StrongMutedTextBrush}"/>
                                             </Border>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
@@ -161,22 +169,22 @@
                 </StackPanel>
             </Border>
 
-            <!-- Sales by Source -->
+            <!-- Sidebar: Sales by Source + CTA -->
             <StackPanel Grid.Column="1">
-                <Border Style="{StaticResource CardContainer}" Padding="32" Margin="0,0,0,24">
+                <Border Style="{StaticResource CardContainer}" Padding="28" Margin="0,0,0,20">
                     <StackPanel>
-                        <TextBlock Text="Vendas por Canal" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,28"/>
+                        <TextBlock Text="Vendas por Canal" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,24"/>
                         <ItemsControl ItemsSource="{Binding SalesBySource}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Margin="0,0,0,24">
+                                    <StackPanel Margin="0,0,0,20">
                                         <Grid>
-                                            <TextBlock Text="{Binding Source}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" FontSize="13"/>
-                                            <TextBlock Text="{Binding Revenue, StringFormat='R$ {0:N2}'}" HorizontalAlignment="Right" FontWeight="SemiBold" Foreground="{StaticResource StrongMutedTextBrush}"/>
+                                            <TextBlock Text="{Binding Source}" FontWeight="Medium" Foreground="{StaticResource TextBrush}" FontSize="12.5"/>
+                                            <TextBlock Text="{Binding Revenue, StringFormat='R$ {0:N2}'}" HorizontalAlignment="Right" FontWeight="SemiBold" Foreground="{StaticResource StrongMutedTextBrush}" FontSize="12.5"/>
                                         </Grid>
-                                        <Grid Margin="0,10,0,0">
-                                            <Border Background="#F1F5F9" Height="8" CornerRadius="4"/>
-                                            <Border Background="{DynamicResource PrimaryBrush}" Height="8" CornerRadius="4" HorizontalAlignment="Left" Width="{Binding Percentage, ConverterParameter=200, Converter={StaticResource WidthPercentageConverter}}"/>
+                                        <Grid Margin="0,8,0,0">
+                                            <Border Background="{DynamicResource BorderSubtleBrush}" Height="6" CornerRadius="3"/>
+                                            <Border Background="{DynamicResource PrimaryBrush}" Height="6" CornerRadius="3" HorizontalAlignment="Left" Width="{Binding Percentage, ConverterParameter=200, Converter={StaticResource WidthPercentageConverter}}"/>
                                         </Grid>
                                     </StackPanel>
                                 </DataTemplate>
@@ -185,14 +193,21 @@
                     </StackPanel>
                 </Border>
 
-                <Border Padding="32" CornerRadius="16" Background="{DynamicResource PrimaryBrush}">
+                <!-- CTA Card -->
+                <Border Padding="28" CornerRadius="14">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#6366F1" Offset="0"/>
+                            <GradientStop Color="#8B5CF6" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
                     <Border.Effect>
-                        <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.2" Color="#4F46E5"/>
+                        <DropShadowEffect BlurRadius="24" ShadowDepth="4" Opacity="0.18" Color="#6366F1"/>
                     </Border.Effect>
                     <StackPanel>
-                        <TextBlock Text="Pronto para crescer?" FontSize="20" FontWeight="Bold" Foreground="White"/>
-                        <TextBlock Text="Crie um novo pedido agora para impulsionar suas vendas e gerir seu estoque." Margin="0,12,0,28" TextWrapping="Wrap" Foreground="White" Opacity="0.9" LineHeight="20"/>
-                        <Button Style="{StaticResource ModernButton}" Content="➕ NOVO PEDIDO" Background="White" Foreground="{StaticResource PrimaryBrush}" FontWeight="Bold" Height="48"/>
+                        <TextBlock Text="Pronto para crescer?" FontSize="18" FontWeight="SemiBold" Foreground="White"/>
+                        <TextBlock Text="Crie um novo pedido agora para impulsionar suas vendas e gerir seu estoque." Margin="0,10,0,24" TextWrapping="Wrap" Foreground="White" Opacity="0.85" LineHeight="20" FontSize="13"/>
+                        <Button Style="{StaticResource ModernButton}" Content="NOVO PEDIDO" Background="White" Foreground="#6366F1" FontWeight="Bold" Height="42"/>
                     </StackPanel>
                 </Border>
             </StackPanel>

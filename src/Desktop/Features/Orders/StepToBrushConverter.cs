@@ -12,7 +12,7 @@ public class StepToBrushConverter : IValueConverter
         if (value is int currentStep && parameter is string targetStepStr && int.TryParse(targetStepStr, out int targetStep))
         {
             if (currentStep >= targetStep)
-                return Application.Current.FindResource("PrimaryBrush");
+                return System.Windows.Application.Current.FindResource("PrimaryBrush");
         }
         return new SolidColorBrush(Colors.LightGray);
     }

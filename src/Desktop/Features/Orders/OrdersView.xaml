@@ -20,12 +20,12 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="350"/>
+            <ColumnDefinition Width="340"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- LEFT PANEL: Order List -->
-        <materialDesign:Card Grid.Column="0" Margin="0,0,16,0" materialDesign:ElevationAssist.Elevation="Dp2" UniformCornerRadius="16">
+        <Border Grid.Column="0" Style="{StaticResource CardContainer}" Margin="0,0,14,0" Padding="0">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -33,26 +33,23 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Search and Filters -->
-                <Border Grid.Row="0" Padding="20,20,20,10">
+                <Border Padding="20,18,20,10">
                     <StackPanel>
-                        <TextBlock Text="Orders" Style="{StaticResource MaterialDesignHeadline5TextBlock}" FontWeight="Bold" Margin="0,0,0,16"/>
-                        
+                        <TextBlock Text="Pedidos" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,14"/>
                         <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                 materialDesign:HintAssist.Hint="Search orders..."
+                                 Style="{StaticResource ModernTextBox}"
+                                 materialDesign:HintAssist.Hint="Buscar pedidos..."
                                  materialDesign:TextFieldAssist.HasClearButton="True"
-                                 Margin="0,0,0,12"/>
-
+                                 Margin="0,0,0,10"/>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <ComboBox SelectedValue="{Binding CategoryFilter, UpdateSourceTrigger=PropertyChanged}" 
-                                      Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                                      materialDesign:HintAssist.Hint="Category"
-                                      Height="45">
+                                      Style="{StaticResource ModernComboBox}"
+                                      materialDesign:HintAssist.Hint="Categoria"
+                                      Height="42">
                                 <ComboBoxItem Content="Todas Categorias" IsSelected="True"/>
                                 <ComboBoxItem Content="Kits de Peças" />
                                 <ComboBoxItem Content="Cilindros de CO2" />
@@ -62,55 +59,53 @@
                                 <ComboBoxItem Content="Geral" />
                             </ComboBox>
                             <Button Grid.Column="1" Command="{Binding RefreshOrdersCommand}" 
-                                    Style="{StaticResource MaterialDesignIconButton}" Margin="8,0,0,0">
-                                <materialDesign:PackIcon Kind="Refresh" />
+                                    Style="{StaticResource MaterialDesignIconButton}" Margin="8,0,0,0" Width="36" Height="36">
+                                <materialDesign:PackIcon Kind="Refresh" Width="18" Height="18"/>
                             </Button>
                         </Grid>
                     </StackPanel>
                 </Border>
 
-                <Button Grid.Row="1" Content="NEW ORDER" Command="{Binding NewOrderCommand}" 
-                        Style="{StaticResource MaterialDesignRaisedButton}" 
-                        Foreground="White"
-                        Margin="20,10" Height="45" materialDesign:ButtonAssist.CornerRadius="12"/>
+                <Button Grid.Row="1" Content="NOVO PEDIDO" Command="{Binding NewOrderCommand}" 
+                        Style="{StaticResource ModernButton}" 
+                        Margin="20,6,20,14" Height="40"/>
 
-                <!-- Orders List -->
                 <ListBox Grid.Row="2" ItemsSource="{Binding FilteredOrders}" 
                          SelectedItem="{Binding SelectedOrder}"
                          Style="{StaticResource MaterialDesignNavigationPrimaryListBox}"
                          ScrollViewer.VerticalScrollBarVisibility="Auto">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <Border Padding="16,12" BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,0,1">
+                            <Border Padding="14,10" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,0,0,1">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
-                                        <TextBlock Text="{Binding CustomerName}" FontWeight="Bold" FontSize="14"/>
-                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0" Opacity="0.6">
-                                            <materialDesign:PackIcon Kind="ClockOutline" Width="14" Height="14" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding CustomerName}" FontWeight="Medium" FontSize="13.5"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,3,0,0" Opacity="0.5">
+                                            <materialDesign:PackIcon Kind="ClockOutline" Width="13" Height="13" VerticalAlignment="Center"/>
                                             <TextBlock Text="{Binding CreatedAtFormatted}" FontSize="11" Margin="4,0,0,0" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" HorizontalAlignment="Right">
-                                        <TextBlock Text="{Binding TotalFormatted}" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Right"/>
-                                        <Border CornerRadius="10" Padding="8,2" Margin="0,4,0,0" HorizontalAlignment="Right">
+                                        <TextBlock Text="{Binding TotalFormatted}" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Right" FontSize="13"/>
+                                        <Border CornerRadius="6" Padding="6,2" Margin="0,3,0,0" HorizontalAlignment="Right">
                                             <Border.Style>
                                                 <Style TargetType="Border">
-                                                    <Setter Property="Background" Value="#F1F5F9"/>
+                                                    <Setter Property="Background" Value="{DynamicResource BorderSubtleBrush}"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding Status}" Value="Shipped">
-                                                            <Setter Property="Background" Value="#DBEAFE"/>
+                                                            <Setter Property="Background" Value="{DynamicResource InfoLightBrush}"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding Status}" Value="Completed">
-                                                            <Setter Property="Background" Value="#DCFCE7"/>
+                                                            <Setter Property="Background" Value="{DynamicResource SuccessLightBrush}"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </Border.Style>
-                                            <TextBlock Text="{Binding StatusText}" FontSize="10" FontWeight="Bold"/>
+                                            <TextBlock Text="{Binding StatusText}" FontSize="10" FontWeight="SemiBold"/>
                                         </Border>
                                     </StackPanel>
                                 </Grid>
@@ -119,25 +114,19 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
             </Grid>
-        </materialDesign:Card>
+        </Border>
 
-        <!-- RIGHT PANEL: Wizard / Details -->
+        <!-- RIGHT PANEL -->
         <Grid Grid.Column="1">
-            <!-- Empty State -->
-            <materialDesign:Card Visibility="{Binding HasSelectedOrder, Converter={StaticResource InverseBoolToVisibility}}"
-                                 UniformCornerRadius="16" materialDesign:ElevationAssist.Elevation="Dp2">
+            <Border Style="{StaticResource CardContainer}" Visibility="{Binding HasSelectedOrder, Converter={StaticResource InverseBoolToVisibility}}">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <materialDesign:PackIcon Kind="CartOutline" Width="80" Height="80" Opacity="0.1" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Select an order or create a new one" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Opacity="0.4" Margin="0,24,0,0"/>
-                    <Button Content="CREATE NEW ORDER" Command="{Binding NewOrderCommand}" 
-                            Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,32,0,0"
-                            materialDesign:ButtonAssist.CornerRadius="12"/>
+                    <materialDesign:PackIcon Kind="CartOutline" Width="64" Height="64" Opacity="0.08" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Selecione ou crie um pedido" FontSize="15" Opacity="0.35" Margin="0,20,0,0" FontWeight="Medium"/>
+                    <Button Content="CRIAR PEDIDO" Command="{Binding NewOrderCommand}" Style="{StaticResource SecondaryButton}" Margin="0,24,0,0" Height="38"/>
                 </StackPanel>
-            </materialDesign:Card>
+            </Border>
 
-            <!-- Wizard Flow -->
-            <materialDesign:Card Visibility="{Binding HasSelectedOrder, Converter={StaticResource BoolToVisibility}}"
-                                 UniformCornerRadius="16" materialDesign:ElevationAssist.Elevation="Dp2">
+            <Border Style="{StaticResource CardContainer}" Visibility="{Binding HasSelectedOrder, Converter={StaticResource BoolToVisibility}}" Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -145,72 +134,57 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Stepper Header -->
-                    <Border Grid.Row="0" Padding="32,24" BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,0,1">
+                    <!-- Stepper -->
+                    <Border Padding="28,20" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,0,0,1">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <!-- Step 1 -->
                                 <StackPanel Orientation="Horizontal">
-                                    <Border Width="32" Height="32" CornerRadius="16" Background="{StaticResource PrimaryBrush}" VerticalAlignment="Center">
-                                        <materialDesign:PackIcon Kind="Account" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border Width="30" Height="30" CornerRadius="15" Background="{StaticResource PrimaryBrush}" VerticalAlignment="Center">
+                                        <materialDesign:PackIcon Kind="Account" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16"/>
                                     </Border>
-                                    <TextBlock Text="Customer" VerticalAlignment="Center" Margin="12,0,24,0" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Cliente" VerticalAlignment="Center" Margin="10,0,20,0" FontWeight="Medium" FontSize="13"/>
                                 </StackPanel>
-                                
-                                <materialDesign:PackIcon Kind="ChevronRight" Opacity="0.3" VerticalAlignment="Center" Margin="0,0,24,0"/>
-
-                                <!-- Step 2 -->
+                                <materialDesign:PackIcon Kind="ChevronRight" Opacity="0.2" VerticalAlignment="Center" Margin="0,0,20,0"/>
                                 <StackPanel Orientation="Horizontal" Opacity="{Binding Step1Completed, Converter={StaticResource BoolToOpacityConverter}, FallbackValue=0.3}">
-                                    <Border Width="32" Height="32" CornerRadius="16" 
-                                            Background="{Binding CurrentStep, Converter={StaticResource StepToBrushConverter}, ConverterParameter=2}" VerticalAlignment="Center">
-                                        <materialDesign:PackIcon Kind="PackageVariant" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border Width="30" Height="30" CornerRadius="15" Background="{Binding CurrentStep, Converter={StaticResource StepToBrushConverter}, ConverterParameter=2}" VerticalAlignment="Center">
+                                        <materialDesign:PackIcon Kind="PackageVariant" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16"/>
                                     </Border>
-                                    <TextBlock Text="Products" VerticalAlignment="Center" Margin="12,0,24,0" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Produtos" VerticalAlignment="Center" Margin="10,0,20,0" FontWeight="Medium" FontSize="13"/>
                                 </StackPanel>
-
-                                <materialDesign:PackIcon Kind="ChevronRight" Opacity="0.3" VerticalAlignment="Center" Margin="0,0,24,0"/>
-
-                                <!-- Step 3 -->
+                                <materialDesign:PackIcon Kind="ChevronRight" Opacity="0.2" VerticalAlignment="Center" Margin="0,0,20,0"/>
                                 <StackPanel Orientation="Horizontal" Opacity="{Binding Step2Completed, Converter={StaticResource BoolToOpacityConverter}, FallbackValue=0.3}">
-                                    <Border Width="32" Height="32" CornerRadius="16" 
-                                            Background="{Binding CurrentStep, Converter={StaticResource StepToBrushConverter}, ConverterParameter=3}" VerticalAlignment="Center">
-                                        <materialDesign:PackIcon Kind="TruckDelivery" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border Width="30" Height="30" CornerRadius="15" Background="{Binding CurrentStep, Converter={StaticResource StepToBrushConverter}, ConverterParameter=3}" VerticalAlignment="Center">
+                                        <materialDesign:PackIcon Kind="TruckDelivery" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16"/>
                                     </Border>
-                                    <TextBlock Text="Shipping" VerticalAlignment="Center" Margin="12,0,0,0" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Envio" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Medium" FontSize="13"/>
                                 </StackPanel>
                             </StackPanel>
-
-                            <Button Grid.Column="1" Command="{Binding CancelOrderCommand}" 
-                                    Style="{StaticResource MaterialDesignFlatButton}" Foreground="{StaticResource DangerBrush}">
+                            <Button Grid.Column="1" Command="{Binding CancelOrderCommand}" Style="{StaticResource MaterialDesignFlatButton}" Foreground="{StaticResource DangerBrush}">
                                 <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="Close" Width="18" Height="18" VerticalAlignment="Center"/>
-                                    <TextBlock Text="CANCEL" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    <materialDesign:PackIcon Kind="Close" Width="16" Height="16" VerticalAlignment="Center"/>
+                                    <TextBlock Text="CANCELAR" Margin="6,0,0,0" VerticalAlignment="Center" FontSize="12"/>
                                 </StackPanel>
                             </Button>
                         </Grid>
                     </Border>
 
-                    <!-- Content Area -->
-                    <ScrollViewer Grid.Row="1" Padding="32" VerticalScrollBarVisibility="Auto">
+                    <!-- Content -->
+                    <ScrollViewer Grid.Row="1" Padding="28,20" VerticalScrollBarVisibility="Auto">
                         <Grid>
-                            <!-- Step 1: Customer -->
+                            <!-- Step 1 -->
                             <StackPanel Visibility="{Binding IsStep1, Converter={StaticResource BoolToVisibility}}">
-                                <TextBlock Text="Select Customer" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,24"/>
-                                <ListBox ItemsSource="{Binding Customers}" 
-                                         SelectedItem="{Binding SelectedCustomer}"
-                                         MaxHeight="400"
-                                         Style="{StaticResource MaterialDesignNavigationPrimaryListBox}">
+                                <TextBlock Text="Selecionar Cliente" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,20"/>
+                                <ListBox ItemsSource="{Binding Customers}" SelectedItem="{Binding SelectedCustomer}" MaxHeight="400" Style="{StaticResource MaterialDesignNavigationPrimaryListBox}">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
                                             <Border Padding="8">
                                                 <StackPanel>
-                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
-                                                    <TextBlock Text="{Binding Email}" Opacity="0.6" FontSize="12"/>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Medium" FontSize="13.5"/>
+                                                    <TextBlock Text="{Binding Email}" Opacity="0.5" FontSize="12"/>
                                                 </StackPanel>
                                             </Border>
                                         </DataTemplate>
@@ -218,121 +192,110 @@
                                 </ListBox>
                             </StackPanel>
 
-                            <!-- Step 2: Products -->
+                            <!-- Step 2 -->
                             <Grid Visibility="{Binding IsStep2, Converter={StaticResource BoolToVisibility}}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="350"/>
+                                    <ColumnDefinition Width="320"/>
                                 </Grid.ColumnDefinitions>
-                                
-                                <StackPanel Grid.Column="0" Margin="0,0,24,0">
-                                    <TextBlock Text="Add Products" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,24"/>
+                                <StackPanel Margin="0,0,20,0">
+                                    <TextBlock Text="Adicionar Produtos" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,20"/>
                                     <ItemsControl ItemsSource="{Binding AvailableProducts}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <materialDesign:Card Margin="0,0,0,12" ContentControl.Padding="16">
+                                                <Border Style="{StaticResource CardContainerFlat}" Margin="0,0,0,10" Padding="14">
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
                                                         <StackPanel>
-                                                            <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
-                                                            <TextBlock Text="{Binding PriceFormatted}" Foreground="{StaticResource SuccessBrush}"/>
+                                                            <TextBlock Text="{Binding Name}" FontWeight="Medium" FontSize="13.5"/>
+                                                            <TextBlock Text="{Binding PriceFormatted}" Foreground="{StaticResource SuccessBrush}" FontSize="13"/>
                                                         </StackPanel>
-                                                        <Button Grid.Column="1" Command="{Binding DataContext.AddProductToOrderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                CommandParameter="{Binding}"
-                                                                Style="{StaticResource MaterialDesignIconButton}">
-                                                            <materialDesign:PackIcon Kind="Plus" />
+                                                        <Button Grid.Column="1" Command="{Binding DataContext.AddProductToOrderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Style="{StaticResource MaterialDesignIconButton}" Width="34" Height="34">
+                                                            <materialDesign:PackIcon Kind="Plus" Width="18" Height="18"/>
                                                         </Button>
                                                     </Grid>
-                                                </materialDesign:Card>
+                                                </Border>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
                                 </StackPanel>
-
-                                <materialDesign:Card Grid.Column="1" ContentControl.Padding="24" Background="#F8FAFC" UniformCornerRadius="16">
+                                <Border Grid.Column="1" Background="{DynamicResource BackgroundBrush}" CornerRadius="12" Padding="20" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
                                     <StackPanel>
-                                        <TextBlock Text="Current Order" FontWeight="Bold" Margin="0,0,0,16"/>
+                                        <TextBlock Text="Pedido Atual" FontWeight="SemiBold" Margin="0,0,0,14" FontSize="14"/>
                                         <ItemsControl ItemsSource="{Binding OrderItems}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Grid Margin="0,0,0,12">
+                                                    <Grid Margin="0,0,0,10">
                                                         <StackPanel>
-                                                            <TextBlock Text="{Binding ProductName}" FontSize="12"/>
-                                                            <TextBlock Text="{Binding SubtotalFormatted}" FontWeight="Bold" Opacity="0.7"/>
+                                                            <TextBlock Text="{Binding ProductName}" FontSize="12.5"/>
+                                                            <TextBlock Text="{Binding SubtotalFormatted}" FontWeight="SemiBold" Opacity="0.6" FontSize="12"/>
                                                         </StackPanel>
-                                                        <Button HorizontalAlignment="Right" Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                CommandParameter="{Binding}"
-                                                                Style="{StaticResource MaterialDesignIconButton}" Width="24" Height="24">
-                                                            <materialDesign:PackIcon Kind="Close" Width="14" Height="14"/>
+                                                        <Button HorizontalAlignment="Right" Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Style="{StaticResource MaterialDesignIconButton}" Width="22" Height="22">
+                                                            <materialDesign:PackIcon Kind="Close" Width="12" Height="12"/>
                                                         </Button>
                                                     </Grid>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
-                                        <Separator Margin="0,16"/>
+                                        <Separator Margin="0,12"/>
                                         <Grid>
-                                            <TextBlock Text="Total"/>
-                                            <TextBlock Text="{Binding OrderTotalFormatted}" HorizontalAlignment="Right" FontWeight="Bold" FontSize="18" Foreground="{StaticResource SuccessBrush}"/>
+                                            <TextBlock Text="Total" FontWeight="Medium"/>
+                                            <TextBlock Text="{Binding OrderTotalFormatted}" HorizontalAlignment="Right" FontWeight="Bold" FontSize="16" Foreground="{StaticResource SuccessBrush}"/>
                                         </Grid>
                                     </StackPanel>
-                                </materialDesign:Card>
+                                </Border>
                             </Grid>
 
-                            <!-- Step 3: Shipping -->
+                            <!-- Step 3 -->
                             <StackPanel Visibility="{Binding IsStep3, Converter={StaticResource BoolToVisibility}}">
-                                <TextBlock Text="Shipping Options" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,24"/>
-                                
-                                <materialDesign:Card ContentControl.Padding="24" Margin="0,0,0,24" Background="{StaticResource PrimaryBrush}" Foreground="White" UniformCornerRadius="16">
+                                <TextBlock Text="Opções de Envio" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,20"/>
+                                <Border Padding="20" CornerRadius="12" Margin="0,0,0,20">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#6366F1" Offset="0"/>
+                                            <GradientStop Color="#6366F1" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
                                     <Grid>
-                                        <materialDesign:PackIcon Kind="MapMarker" Width="24" Height="24"/>
-                                        <StackPanel Margin="40,0,0,0">
-                                            <TextBlock Text="Destination" Opacity="0.7" FontSize="12"/>
-                                            <TextBlock Text="{Binding DestinationPostalCode}" FontWeight="Bold" FontSize="16"/>
+                                        <materialDesign:PackIcon Kind="MapMarker" Width="20" Height="20" Foreground="White"/>
+                                        <StackPanel Margin="36,0,0,0">
+                                            <TextBlock Text="Destino" Opacity="0.7" FontSize="11.5" Foreground="White"/>
+                                            <TextBlock Text="{Binding DestinationPostalCode}" FontWeight="SemiBold" FontSize="15" Foreground="White"/>
                                         </StackPanel>
-                                        <Button HorizontalAlignment="Right" Style="{StaticResource MaterialDesignFlatButton}" Foreground="White" Content="CHANGE"/>
+                                        <Button HorizontalAlignment="Right" Style="{StaticResource MaterialDesignFlatButton}" Foreground="White" Content="ALTERAR" FontSize="11"/>
                                     </Grid>
-                                </materialDesign:Card>
-
-                                <Button Command="{Binding CalculateShippingCommand}" 
-                                        Style="{StaticResource MaterialDesignRaisedButton}" 
-                                        Height="50" materialDesign:ButtonAssist.CornerRadius="12"
-                                        Foreground="White"
-                                        IsEnabled="{Binding IsCalculatingShipping, Converter={StaticResource InverseBool}}">
+                                </Border>
+                                <Button Command="{Binding CalculateShippingCommand}" Style="{StaticResource ModernButton}" Height="44" IsEnabled="{Binding IsCalculatingShipping, Converter={StaticResource InverseBool}}">
                                     <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Kind="Calculator" VerticalAlignment="Center"/>
-                                        <TextBlock Text="CALCULATE SHIPPING" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="Bold"/>
+                                        <materialDesign:PackIcon Kind="Calculator" VerticalAlignment="Center" Width="18" Height="18"/>
+                                        <TextBlock Text="CALCULAR FRETE" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"/>
                                     </StackPanel>
                                 </Button>
-
-                                <ProgressBar IsIndeterminate="True" Margin="0,24,0,0" 
-                                             Visibility="{Binding IsCalculatingShipping, Converter={StaticResource BoolToVisibility}}"/>
-
-                                <ItemsControl ItemsSource="{Binding ShippingQuotes}" Margin="0,24,0,0">
+                                <ProgressBar IsIndeterminate="True" Margin="0,20,0,0" Visibility="{Binding IsCalculatingShipping, Converter={StaticResource BoolToVisibility}}"/>
+                                <ItemsControl ItemsSource="{Binding ShippingQuotes}" Margin="0,20,0,0">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <materialDesign:Card Margin="0,0,0,12" ContentControl.Padding="16" materialDesign:ElevationAssist.Elevation="Dp0">
+                                            <Border Style="{StaticResource CardContainerFlat}" Margin="0,0,0,10" Padding="14">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="Auto"/>
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <materialDesign:PackIcon Kind="Truck" VerticalAlignment="Center" Width="24" Height="24" Opacity="0.5"/>
-                                                    <StackPanel Grid.Column="1" Margin="16,0">
-                                                        <TextBlock Text="{Binding ServiceName}" FontWeight="Bold"/>
-                                                        <TextBlock Text="{Binding DeliveryRange}" FontSize="12" Opacity="0.6"/>
+                                                    <materialDesign:PackIcon Kind="Truck" VerticalAlignment="Center" Width="20" Height="20" Opacity="0.4"/>
+                                                    <StackPanel Grid.Column="1" Margin="14,0">
+                                                        <TextBlock Text="{Binding ServiceName}" FontWeight="Medium" FontSize="13"/>
+                                                        <TextBlock Text="{Binding DeliveryRange}" FontSize="12" Opacity="0.5"/>
                                                     </StackPanel>
                                                     <StackPanel Grid.Column="2">
-                                                        <TextBlock Text="{Binding PriceFormatted}" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Right"/>
-                                                        <Button Content="SELECT" Style="{StaticResource MaterialDesignFlatButton}" Padding="8,4" Height="Auto"
-                                                                Command="{Binding DataContext.SelectShippingCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                CommandParameter="{Binding}"/>
+                                                        <TextBlock Text="{Binding PriceFormatted}" FontWeight="SemiBold" Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Right" FontSize="13"/>
+                                                        <Button Content="SELECIONAR" Style="{StaticResource MaterialDesignFlatButton}" Padding="6,2" Height="Auto" FontSize="11" Command="{Binding DataContext.SelectShippingCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
                                                     </StackPanel>
                                                 </Grid>
-                                            </materialDesign:Card>
+                                            </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
@@ -340,36 +303,16 @@
                         </Grid>
                     </ScrollViewer>
 
-                    <!-- Navigation Footer -->
-                    <Border Grid.Row="2" Padding="32,20" BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,1,0,0">
+                    <!-- Footer -->
+                    <Border Grid.Row="2" Padding="28,16" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,1,0,0">
                         <Grid>
-                            <Button HorizontalAlignment="Left" Content="PREVIOUS" 
-                                    Command="{Binding PreviousStepCommand}"
-                                    Style="{StaticResource MaterialDesignOutlinedButton}"
-                                    Visibility="{Binding IsStep1, Converter={StaticResource InverseBoolToVisibility}}"
-                                    materialDesign:ButtonAssist.CornerRadius="12"/>
-                            
-                            <Button HorizontalAlignment="Right" Content="NEXT STEP" 
-                                    Command="{Binding NextStepCommand}"
-                                    Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Foreground="White"
-                                    Visibility="{Binding IsStep3, Converter={StaticResource InverseBoolToVisibility}}"
-                                    IsEnabled="{Binding Step1Completed}"
-                                    materialDesign:ButtonAssist.CornerRadius="12"/>
-
-                            <Button HorizontalAlignment="Right" Content="FINALIZE ORDER" 
-                                    Command="{Binding FinalizeOrderCommand}"
-                                    Style="{StaticResource MaterialDesignRaisedButton}"
-                                    Background="{StaticResource SuccessBrush}"
-                                    BorderBrush="{StaticResource SuccessBrush}"
-                                    Foreground="White"
-                                    Visibility="{Binding IsStep3, Converter={StaticResource BoolToVisibility}}"
-                                    IsEnabled="{Binding HasSelectedShipping}"
-                                    materialDesign:ButtonAssist.CornerRadius="12"/>
+                            <Button HorizontalAlignment="Left" Content="ANTERIOR" Command="{Binding PreviousStepCommand}" Style="{StaticResource SecondaryButton}" Visibility="{Binding IsStep1, Converter={StaticResource InverseBoolToVisibility}}" Height="38"/>
+                            <Button HorizontalAlignment="Right" Content="PRÓXIMO" Command="{Binding NextStepCommand}" Style="{StaticResource ModernButton}" Visibility="{Binding IsStep3, Converter={StaticResource InverseBoolToVisibility}}" IsEnabled="{Binding Step1Completed}" Height="38"/>
+                            <Button HorizontalAlignment="Right" Content="FINALIZAR PEDIDO" Command="{Binding FinalizeOrderCommand}" Style="{StaticResource ModernButton}" Background="{StaticResource SuccessBrush}" Visibility="{Binding IsStep3, Converter={StaticResource BoolToVisibility}}" IsEnabled="{Binding HasSelectedShipping}" Height="38"/>
                         </Grid>
                     </Border>
                 </Grid>
-            </materialDesign:Card>
+            </Border>
         </Grid>
     </Grid>
 </UserControl>

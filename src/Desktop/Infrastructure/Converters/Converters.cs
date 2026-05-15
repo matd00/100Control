@@ -109,16 +109,11 @@ public class BoolToOpacityConverter : IValueConverter
     }
 }
 
-public class StepToBrushConverter : IValueConverter
+public class EqualityToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is int currentStep && parameter is string targetStepStr && int.TryParse(targetStepStr, out int targetStep))
-        {
-            if (currentStep >= targetStep)
-                return Application.Current.FindResource("PrimaryBrush");
-        }
-        return new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.LightGray);
+        return object.Equals(value, parameter) ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

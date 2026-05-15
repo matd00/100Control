@@ -9,6 +9,8 @@ using Desktop.Features.Kits;
 using Desktop.Features.Shipments;
 using Desktop.Features.Dashboard;
 using Desktop.Features.Inventory;
+using Desktop.Features.DragonOrders;
+using Desktop.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Desktop;
@@ -16,11 +18,17 @@ namespace Desktop;
 public partial class MainWindow : Window
 {
     private Button? _activeMenuButton;
+    private readonly IThemeService _themeService;
 
     public MainWindow()
     {
         InitializeComponent();
-        MainSnackbar.MessageQueue = App.SnackbarMessageQueue;
+        _themeService = App.ServiceProvider.GetRequiredService<IThemeService>();
+        
+        if (MainSnackbar != null)
+        {
+            MainSnackbar.MessageQueue = App.SnackbarMessageQueue;
+        }
         _activeMenuButton = BtnDashboard;
         TxtDate.Text = DateTime.Now.ToString("dd/MM/yyyy");
         ShowDashboard();
@@ -36,9 +44,6 @@ public partial class MainWindow : Window
 
     private void HideAllContent()
     {
-        DashboardContent.Visibility = Visibility.Collapsed;
-        MercadoLivreContent.Visibility = Visibility.Collapsed;
-        ShopeeContent.Visibility = Visibility.Collapsed;
         DynamicContent.Children.Clear();
     }
 
@@ -179,6 +184,19 @@ public partial class MainWindow : Window
         LoadView<ShipmentsView, ShipmentsViewModel>("Envios", "Gerar etiquetas e rastrear envios");
     }
 
+    private void DragonOrders_Click(object sender, RoutedEventArgs e)
+    {
+        SetActiveButton(BtnDragonOrders);
+        LoadView<DragonOrdersView, DragonOrdersViewModel>("Pedidos Dragon", "Controle de pedidos, pagamentos e cashback");
+
+        // Wire navigation callback
+        if (DynamicContent.Children.Count > 0 && DynamicContent.Children[0] is DragonOrdersView view
+            && view.DataContext is DragonOrdersViewModel vm)
+        {
+            vm.NavigateToCustomers = () => Customers_Click(BtnCustomers, new RoutedEventArgs());
+        }
+    }
+
     private void MercadoLivre_Click(object sender, RoutedEventArgs e)
     {
         SetActiveButton(BtnMercadoLivre);
@@ -199,6 +217,11 @@ public partial class MainWindow : Window
 
     private void ShowDashboard()
     {
-        LoadView<DashboardView, DashboardViewModel>("Dashboard", "General system overview");
+        LoadView<DashboardView, DashboardViewModel>("Dashboard", "Visão geral do sistema");
+    }
+
+    private void ToggleTheme_Click(object sender, RoutedEventArgs e)
+    {
+        _themeService.ToggleTheme();
     }
 }
