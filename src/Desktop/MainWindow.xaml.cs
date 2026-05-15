@@ -1,5 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using Desktop.Features.Products;
 using Desktop.Features.Orders;
 using Desktop.Features.Customers;
@@ -223,5 +225,34 @@ public partial class MainWindow : Window
     private void ToggleTheme_Click(object sender, RoutedEventArgs e)
     {
         _themeService.ToggleTheme();
+    }
+
+    private void Window_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (e.Handled) return;
+
+        var scrollViewer = FindVisualParent<ScrollViewer>(e.OriginalSource as DependencyObject);
+
+        if (scrollViewer != null)
+        {
+            if (e.Delta > 0)
+                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - 40);
+            else
+                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset + 40);
+
+            e.Handled = true;
+        }
+    }
+
+    private T? FindVisualParent<T>(DependencyObject? child) where T : DependencyObject
+    {
+        DependencyObject? parentObject = child;
+        while (parentObject != null)
+        {
+            if (parentObject is T parent)
+                return parent;
+            parentObject = VisualTreeHelper.GetParent(parentObject);
+        }
+        return null;
     }
 }

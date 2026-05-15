@@ -11,7 +11,8 @@
         TextElement.FontSize="13.5"
         TextOptions.TextFormattingMode="Ideal"
         TextOptions.TextRenderingMode="Auto"
-        FontFamily="Segoe UI Variable, Segoe UI, Inter, Arial">
+        FontFamily="Segoe UI Variable, Segoe UI, Inter, Arial"
+        PreviewMouseWheel="Window_PreviewMouseWheel">
 
     <Window.Resources>
         <!-- Sidebar Menu Button — Compact, refined -->
