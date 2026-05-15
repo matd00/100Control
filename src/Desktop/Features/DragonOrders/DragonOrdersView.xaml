@@ -359,7 +359,7 @@
                                                         <TextBlock FontSize="11" Foreground="{DynamicResource PlaceholderBrush}"><Run Text="Custo: R$ " /><Run Text="{Binding UnitCost, StringFormat='{}{0:N2}', Mode=OneWay}" /> — <Run Text="Venda: R$ " /><Run Text="{Binding UnitPrice, StringFormat='{}{0:N2}', Mode=OneWay}" /></TextBlock>
                                                     </StackPanel>
                                                     <TextBlock Grid.Column="1" Text="{Binding SubtotalPrice, StringFormat='R$ {0:N2}'}" HorizontalAlignment="Right" FontWeight="SemiBold" VerticalAlignment="Center" FontSize="13" Margin="0,0,6,0" />
-                                                    <Button Grid.Column="2" Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}" Style="{StaticResource GhostButton}" Width="24" Height="24" Padding="0" ToolTip="Remover item">
+                                                    <Button Grid.Column="2" Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Style="{StaticResource GhostButton}" Width="24" Height="24" Padding="0" ToolTip="Remover item">
                                                         <materialDesign:PackIcon Kind="Close" Width="14" Height="14" Foreground="{StaticResource DangerBrush}" />
                                                     </Button>
                                                 </Grid>
